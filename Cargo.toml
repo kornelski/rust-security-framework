@@ -1,0 +1,8 @@
+[package]
+name = "secure-transport"
+version = "0.1.0"
+authors = ["Steven Fackler <sfackler@gmail.com>"]
+license = "MIT"
+
+[dependencies]
+security-framework-sys = { git = "https://github.com/sfackler/rust-security-framework-sys" }
