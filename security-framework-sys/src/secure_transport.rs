@@ -39,11 +39,11 @@ pub enum SSLSessionOption {
 
 #[repr(C)]
 pub enum SSLSessionState {
-	kSSLIdle,
-	kSSLHandshake,
-	kSSLConnected,
-	kSSLClosed,
-	kSSLAborted,
+    kSSLIdle,
+    kSSLHandshake,
+    kSSLConnected,
+    kSSLClosed,
+    kSSLAborted,
 }
 
 #[repr(C)]
