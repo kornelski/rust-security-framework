@@ -232,7 +232,25 @@ impl<S> Drop for SslStream<S> {
 }
 
 impl<S> SslStream<S> {
-    fn connection(&mut self) -> &mut Connection<S> {
+    pub fn get_ref(&self) -> &S {
+        &self.connection().stream
+    }
+
+    pub fn get_mut(&mut self) -> &mut S {
+        &mut self.connection_mut().stream
+    }
+
+    fn connection(&self) -> &Connection<S> {
+        unsafe {
+            let mut conn = ptr::null();
+            let ret = SSLGetConnection(self.ctx.0, &mut conn);
+            assert!(ret == 0);
+
+            mem::transmute(conn)
+        }
+    }
+
+    fn connection_mut(&mut self) -> &mut Connection<S> {
         unsafe {
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
@@ -243,7 +261,7 @@ impl<S> SslStream<S> {
     }
 
     fn get_error(&mut self, ret: OSStatus) -> io::Error {
-        let conn = self.connection();
+        let conn = self.connection_mut();
         if let Some(err) = conn.err.take() {
             err
         } else {
@@ -288,7 +306,7 @@ impl<S: Read + Write> Write for SslStream<S> {
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        self.connection().stream.flush()
+        self.connection_mut().stream.flush()
     }
 }
 
