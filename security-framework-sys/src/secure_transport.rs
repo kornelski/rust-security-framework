@@ -1,4 +1,4 @@
-use libc::{c_void, size_t};
+use libc::{c_void, c_char, size_t};
 use {Boolean, OSStatus};
 
 pub type SSLContext = c_void;
@@ -91,4 +91,5 @@ extern {
     pub fn SSLRead(context: SSLContextRef, data: *mut c_void, dataLen: size_t, processed: *mut size_t) -> OSStatus;
     pub fn SSLWrite(context: SSLContextRef, data: *const c_void, dataLen: size_t, processed: *mut size_t) -> OSStatus;
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
+    pub fn SSLSetPeerDomainName(context: SSLContextRef, peerName: *const c_char, peerNameLen: size_t) -> OSStatus;
 }

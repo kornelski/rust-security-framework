@@ -1,10 +1,11 @@
 use libc::{size_t, c_void};
 use security_framework_sys::{ioErr, OSStatus};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
-use security_framework_sys::secure_transport::{errSSLProtocol, SSLConnectionRef, SSLGetConnection};
+use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
 use security_framework_sys::secure_transport::{SSLClose, SSLRead, SSLWrite, errSSLClosedGraceful};
 use security_framework_sys::secure_transport::{errSSLClosedAbort, errSSLWouldBlock};
+use security_framework_sys::secure_transport::{SSLSetPeerDomainName};
 use std::error;
 use std::fmt;
 use std::io;
@@ -64,6 +65,20 @@ impl SslContext {
             }
 
             Ok(SslContext(ctx))
+        }
+    }
+
+    pub fn set_peer_domain_name(&self, peer_name: &str) -> Result<()> {
+        unsafe {
+            // SSLSetPeerDomainName doesn't needa null terminated string so don't need CString
+            let ret = SSLSetPeerDomainName(self.0, 
+                                           peer_name.as_ptr() as *const _,
+                                           peer_name.len() as size_t);
+            if ret == 0 {
+                Ok(())
+            } else {
+                Err(Error(ret))
+            }
         }
     }
 
@@ -289,7 +304,19 @@ mod test {
     #[test]
     fn test_connect() {
         let ctx = p!(SslContext::new(ProtocolSide::Client));
+        p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
-        let stream = p!(ctx.handshake(stream));
+        p!(ctx.handshake(stream));
+    }
+
+    #[test]
+    fn test_connect_bad_domain() {
+        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        p!(ctx.set_peer_domain_name("foobar.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        match ctx.handshake(stream) {
+            Ok(_) => panic!("expected failure"),
+            Err(_) => {}
+        }
     }
 }
