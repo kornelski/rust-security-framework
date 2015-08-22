@@ -9,6 +9,6 @@ security-framework-sys = { git = "https://github.com/sfackler/rust-security-fram
 libc = "0.1"
 
 [features]
-OSX_10_8 = []
-OSX_10_9 = ["OSX_10_8"]
-OSX_10_10 = ["OSX_10_9"]
+OSX_10_8 = ["security-framework-sys/OSX_10_8"]
+OSX_10_9 = ["OSX_10_8", "security-framework-sys/OSX_10_9"]
+OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]
