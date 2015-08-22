@@ -1,6 +1,3 @@
-extern crate security_framework_sys;
-extern crate libc;
-
 use libc::{size_t, c_void};
 use security_framework_sys::{ioErr, OSStatus};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};

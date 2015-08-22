@@ -1,0 +1,15 @@
+[package]
+name = "security-framework-sys"
+version = "0.1.0"
+authors = ["Steven Fackler <sfackler@gmail.com>"]
+license = "MIT"
+build = "build.rs"
+links = "Security"
+
+[dependencies]
+libc = "0.1"
+
+[features]
+OSX_10_8 = []
+OSX_10_9 = ["OSX_10_8"]
+OSX_10_10 = ["OSX_10_9"]

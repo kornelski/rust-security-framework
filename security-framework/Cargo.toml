@@ -1,11 +1,11 @@
 [package]
-name = "secure-transport"
+name = "security-framework"
 version = "0.1.0"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 license = "MIT"
 
 [dependencies]
-security-framework-sys = { git = "https://github.com/sfackler/rust-security-framework-sys" }
+security-framework-sys = { path = "../security-framework-sys" }
 libc = "0.1"
 
 [features]
