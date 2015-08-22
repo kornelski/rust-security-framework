@@ -337,6 +337,7 @@ mod test {
         p!(stream.flush());
         let mut buf = String::new();
         p!(stream.read_to_string(&mut buf));
-        println!("{}", buf);
+        assert!(buf.starts_with("HTTP/1.0 200 OK"));
+        assert!(buf.ends_with("</html>"));
     }
 }
