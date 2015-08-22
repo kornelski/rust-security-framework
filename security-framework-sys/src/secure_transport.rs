@@ -79,6 +79,7 @@ pub const errSSLProtocol: OSStatus = -9800;
 pub const errSSLWouldBlock: OSStatus = -9803;
 pub const errSSLClosedGraceful: OSStatus = -9805;
 pub const errSSLClosedAbort: OSStatus = -9806;
+pub const errSSLClosedNoNotify: OSStatus = -9816;
 
 extern {
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;

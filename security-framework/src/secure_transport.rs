@@ -5,7 +5,7 @@ use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnectio
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
 use security_framework_sys::secure_transport::{SSLClose, SSLRead, SSLWrite, errSSLClosedGraceful};
 use security_framework_sys::secure_transport::{errSSLClosedAbort, errSSLWouldBlock};
-use security_framework_sys::secure_transport::{SSLSetPeerDomainName};
+use security_framework_sys::secure_transport::{SSLSetPeerDomainName, errSSLClosedNoNotify};
 use std::error;
 use std::fmt;
 use std::io;
@@ -166,7 +166,7 @@ extern fn read_func<S: Read>(connection: SSLConnectionRef,
         while start < data.len() {
             match conn.stream.read(&mut data[start..]) {
                 Ok(0) => {
-                    ret = errSSLClosedGraceful;
+                    ret = errSSLClosedNoNotify;
                     break;
                 }
                 Ok(len) => start += len,
@@ -195,7 +195,10 @@ extern fn write_func<S: Write>(connection: SSLConnectionRef,
 
         while start < data.len() {
             match conn.stream.write(&data[start..]) {
-                Ok(0) => break,
+                Ok(0) => {
+                    ret = errSSLClosedNoNotify;
+                    break;
+                },
                 Ok(len) => start += len,
                 Err(e) => {
                     ret = translate_err(&e);
@@ -257,10 +260,12 @@ impl<S: Read + Write> Read for SslStream<S> {
                               buf.as_mut_ptr() as *mut _,
                               buf.len() as size_t,
                               &mut nread);
-            if ret == 0 {
-                Ok(nread as usize)
-            } else {
-                Err(self.get_error(ret))
+            match ret {
+                0 => Ok(nread as usize),
+                errSSLClosedGraceful
+                    | errSSLClosedAbort
+                    | errSSLClosedNoNotify => Ok(0),
+                _ => Err(self.get_error(ret)),
             }
         }
     }
@@ -289,7 +294,9 @@ impl<S: Read + Write> Write for SslStream<S> {
 
 #[cfg(test)]
 mod test {
+    use std::io::prelude::*;
     use std::net::TcpStream;
+
     use super::*;
 
     macro_rules! p {
@@ -302,7 +309,7 @@ mod test {
     }
 
     #[test]
-    fn test_connect() {
+    fn connect() {
         let ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -310,7 +317,7 @@ mod test {
     }
 
     #[test]
-    fn test_connect_bad_domain() {
+    fn connect_bad_domain() {
         let ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -318,5 +325,18 @@ mod test {
             Ok(_) => panic!("expected failure"),
             Err(_) => {}
         }
+    }
+
+    #[test]
+    fn load_page() {
+        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        p!(ctx.set_peer_domain_name("google.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let mut stream = p!(ctx.handshake(stream));
+        p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
+        p!(stream.flush());
+        let mut buf = String::new();
+        p!(stream.read_to_string(&mut buf));
+        println!("{}", buf);
     }
 }
