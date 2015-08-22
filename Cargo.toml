@@ -6,3 +6,9 @@ license = "MIT"
 
 [dependencies]
 security-framework-sys = { git = "https://github.com/sfackler/rust-security-framework-sys" }
+libc = "0.1"
+
+[features]
+OSX_10_8 = []
+OSX_10_9 = ["OSX_10_8"]
+OSX_10_10 = ["OSX_10_9"]
