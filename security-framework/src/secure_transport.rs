@@ -24,16 +24,30 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub struct Error(OSStatus);
 
-impl fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+impl Error {
+    pub fn message(&self) -> Option<String> {
         unsafe {
             let s = SecCopyErrorMessageString(self.0, ptr::null_mut());
             if s.is_null() {
-                write!(fmt, "error code {}", self.0)
+                None
             } else {
                 let s = CFString::wrap_under_create_rule(s);
-                write!(fmt, "{}", s.to_string())
+                Some(s.to_string())
             }
+        }
+    }
+
+    pub fn code(&self) -> OSStatus {
+        self.0
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(message) = self.message() {
+            write!(fmt, "{}", message)
+        } else {
+            write!(fmt, "error code {}", self.code())
         }
     }
 }
