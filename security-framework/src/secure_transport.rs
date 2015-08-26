@@ -1,5 +1,8 @@
 use libc::{size_t, c_void};
 use core_foundation_sys::base::{OSStatus};
+use core_foundation::base::TCFType;
+use core_foundation::string::CFString;
+use security_framework_sys::base::{errSecIO, SecCopyErrorMessageString};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
 use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
@@ -16,17 +19,22 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-const ioErr: OSStatus = -36;
-
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub struct Error(OSStatus);
 
-// FIXME
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.0)
+        unsafe {
+            let s = SecCopyErrorMessageString(self.0, ptr::null_mut());
+            if s.is_null() {
+                write!(fmt, "error code {}", self.0)
+            } else {
+                let s = CFString::wrap_under_create_rule(s);
+                write!(fmt, "{}", s.to_string())
+            }
+        }
     }
 }
 
@@ -151,7 +159,7 @@ fn translate_err(e: &io::Error) -> OSStatus {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
         io::ErrorKind::ConnectionReset => errSSLClosedAbort,
         io::ErrorKind::WouldBlock => errSSLWouldBlock,
-        _ => ioErr,
+        _ => errSecIO,
     }
 }
 
