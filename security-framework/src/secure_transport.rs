@@ -2,7 +2,7 @@ use libc::{size_t, c_void};
 use core_foundation_sys::base::{OSStatus};
 use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
-use security_framework_sys::base::{errSecIO, SecCopyErrorMessageString};
+use security_framework_sys::base::{errSecSuccess, errSecIO, SecCopyErrorMessageString};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
 use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
@@ -84,7 +84,7 @@ impl SslContext {
             let mut ctx = ptr::null_mut();
             let result = SSLNewContext(is_server, &mut ctx);
 
-            if result != 0 {
+            if result != errSecSuccess {
                 return Err(Error(result));
             }
 
@@ -94,11 +94,11 @@ impl SslContext {
 
     pub fn set_peer_domain_name(&self, peer_name: &str) -> Result<()> {
         unsafe {
-            // SSLSetPeerDomainName doesn't needa null terminated string so don't need CString
-            let ret = SSLSetPeerDomainName(self.0, 
+            // SSLSetPeerDomainName doesn't need a null terminated string
+            let ret = SSLSetPeerDomainName(self.0,
                                            peer_name.as_ptr() as *const _,
                                            peer_name.len() as size_t);
-            if ret == 0 {
+            if ret == errSecSuccess {
                 Ok(())
             } else {
                 Err(Error(ret))
@@ -110,7 +110,7 @@ impl SslContext {
             where S: Read + Write {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
-            if ret != 0 {
+            if ret != errSecSuccess {
                 return Err(HandshakeError {
                     stream: stream,
                     context: self,
@@ -124,7 +124,7 @@ impl SslContext {
             };
             let stream = mem::transmute::<_, SSLConnectionRef>(Box::new(stream));
             let ret = SSLSetConnection(self.0, stream);
-            if ret != 0 {
+            if ret != errSecSuccess {
                 let conn = mem::transmute::<_, Box<Connection<S>>>(stream);
                 return Err(HandshakeError {
                     stream: conn.stream,
@@ -134,9 +134,9 @@ impl SslContext {
             }
 
             let ret = SSLHandshake(self.0);
-            if ret != 0 {
+            if ret != errSecSuccess {
                 let mut stream = ptr::null();
-                assert!(SSLGetConnection(self.0, &mut stream) == 0);
+                assert!(SSLGetConnection(self.0, &mut stream) == errSecSuccess);
                 SSLSetConnection(self.0, ptr::null_mut());
                 let conn = mem::transmute::<_, Box<Connection<S>>>(stream);
                 return Err(HandshakeError {
@@ -168,6 +168,7 @@ struct Connection<S> {
 }
 
 // the logic here is based off of libcurl's
+
 fn translate_err(e: &io::Error) -> OSStatus {
     match e.kind() {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
@@ -249,7 +250,7 @@ impl<S> Drop for SslStream<S> {
 
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
-            assert!(ret == 0);
+            assert!(ret == errSecSuccess);
             mem::transmute::<_, Box<Connection<S>>>(conn);
         }
     }
@@ -268,7 +269,7 @@ impl<S> SslStream<S> {
         unsafe {
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
-            assert!(ret == 0);
+            assert!(ret == errSecSuccess);
 
             mem::transmute(conn)
         }
@@ -278,7 +279,7 @@ impl<S> SslStream<S> {
         unsafe {
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
-            assert!(ret == 0);
+            assert!(ret == errSecSuccess);
 
             mem::transmute(conn)
         }
@@ -303,7 +304,7 @@ impl<S: Read + Write> Read for SslStream<S> {
                               buf.len() as size_t,
                               &mut nread);
             match ret {
-                0 => Ok(nread as usize),
+                errSecSuccess => Ok(nread as usize),
                 errSSLClosedGraceful
                     | errSSLClosedAbort
                     | errSSLClosedNoNotify => Ok(0),
@@ -321,7 +322,7 @@ impl<S: Read + Write> Write for SslStream<S> {
                                buf.as_ptr() as *const _,
                                buf.len() as size_t,
                                &mut nwritten);
-            if ret == 0 {
+            if ret == errSecSuccess {
                 Ok(nwritten as usize)
             } else {
                 Err(self.get_error(ret))

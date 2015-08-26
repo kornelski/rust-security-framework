@@ -7,6 +7,7 @@ struct OpaqueSecCertificateRef;
 
 pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
 
+pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
 
 extern {
