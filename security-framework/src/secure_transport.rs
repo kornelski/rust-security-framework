@@ -1,5 +1,5 @@
 use libc::{size_t, c_void};
-use security_framework_sys::{ioErr, OSStatus};
+use core_foundation_sys::base::{OSStatus};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
 use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
@@ -15,6 +15,8 @@ use std::mem;
 use std::ptr;
 use std::slice;
 use std::result;
+
+const ioErr: OSStatus = -36;
 
 pub type Result<T> = result::Result<T, Error>;
 

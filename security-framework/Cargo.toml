@@ -6,6 +6,8 @@ license = "MIT"
 
 [dependencies]
 security-framework-sys = { path = "../security-framework-sys" }
+core-foundation = { git = "https://github.com/sfackler/core-foundation-rs" }
+core-foundation-sys = { git = "https://github.com/sfackler/core-foundation-rs" }
 libc = "0.1"
 
 [features]

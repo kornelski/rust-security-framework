@@ -1,7 +1,6 @@
+#![allow(non_upper_case_globals)]
+
+extern crate core_foundation_sys;
 extern crate libc;
 
 pub mod secure_transport;
-
-pub type Boolean = u8;
-pub type OSStatus = i32;
-pub const ioErr: OSStatus = -36;

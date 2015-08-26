@@ -1,5 +1,5 @@
 use libc::{c_void, c_char, size_t};
-use {Boolean, OSStatus};
+use core_foundation_sys::base::{Boolean, OSStatus};
 
 pub type SSLContext = c_void;
 pub type SSLContextRef = *mut SSLContext;
