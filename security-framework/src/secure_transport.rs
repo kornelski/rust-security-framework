@@ -1,16 +1,12 @@
 use libc::{size_t, c_void};
-use core_foundation_sys::base::{OSStatus};
-use core_foundation::base::TCFType;
-use core_foundation::string::CFString;
-use security_framework_sys::base::{errSecSuccess, errSecIO, SecCopyErrorMessageString};
+use core_foundation_sys::base::OSStatus;
+use security_framework_sys::base::{errSecSuccess, errSecIO};
 use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
 use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
 use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
 use security_framework_sys::secure_transport::{SSLClose, SSLRead, SSLWrite, errSSLClosedGraceful};
 use security_framework_sys::secure_transport::{errSSLClosedAbort, errSSLWouldBlock};
 use security_framework_sys::secure_transport::{SSLSetPeerDomainName, errSSLClosedNoNotify};
-use std::error;
-use std::fmt;
 use std::io;
 use std::io::prelude::*;
 use std::marker::PhantomData;
@@ -19,44 +15,8 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-pub type Result<T> = result::Result<T, Error>;
-
-#[derive(Debug)]
-pub struct Error(OSStatus);
-
-impl Error {
-    pub fn message(&self) -> Option<String> {
-        unsafe {
-            let s = SecCopyErrorMessageString(self.0, ptr::null_mut());
-            if s.is_null() {
-                None
-            } else {
-                let s = CFString::wrap_under_create_rule(s);
-                Some(s.to_string())
-            }
-        }
-    }
-
-    pub fn code(&self) -> OSStatus {
-        self.0
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(message) = self.message() {
-            write!(fmt, "{}", message)
-        } else {
-            write!(fmt, "error code {}", self.code())
-        }
-    }
-}
-
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        "Secure Transport error"
-    }
-}
+use ErrorNew;
+use base::{Result, Error};
 
 pub enum ProtocolSide {
     Server,
@@ -85,7 +45,7 @@ impl SslContext {
             let result = SSLNewContext(is_server, &mut ctx);
 
             if result != errSecSuccess {
-                return Err(Error(result));
+                return Err(Error::new(result));
             }
 
             Ok(SslContext(ctx))
@@ -101,7 +61,7 @@ impl SslContext {
             if ret == errSecSuccess {
                 Ok(())
             } else {
-                Err(Error(ret))
+                Err(Error::new(ret))
             }
         }
     }
@@ -114,7 +74,7 @@ impl SslContext {
                 return Err(HandshakeError {
                     stream: stream,
                     context: self,
-                    error: Error(ret),
+                    error: Error::new(ret),
                 });
             }
 
@@ -129,7 +89,7 @@ impl SslContext {
                 return Err(HandshakeError {
                     stream: conn.stream,
                     context: self,
-                    error: Error(ret),
+                    error: Error::new(ret),
                 });
             }
 
@@ -142,7 +102,7 @@ impl SslContext {
                 return Err(HandshakeError {
                     stream: conn.stream,
                     context: self,
-                    error: Error(ret),
+                    error: Error::new(ret),
                 });
             }
 
@@ -290,7 +250,7 @@ impl<S> SslStream<S> {
         if let Some(err) = conn.err.take() {
             err
         } else {
-            io::Error::new(io::ErrorKind::Other, Error(ret))
+            io::Error::new(io::ErrorKind::Other, Error::new(ret))
         }
     }
 }
