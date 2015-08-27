@@ -3,9 +3,16 @@ use core_foundation_sys::string::CFStringRef;
 use libc::c_void;
 
 #[repr(C)]
-struct OpaqueSecCertificateRef;
+struct OpaqueSecKeychainRef;
+pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 
+#[repr(C)]
+struct OpaqueSecCertificateRef;
 pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
+
+#[repr(C)]
+struct OpaqueSecAccessRef;
+pub type SecAccessRef = *mut OpaqueSecAccessRef;
 
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
