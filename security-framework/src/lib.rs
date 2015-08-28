@@ -8,6 +8,9 @@ extern crate libc;
 use core_foundation_sys::base::OSStatus;
 
 pub mod base;
+pub mod certificate;
+pub mod identity;
+pub mod key;
 pub mod secure_transport;
 
 trait ErrorNew {

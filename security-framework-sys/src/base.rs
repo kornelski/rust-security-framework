@@ -14,6 +14,14 @@ pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
 struct OpaqueSecAccessRef;
 pub type SecAccessRef = *mut OpaqueSecAccessRef;
 
+#[repr(C)]
+struct OpaqueSecKeyRef;
+pub type SecKeyRef = *mut OpaqueSecKeyRef;
+
+#[repr(C)]
+struct OpaqueSecIdentityRef;
+pub type SecIdentityRef = *mut OpaqueSecIdentityRef;
+
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
 
