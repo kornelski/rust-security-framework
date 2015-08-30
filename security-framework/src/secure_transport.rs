@@ -1,12 +1,7 @@
 use libc::{size_t, c_void};
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::{errSecSuccess, errSecIO};
-use security_framework_sys::secure_transport::{SSLContextRef, SSLNewContext, SSLDisposeContext};
-use security_framework_sys::secure_transport::{SSLConnectionRef, SSLGetConnection};
-use security_framework_sys::secure_transport::{SSLSetIOFuncs, SSLSetConnection, SSLHandshake};
-use security_framework_sys::secure_transport::{SSLClose, SSLRead, SSLWrite, errSSLClosedGraceful};
-use security_framework_sys::secure_transport::{errSSLClosedAbort, errSSLWouldBlock};
-use security_framework_sys::secure_transport::{SSLSetPeerDomainName, errSSLClosedNoNotify};
+use security_framework_sys::secure_transport::*;
 use std::io;
 use std::io::prelude::*;
 use std::marker::PhantomData;
@@ -18,6 +13,7 @@ use std::result;
 use ErrorNew;
 use base::{Result, Error};
 
+#[derive(Debug, Copy, Clone)]
 pub enum ProtocolSide {
     Server,
     Client,

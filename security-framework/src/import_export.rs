@@ -12,6 +12,7 @@ use base::{Error, Result};
 use certificate::SecCertificate;
 use identity::SecIdentity;
 use key::SecKey;
+use keychain::SecKeychain;
 
 #[derive(Default)]
 pub struct ImportOptions<'a> {
@@ -21,6 +22,7 @@ pub struct ImportOptions<'a> {
     alert_title: Option<CFString>,
     alert_prompt: Option<CFString>,
     items: Option<&'a mut SecItems>,
+    keychain: Option<SecKeychain>,
 }
 
 impl<'a> ImportOptions<'a> {
@@ -63,6 +65,11 @@ impl<'a> ImportOptions<'a> {
         self
     }
 
+    pub fn keychain(&mut self, keychain: &SecKeychain) -> &mut ImportOptions<'a> {
+        self.keychain = Some(keychain.clone());
+        self
+    }
+
     pub fn import(&mut self, data: &[u8]) -> Result<()> {
         let data = CFData::from_buffer(data);
         let data = data.as_concrete_TypeRef();
@@ -99,6 +106,11 @@ impl<'a> ImportOptions<'a> {
             key_params.alert_prompt = alert_prompt.as_concrete_TypeRef();
         }
 
+        let keychain = match self.keychain {
+            Some(ref keychain) => keychain.as_concrete_TypeRef(),
+            None => ptr::null_mut(),
+        };
+
         let mut raw_items = ptr::null();
         let items_ref = match self.items {
             Some(_) => &mut raw_items as *mut _,
@@ -112,7 +124,7 @@ impl<'a> ImportOptions<'a> {
                                     ptr::null_mut(),
                                     0,
                                     &mut key_params,
-                                    ptr::null_mut(),
+                                    keychain,
                                     items_ref);
             if ret != errSecSuccess {
                 return Err(Error::new(ret));
@@ -149,6 +161,7 @@ pub struct SecItems {
 #[cfg(test)]
 mod test {
     use super::*;
+    use keychain::SecKeychain;
 
     #[test]
     fn certificate() {
@@ -186,11 +199,11 @@ mod test {
             .filename("server.p12")
             .passphrase("password123")
             .items(&mut items)
+            .keychain(&SecKeychain::default().unwrap())
             .import(data)
             .unwrap();
-        // FIXME why isn't this generating an identity?
-        assert_eq!(0, items.identities.len());
-        assert_eq!(1, items.certificates.len());
+        assert_eq!(1, items.identities.len());
+        assert_eq!(0, items.certificates.len());
         assert_eq!(0, items.keys.len());
     }
 
@@ -205,11 +218,11 @@ mod test {
             .alert_title("alert title")
             .alert_prompt("alert prompt")
             .items(&mut items)
+            .keychain(&SecKeychain::default().unwrap())
             .import(data)
             .unwrap();
-        // FIXME why isn't this generating an identity?
-        assert_eq!(0, items.identities.len());
-        assert_eq!(1, items.certificates.len());
+        assert_eq!(1, items.identities.len());
+        assert_eq!(0, items.certificates.len());
         assert_eq!(0, items.keys.len());
     }
 }
