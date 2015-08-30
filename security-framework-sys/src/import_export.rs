@@ -21,6 +21,7 @@ pub struct SecItemImportExportKeyParameters {
     pub alert_title: CFStringRef,
     pub alert_prompt: CFStringRef,
     pub access_ref: SecAccessRef,
+    pub key_usage: CFArrayRef,
     pub key_attributes: CFArrayRef,
 }
 
