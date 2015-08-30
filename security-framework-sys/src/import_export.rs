@@ -10,6 +10,10 @@ pub type SecExternalItemType = u32;
 pub type SecItemImportExportFlags = u32;
 pub type SecKeyImportExportFlags = u32;
 
+pub const kSecKeyImportOnlyOne: SecKeyImportExportFlags = 1;
+pub const kSecKeySecurePassphrase: SecKeyImportExportFlags = 2;
+pub const kSecKeyNoAccessControl: SecKeyImportExportFlags = 3;
+
 pub const SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION: u32 = 0;
 
 #[repr(C)]

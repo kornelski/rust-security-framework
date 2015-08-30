@@ -17,6 +17,9 @@ use key::SecKey;
 pub struct ImportOptions<'a> {
     filename: Option<CFString>,
     passphrase: Option<CFType>,
+    secure_passphrase: bool,
+    alert_title: Option<CFString>,
+    alert_prompt: Option<CFString>,
     items: Option<&'a mut SecItems>,
 }
 
@@ -37,6 +40,21 @@ impl<'a> ImportOptions<'a> {
 
     pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut ImportOptions<'a> {
         self.passphrase = Some(CFData::from_buffer(passphrase).as_CFType());
+        self
+    }
+
+    pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut ImportOptions<'a> {
+        self.secure_passphrase = secure_passphrase;
+        self
+    }
+
+    pub fn alert_title(&mut self, alert_title: &str) -> &mut ImportOptions<'a> {
+        self.alert_title = Some(CFString::from_str(alert_title).unwrap());
+        self
+    }
+
+    pub fn alert_prompt(&mut self, alert_prompt: &str) -> &mut ImportOptions<'a> {
+        self.alert_prompt = Some(CFString::from_str(alert_prompt).unwrap());
         self
     }
 
@@ -67,6 +85,18 @@ impl<'a> ImportOptions<'a> {
 
         if let Some(ref passphrase) = self.passphrase {
             key_params.passphrase = passphrase.as_CFTypeRef();
+        }
+
+        if self.secure_passphrase {
+            key_params.flags |= kSecKeySecurePassphrase;
+        }
+
+        if let Some(ref alert_title) = self.alert_title {
+            key_params.alert_title = alert_title.as_concrete_TypeRef();
+        }
+
+        if let Some(ref alert_prompt) = self.alert_prompt {
+            key_params.alert_prompt = alert_prompt.as_concrete_TypeRef();
         }
 
         let mut raw_items = ptr::null();
@@ -155,6 +185,25 @@ mod test {
         ImportOptions::new()
             .filename("server.p12")
             .passphrase("password123")
+            .items(&mut items)
+            .import(data)
+            .unwrap();
+        // FIXME why isn't this generating an identity?
+        assert_eq!(0, items.identities.len());
+        assert_eq!(1, items.certificates.len());
+        assert_eq!(0, items.keys.len());
+    }
+
+    #[test]
+    #[ignore] // since it requires manual intervention
+    fn secure_passphrase_identity() {
+        let data = include_bytes!("../test/server.p12");
+        let mut items = SecItems::default();
+        ImportOptions::new()
+            .filename("server.p12")
+            .secure_passphrase(true)
+            .alert_title("alert title")
+            .alert_prompt("alert prompt")
             .items(&mut items)
             .import(data)
             .unwrap();
