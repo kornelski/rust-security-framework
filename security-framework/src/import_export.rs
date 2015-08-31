@@ -19,6 +19,7 @@ pub struct ImportOptions<'a> {
     filename: Option<CFString>,
     passphrase: Option<CFType>,
     secure_passphrase: bool,
+    no_access_control: bool,
     alert_title: Option<CFString>,
     alert_prompt: Option<CFString>,
     items: Option<&'a mut SecItems>,
@@ -47,6 +48,11 @@ impl<'a> ImportOptions<'a> {
 
     pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut ImportOptions<'a> {
         self.secure_passphrase = secure_passphrase;
+        self
+    }
+
+    pub fn no_access_control(&mut self, no_access_control: bool) -> &mut ImportOptions<'a> {
+        self.no_access_control = no_access_control;
         self
     }
 
@@ -96,6 +102,10 @@ impl<'a> ImportOptions<'a> {
 
         if self.secure_passphrase {
             key_params.flags |= kSecKeySecurePassphrase;
+        }
+
+        if self.no_access_control {
+            key_params.flags |= kSecKeyNoAccessControl;
         }
 
         if let Some(ref alert_title) = self.alert_title {

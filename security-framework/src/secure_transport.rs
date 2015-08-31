@@ -379,6 +379,7 @@ mod test {
                .filename("server.p12")
                .passphrase("password123")
                .items(&mut items)
+               .no_access_control(true)
                .keychain(&SecKeychain::default().unwrap())
                .import(identity));
             let identity = items.identities.pop().unwrap();
