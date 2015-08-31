@@ -1,5 +1,7 @@
 use libc::{size_t, c_void};
-use core_foundation_sys::base::OSStatus;
+use core_foundation::array::CFArray;
+use core_foundation::base::TCFType;
+use core_foundation_sys::base::{OSStatus};
 use security_framework_sys::base::{errSecSuccess, errSecIO};
 use security_framework_sys::secure_transport::*;
 use std::io;
@@ -12,6 +14,8 @@ use std::result;
 
 use ErrorNew;
 use base::{Result, Error};
+use certificate::SecCertificate;
+use identity::SecIdentity;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ProtocolSide {
@@ -28,6 +32,8 @@ pub struct HandshakeError<S> {
 
 #[derive(Debug)]
 pub struct SslContext(SSLContextRef);
+
+unsafe impl Send for SslContext {}
 
 impl SslContext {
     pub fn new(side: ProtocolSide) -> Result<SslContext> {
@@ -59,6 +65,21 @@ impl SslContext {
             } else {
                 Err(Error::new(ret))
             }
+        }
+    }
+
+    pub fn set_certificate(&self, identity: &SecIdentity, certs: &[SecCertificate]) -> Result<()> {
+        let mut arr = vec![identity.as_CFType()];
+        arr.extend(certs.iter().map(|c| c.as_CFType()));
+        let certs = CFArray::from_CFTypes(&arr);
+
+        let ret = unsafe {
+            SSLSetCertificate(self.0, certs.as_concrete_TypeRef())
+        };
+
+        match ret {
+            errSecSuccess => Ok(()),
+            ret => Err(Error::new(ret)),
         }
     }
 

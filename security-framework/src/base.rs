@@ -11,8 +11,18 @@ use ErrorNew;
 
 pub type Result<T> = result::Result<T, Error>;
 
-#[derive(Debug)]
 pub struct Error(OSStatus);
+
+impl fmt::Debug for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let mut builder = fmt.debug_struct("Error");
+        builder.field("code", &self.0);
+        if let Some(message) = self.message() {
+            builder.field("message", &message);
+        }
+        builder.finish()
+    }
+}
 
 impl ErrorNew for Error {
     fn new(status: OSStatus) -> Error {

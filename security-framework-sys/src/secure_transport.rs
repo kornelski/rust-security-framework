@@ -1,5 +1,6 @@
 use libc::{c_void, c_char, size_t};
-use core_foundation_sys::base::{Boolean, OSStatus};
+use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
+use core_foundation_sys::array::CFArrayRef;
 
 pub type SSLContext = c_void;
 pub type SSLContextRef = *mut SSLContext;
@@ -93,4 +94,9 @@ extern {
     pub fn SSLWrite(context: SSLContextRef, data: *const c_void, dataLen: size_t, processed: *mut size_t) -> OSStatus;
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
     pub fn SSLSetPeerDomainName(context: SSLContextRef, peerName: *const c_char, peerNameLen: size_t) -> OSStatus;
+    pub fn SSLSetCertificate(context: SSLContextRef, certRefs: CFArrayRef) -> OSStatus;
+    pub fn SSLSetCertificateAuthorities(context: SSLContextRef,
+                                        certificateOrArray: CFTypeRef,
+                                        replaceExisting: Boolean)
+                                        -> OSStatus;
 }
