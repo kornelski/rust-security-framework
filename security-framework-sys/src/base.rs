@@ -24,6 +24,7 @@ pub type SecIdentityRef = *mut OpaqueSecIdentityRef;
 
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
+pub const errSecBadReq: OSStatus = -909;
 
 extern {
     pub fn SecCopyErrorMessageString(status: OSStatus, reserved: *mut c_void) -> CFStringRef;

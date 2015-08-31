@@ -1,6 +1,6 @@
 use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
-use core_foundation::base::TCFType;
+use core_foundation::base::{TCFType, Boolean};
 use core_foundation_sys::base::{OSStatus};
 use security_framework_sys::base::{errSecSuccess, errSecIO};
 use security_framework_sys::secure_transport::*;
@@ -12,10 +12,11 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use ErrorNew;
+use {cvt, ErrorNew};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use identity::SecIdentity;
+use trust::SecTrust;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ProtocolSide {
@@ -24,10 +25,25 @@ pub enum ProtocolSide {
 }
 
 #[derive(Debug)]
-pub struct HandshakeError<S> {
-    pub stream: S,
-    pub context: SslContext,
-    pub error: Error,
+pub enum HandshakeError<S> {
+    Failure(Error),
+    ServerAuthCompleted(UnvalidatedSslStream<S>),
+}
+
+#[derive(Debug)]
+pub struct UnvalidatedSslStream<S>(SslStream<S>);
+
+impl<S> UnvalidatedSslStream<S> {
+    pub fn context(&self) -> &SslContext {
+        &self.0.ctx
+    }
+
+    pub fn handshake(self) -> Result<SslStream<S>> {
+        unsafe {
+            try!(cvt(SSLHandshake(self.0.ctx.0)));
+            Ok(self.0)
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -44,27 +60,16 @@ impl SslContext {
             };
 
             let mut ctx = ptr::null_mut();
-            let result = SSLNewContext(is_server, &mut ctx);
-
-            if result != errSecSuccess {
-                return Err(Error::new(result));
-            }
-
-            Ok(SslContext(ctx))
+            cvt(SSLNewContext(is_server, &mut ctx)).map(|_| SslContext(ctx))
         }
     }
 
     pub fn set_peer_domain_name(&self, peer_name: &str) -> Result<()> {
         unsafe {
             // SSLSetPeerDomainName doesn't need a null terminated string
-            let ret = SSLSetPeerDomainName(self.0,
-                                           peer_name.as_ptr() as *const _,
-                                           peer_name.len() as size_t);
-            if ret == errSecSuccess {
-                Ok(())
-            } else {
-                Err(Error::new(ret))
-            }
+            cvt(SSLSetPeerDomainName(self.0,
+                                     peer_name.as_ptr() as *const _,
+                                     peer_name.len() as size_t))
         }
     }
 
@@ -73,13 +78,24 @@ impl SslContext {
         arr.extend(certs.iter().map(|c| c.as_CFType()));
         let certs = CFArray::from_CFTypes(&arr);
 
-        let ret = unsafe {
-            SSLSetCertificate(self.0, certs.as_concrete_TypeRef())
-        };
+        unsafe {
+            cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef()))
+        }
+    }
 
-        match ret {
-            errSecSuccess => Ok(()),
-            ret => Err(Error::new(ret)),
+    pub fn set_break_on_server_auth(&self, break_on_server_auth: bool) -> Result<()> {
+        unsafe {
+            cvt(SSLSetSessionOption(self.0,
+                                    SSLSessionOption::kSSLSessionOptionBreakOnServerAuth,
+                                    break_on_server_auth as Boolean))
+        }
+    }
+
+    pub fn peer_trust(&self) -> Result<SecTrust> {
+        unsafe {
+            let mut trust = ptr::null_mut();
+            try!(cvt(SSLCopyPeerTrust(self.0, &mut trust)));
+            Ok(SecTrust::wrap_under_create_rule(trust))
         }
     }
 
@@ -88,11 +104,7 @@ impl SslContext {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
-                return Err(HandshakeError {
-                    stream: stream,
-                    context: self,
-                    error: Error::new(ret),
-                });
+                return Err(HandshakeError::Failure(Error::new(ret)));
             }
 
             let stream = Connection {
@@ -102,31 +114,22 @@ impl SslContext {
             let stream = mem::transmute::<_, SSLConnectionRef>(Box::new(stream));
             let ret = SSLSetConnection(self.0, stream);
             if ret != errSecSuccess {
-                let conn = mem::transmute::<_, Box<Connection<S>>>(stream);
-                return Err(HandshakeError {
-                    stream: conn.stream,
-                    context: self,
-                    error: Error::new(ret),
-                });
+                let _conn = mem::transmute::<_, Box<Connection<S>>>(stream);
+                return Err(HandshakeError::Failure(Error::new(ret)));
             }
 
-            let ret = SSLHandshake(self.0);
-            if ret != errSecSuccess {
-                let mut stream = ptr::null();
-                assert!(SSLGetConnection(self.0, &mut stream) == errSecSuccess);
-                SSLSetConnection(self.0, ptr::null_mut());
-                let conn = mem::transmute::<_, Box<Connection<S>>>(stream);
-                return Err(HandshakeError {
-                    stream: conn.stream,
-                    context: self,
-                    error: Error::new(ret),
-                });
-            }
-
-            Ok(SslStream {
+            let stream = SslStream {
                 ctx: self,
                 _m: PhantomData,
-            })
+            };
+
+            match SSLHandshake(stream.ctx.0) {
+                errSecSuccess => Ok(stream),
+                errSSLPeerAuthCompleted => {
+                    Err(HandshakeError::ServerAuthCompleted(UnvalidatedSslStream(stream)))
+                }
+                err => Err(HandshakeError::Failure(Error::new(err))),
+            }
         }
     }
 }
@@ -215,6 +218,7 @@ extern fn write_func<S: Write>(connection: SSLConnectionRef,
     }
 }
 
+#[derive(Debug)] // FIXME
 pub struct SslStream<S> {
     ctx: SslContext,
     _m: PhantomData<S>,
@@ -315,9 +319,12 @@ impl<S: Read + Write> Write for SslStream<S> {
 #[cfg(test)]
 mod test {
     use std::io::prelude::*;
-    use std::net::TcpStream;
+    use std::net::{TcpListener, TcpStream};
+    use std::thread;
 
     use super::*;
+    use import_export::{SecItems, ImportOptions};
+    use keychain::SecKeychain;
 
     macro_rules! p {
         ($e:expr) => {
@@ -359,5 +366,59 @@ mod test {
         p!(stream.read_to_string(&mut buf));
         assert!(buf.starts_with("HTTP/1.0 200 OK"));
         assert!(buf.ends_with("</html>"));
+    }
+
+    #[test]
+    fn server_client() {
+        let listener = p!(TcpListener::bind("localhost:15410"));
+
+        let handle = thread::spawn(move || {
+            let identity = include_bytes!("../test/server.p12");
+            let mut items = SecItems::default();
+            p!(ImportOptions::new()
+               .filename("server.p12")
+               .passphrase("password123")
+               .items(&mut items)
+               .keychain(&SecKeychain::default().unwrap())
+               .import(identity));
+            let identity = items.identities.pop().unwrap();
+
+            let ctx = p!(SslContext::new(ProtocolSide::Server));
+            p!(ctx.set_certificate(&identity, &[]));
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(ctx.handshake(stream));
+
+            let mut buf = [0; 12];
+            p!(stream.read(&mut buf));
+            assert_eq!(&buf[..], b"hello world!");
+        });
+
+        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        p!(ctx.set_break_on_server_auth(true));
+        let stream = p!(TcpStream::connect("localhost:15410"));
+
+        let stream = match ctx.handshake(stream) {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
+        };
+
+        let certificate = include_bytes!("../test/server.crt");
+        let mut items = SecItems::default();
+        p!(ImportOptions::new()
+           .filename("server.crt")
+           .items(&mut items)
+           .import(certificate));
+
+        let peer_trust = p!(stream.context().peer_trust());
+        p!(peer_trust.set_anchor_certificates(&items.certificates));
+        let result = p!(peer_trust.evaluate());
+        assert!(result.success());
+
+        let mut stream = p!(stream.handshake());
+        p!(stream.write_all(b"hello world!"));
+
+        handle.join().unwrap();
     }
 }

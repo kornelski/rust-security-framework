@@ -2,6 +2,8 @@ use libc::{c_void, c_char, size_t};
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
 use core_foundation_sys::array::CFArrayRef;
 
+use trust::SecTrustRef;
+
 pub type SSLContext = c_void;
 pub type SSLContextRef = *mut SSLContext;
 
@@ -81,6 +83,7 @@ pub const errSSLWouldBlock: OSStatus = -9803;
 pub const errSSLClosedGraceful: OSStatus = -9805;
 pub const errSSLClosedAbort: OSStatus = -9806;
 pub const errSSLClosedNoNotify: OSStatus = -9816;
+pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 
 extern {
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;
@@ -99,4 +102,7 @@ extern {
                                         certificateOrArray: CFTypeRef,
                                         replaceExisting: Boolean)
                                         -> OSStatus;
+    pub fn SSLSetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: Boolean) -> OSStatus;
+    pub fn SSLGetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: *mut Boolean) -> OSStatus;
+    pub fn SSLCopyPeerTrust(context: SSLContextRef, trust: *mut SecTrustRef) -> OSStatus;
 }
