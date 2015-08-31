@@ -105,4 +105,5 @@ extern {
     pub fn SSLSetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: Boolean) -> OSStatus;
     pub fn SSLGetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: *mut Boolean) -> OSStatus;
     pub fn SSLCopyPeerTrust(context: SSLContextRef, trust: *mut SecTrustRef) -> OSStatus;
+    pub fn SSLGetSessionState(context: SSLContextRef, state: *mut SSLSessionState) -> OSStatus;
 }

@@ -6,6 +6,7 @@ use security_framework_sys::base::{errSecSuccess, errSecIO};
 use security_framework_sys::secure_transport::*;
 use std::io;
 use std::io::prelude::*;
+use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
 use std::ptr;
@@ -47,7 +48,37 @@ impl<S> UnvalidatedSslStream<S> {
 }
 
 #[derive(Debug)]
+pub enum SessionState {
+    Idle,
+    Handshake,
+    Connected,
+    Closed,
+    Aborted,
+}
+
+impl SessionState {
+    fn from_raw(raw: SSLSessionState) -> SessionState {
+        match raw {
+            SSLSessionState::kSSLIdle => SessionState::Idle,
+            SSLSessionState::kSSLHandshake => SessionState::Handshake,
+            SSLSessionState::kSSLConnected => SessionState::Connected,
+            SSLSessionState::kSSLClosed => SessionState::Closed,
+            SSLSessionState::kSSLAborted => SessionState::Aborted,
+        }
+    }
+}
+
 pub struct SslContext(SSLContextRef);
+
+impl fmt::Debug for SslContext {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let mut builder = fmt.debug_struct("SslContext");
+        if let Ok(state) = self.state() {
+            builder.field("state", &state);
+        }
+        builder.finish()
+    }
+}
 
 unsafe impl Send for SslContext {}
 
@@ -60,7 +91,8 @@ impl SslContext {
             };
 
             let mut ctx = ptr::null_mut();
-            cvt(SSLNewContext(is_server, &mut ctx)).map(|_| SslContext(ctx))
+            try!(cvt(SSLNewContext(is_server, &mut ctx)));
+            Ok(SslContext(ctx))
         }
     }
 
@@ -96,6 +128,14 @@ impl SslContext {
             let mut trust = ptr::null_mut();
             try!(cvt(SSLCopyPeerTrust(self.0, &mut trust)));
             Ok(SecTrust::wrap_under_create_rule(trust))
+        }
+    }
+
+    pub fn state(&self) -> Result<SessionState> {
+        unsafe {
+            let mut state = SSLSessionState::kSSLIdle;
+            try!(cvt(SSLGetSessionState(self.0, &mut state)));
+            Ok(SessionState::from_raw(state))
         }
     }
 
@@ -218,10 +258,18 @@ extern fn write_func<S: Write>(connection: SSLConnectionRef,
     }
 }
 
-#[derive(Debug)] // FIXME
 pub struct SslStream<S> {
     ctx: SslContext,
     _m: PhantomData<S>,
+}
+
+impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("SslStream")
+            .field("ctx", &self.ctx)
+            .field("stream", self.get_ref())
+            .finish()
+    }
 }
 
 impl<S> Drop for SslStream<S> {
