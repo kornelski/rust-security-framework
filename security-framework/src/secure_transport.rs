@@ -187,6 +187,7 @@ impl Drop for SslContext {
     }
 }
 
+#[cfg(feature = "OSX_10_8")]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 struct Connection<S> {

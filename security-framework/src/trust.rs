@@ -57,7 +57,7 @@ impl SecTrust {
         }
     }
 
-    pub fn trust_anchor_certificates_only(&self, only: bool) -> Result<()> {
+    pub fn set_trust_anchor_certificates_only(&self, only: bool) -> Result<()> {
         unsafe { cvt(SecTrustSetAnchorCertificatesOnly(self.0, only as Boolean)) }
     }
 
