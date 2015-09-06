@@ -478,4 +478,10 @@ mod test {
 
         handle.join().unwrap();
     }
+
+    #[test]
+    fn idle_context_peer_trust() {
+        let ctx = p!(SslContext::new(ProtocolSide::Server));
+        assert!(ctx.peer_trust().is_err());
+    }
 }

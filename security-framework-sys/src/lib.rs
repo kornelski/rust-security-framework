@@ -5,6 +5,7 @@ extern crate libc;
 
 pub mod base;
 pub mod certificate;
+pub mod cipher_suite;
 pub mod identity;
 pub mod import_export;
 pub mod key;
