@@ -1,6 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 extern crate security_framework_sys;
+#[macro_use]
 extern crate core_foundation;
 extern crate core_foundation_sys;
 extern crate libc;

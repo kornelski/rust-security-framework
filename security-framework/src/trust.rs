@@ -1,7 +1,8 @@
-use core_foundation_sys::base::{CFTypeID, CFTypeRef, CFRelease, CFRetain};
+use core_foundation_sys::base::CFRelease;
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 use security_framework_sys::trust::*;
+use std::mem;
 
 use cvt;
 use base::Result;
@@ -67,32 +68,4 @@ impl SecTrust {
     }
 }
 
-impl TCFType<SecTrustRef> for SecTrust {
-    #[inline]
-    fn as_concrete_TypeRef(&self) -> SecTrustRef {
-        self.0
-    }
-
-    #[inline]
-    unsafe fn wrap_under_get_rule(reference: SecTrustRef) -> SecTrust {
-        CFRetain(reference as *mut _);
-        TCFType::wrap_under_create_rule(reference)
-    }
-
-    #[inline]
-    fn as_CFTypeRef(&self) -> CFTypeRef {
-        self.as_concrete_TypeRef() as *mut _
-    }
-
-    #[inline]
-    unsafe fn wrap_under_create_rule(obj: SecTrustRef) -> SecTrust {
-        SecTrust(obj)
-    }
-
-    #[inline]
-    fn type_id() -> CFTypeID {
-        unsafe {
-            SecTrustGetTypeID()
-        }
-    }
-}
+impl_TCFType!(SecTrust, SecTrustRef, SecTrustGetTypeID);

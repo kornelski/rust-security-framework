@@ -182,6 +182,8 @@ impl Drop for SslContext {
     }
 }
 
+impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
+
 struct Connection<S> {
     stream: S,
     err: Option<io::Error>,

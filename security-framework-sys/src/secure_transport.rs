@@ -1,5 +1,5 @@
 use libc::{c_void, c_char, size_t};
-use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
+use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID, CFTypeRef};
 use core_foundation_sys::array::CFArrayRef;
 
 use trust::SecTrustRef;
@@ -86,6 +86,7 @@ pub const errSSLClosedNoNotify: OSStatus = -9816;
 pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 
 extern {
+    pub fn SSLContextGetTypeID() -> CFTypeID;
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;
     pub fn SSLDisposeContext(context: SSLContextRef) -> OSStatus;
     pub fn SSLSetConnection(context: SSLContextRef, connection: SSLConnectionRef) -> OSStatus;

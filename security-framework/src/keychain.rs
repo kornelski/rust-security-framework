@@ -1,8 +1,9 @@
-use core_foundation_sys::base::{CFTypeID, CFTypeRef, CFRelease, CFRetain};
+use core_foundation_sys::base::CFRelease;
 use core_foundation::base::TCFType;
 use security_framework_sys::base::{errSecSuccess, SecKeychainRef};
 use security_framework_sys::keychain::*;
 use std::ptr;
+use std::mem;
 
 use ErrorNew;
 use base::{Error, Result};
@@ -23,35 +24,7 @@ impl Clone for SecKeychain {
     }
 }
 
-impl TCFType<SecKeychainRef> for SecKeychain {
-    #[inline]
-    fn as_concrete_TypeRef(&self) -> SecKeychainRef {
-        self.0
-    }
-
-    #[inline]
-    unsafe fn wrap_under_get_rule(reference: SecKeychainRef) -> SecKeychain {
-        CFRetain(reference as *mut _);
-        TCFType::wrap_under_create_rule(reference)
-    }
-
-    #[inline]
-    fn as_CFTypeRef(&self) -> CFTypeRef {
-        self.as_concrete_TypeRef() as *mut _
-    }
-
-    #[inline]
-    unsafe fn wrap_under_create_rule(obj: SecKeychainRef) -> SecKeychain {
-        SecKeychain(obj)
-    }
-
-    #[inline]
-    fn type_id() -> CFTypeID {
-        unsafe {
-            SecKeychainGetTypeID()
-        }
-    }
-}
+impl_TCFType!(SecKeychain, SecKeychainRef, SecKeychainGetTypeID);
 
 impl SecKeychain {
     pub fn default() -> Result<SecKeychain> {
