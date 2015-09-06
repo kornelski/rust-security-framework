@@ -28,21 +28,26 @@ pub enum ProtocolSide {
 #[derive(Debug)]
 pub enum HandshakeError<S> {
     Failure(Error),
-    ServerAuthCompleted(UnvalidatedSslStream<S>),
+    ServerAuthCompleted(MidHandshakeSslStream<S>),
 }
 
 #[derive(Debug)]
-pub struct UnvalidatedSslStream<S>(SslStream<S>);
+pub struct MidHandshakeSslStream<S>(SslStream<S>);
 
-impl<S> UnvalidatedSslStream<S> {
+impl<S> MidHandshakeSslStream<S> {
     pub fn context(&self) -> &SslContext {
         &self.0.ctx
     }
 
-    pub fn handshake(self) -> Result<SslStream<S>> {
+    pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
         unsafe {
-            try!(cvt(SSLHandshake(self.0.ctx.0)));
-            Ok(self.0)
+            match SSLHandshake(self.0.ctx.0) {
+                errSecSuccess => Ok(self.0),
+                errSSLPeerAuthCompleted => {
+                    Err(HandshakeError::ServerAuthCompleted(self))
+                }
+                err => Err(HandshakeError::Failure(Error::new(err))),
+            }
         }
     }
 }
@@ -166,7 +171,7 @@ impl SslContext {
             match SSLHandshake(stream.ctx.0) {
                 errSecSuccess => Ok(stream),
                 errSSLPeerAuthCompleted => {
-                    Err(HandshakeError::ServerAuthCompleted(UnvalidatedSslStream(stream)))
+                    Err(HandshakeError::ServerAuthCompleted(MidHandshakeSslStream(stream)))
                 }
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
