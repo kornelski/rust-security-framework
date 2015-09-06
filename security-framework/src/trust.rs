@@ -50,8 +50,6 @@ impl Drop for SecTrust {
 
 impl SecTrust {
     pub fn set_anchor_certificates(&self, certs: &[SecCertificate]) -> Result<()> {
-        // FIXME after PR merges
-        let certs = certs.iter().map(|c| c.as_CFType()).collect::<Vec<_>>();
         let certs = CFArray::from_CFTypes(&certs);
 
         unsafe {
