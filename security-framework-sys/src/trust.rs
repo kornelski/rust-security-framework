@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{OSStatus, CFTypeID};
+use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID};
 use core_foundation_sys::array::CFArrayRef;
 
 pub type SecTrustResultType = u32;
@@ -19,5 +19,6 @@ pub type SecTrustRef = *mut __SecTrust;
 extern {
     pub fn SecTrustGetTypeID() -> CFTypeID;
     pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef, anchorCertificates: CFArrayRef) -> OSStatus;
+    pub fn SecTrustSetAnchorCertificatesOnly(trust: SecTrustRef, anchorCertificatesOnly: Boolean) -> OSStatus;
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
 }

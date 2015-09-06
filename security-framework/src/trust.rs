@@ -1,4 +1,4 @@
-use core_foundation_sys::base::CFRelease;
+use core_foundation_sys::base::{Boolean, CFRelease};
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 use security_framework_sys::trust::*;
@@ -55,6 +55,10 @@ impl SecTrust {
         unsafe {
             cvt(SecTrustSetAnchorCertificates(self.0, certs.as_concrete_TypeRef()))
         }
+    }
+
+    pub fn trust_anchor_certificates_only(&self, only: bool) -> Result<()> {
+        unsafe { cvt(SecTrustSetAnchorCertificatesOnly(self.0, only as Boolean)) }
     }
 
     pub fn evaluate(&self) -> Result<TrustResult> {
