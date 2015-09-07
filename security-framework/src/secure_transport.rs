@@ -472,17 +472,16 @@ mod test {
 
     fn identity() -> SecIdentity {
         let dir = p!(TempDir::new("identity"));
-
         let keychain = p!(keychain::CreateOptions::new()
             .password("password")
             .create(dir.path().join("identity.keychain")));
+
         let identity = include_bytes!("../test/server.p12");
         let mut items = SecItems::default();
         p!(ImportOptions::new()
            .filename("server.p12")
            .passphrase("password123")
            .items(&mut items)
-           .no_access_control(true)
            .keychain(&keychain)
            .import(identity));
         items.identities.pop().unwrap()
