@@ -1,4 +1,5 @@
 use security_framework_sys::cipher_suite::*;
+use CipherSuiteInternals;
 
 macro_rules! make_suites {
     ($($suite:ident),+) => {
@@ -8,15 +9,15 @@ macro_rules! make_suites {
             $($suite),+
         }
 
-        impl CipherSuite {
-            pub fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite> {
+        impl CipherSuiteInternals for CipherSuite {
+            fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite> {
                 match raw {
                     $($suite => Some(CipherSuite::$suite),)+
                     _ => None
                 }
             }
 
-            pub fn to_raw(&self) -> SSLCipherSuite {
+            fn to_raw(&self) -> SSLCipherSuite {
                 match *self {
                     $(CipherSuite::$suite => $suite),+
                 }

@@ -13,9 +13,10 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew};
+use {cvt, ErrorNew, CipherSuiteInternals};
 use base::{Result, Error};
 use certificate::SecCertificate;
+use cipher_suite::CipherSuite;
 use identity::SecIdentity;
 use trust::SecTrust;
 
@@ -125,6 +126,35 @@ impl SslContext {
             cvt(SSLSetSessionOption(self.0,
                                     SSLSessionOption::kSSLSessionOptionBreakOnServerAuth,
                                     break_on_server_auth as Boolean))
+        }
+    }
+
+    pub fn supported_ciphers(&self) -> Result<Vec<CipherSuite>> {
+        unsafe {
+            let mut num_ciphers = 0;
+            try!(cvt(SSLGetNumberSupportedCiphers(self.0, &mut num_ciphers)));
+            let mut ciphers = Vec::with_capacity(num_ciphers as usize);
+            ciphers.set_len(num_ciphers as usize);
+            try!(cvt(SSLGetSupportedCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
+            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
+        }
+    }
+
+    pub fn enabled_ciphers(&self) -> Result<Vec<CipherSuite>> {
+        unsafe {
+            let mut num_ciphers = 0;
+            try!(cvt(SSLGetNumberEnabledCiphers(self.0, &mut num_ciphers)));
+            let mut ciphers = Vec::with_capacity(num_ciphers as usize);
+            ciphers.set_len(num_ciphers as usize);
+            try!(cvt(SSLGetEnabledCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
+            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
+        }
+    }
+
+    pub fn set_enabled_ciphers(&self, ciphers: &[CipherSuite]) -> Result<()> {
+        let ciphers = ciphers.iter().map(|c| c.to_raw()).collect::<Vec<_>>();
+        unsafe {
+            cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len() as size_t))
         }
     }
 

@@ -2,6 +2,7 @@ use libc::{c_void, c_char, size_t};
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
 use core_foundation_sys::array::CFArrayRef;
 
+use cipher_suite::SSLCipherSuite;
 use trust::SecTrustRef;
 
 pub type SSLContext = c_void;
@@ -109,4 +110,9 @@ extern {
     pub fn SSLGetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: *mut Boolean) -> OSStatus;
     pub fn SSLCopyPeerTrust(context: SSLContextRef, trust: *mut SecTrustRef) -> OSStatus;
     pub fn SSLGetSessionState(context: SSLContextRef, state: *mut SSLSessionState) -> OSStatus;
+    pub fn SSLGetSupportedCiphers(context: SSLContextRef, ciphers: *mut SSLCipherSuite, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLGetNumberSupportedCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLGetEnabledCiphers(context: SSLContextRef, ciphers: *mut SSLCipherSuite, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLSetEnabledCiphers(context: SSLContextRef, ciphers: *const SSLCipherSuite, numCiphers: size_t) -> OSStatus;
 }

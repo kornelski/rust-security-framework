@@ -8,7 +8,9 @@ extern crate libc;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
+use security_framework_sys::cipher_suite::SSLCipherSuite;
 use base::{Result, Error};
+use cipher_suite::CipherSuite;
 
 pub mod base;
 pub mod certificate;
@@ -22,6 +24,11 @@ pub mod trust;
 
 trait ErrorNew {
     fn new(status: OSStatus) -> Self;
+}
+
+trait CipherSuiteInternals {
+    fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite>;
+    fn to_raw(&self) -> SSLCipherSuite;
 }
 
 fn cvt(err: OSStatus) -> Result<()> {
