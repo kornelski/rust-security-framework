@@ -115,4 +115,5 @@ extern {
     pub fn SSLGetEnabledCiphers(context: SSLContextRef, ciphers: *mut SSLCipherSuite, numCiphers: *mut size_t) -> OSStatus;
     pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
     pub fn SSLSetEnabledCiphers(context: SSLContextRef, ciphers: *const SSLCipherSuite, numCiphers: size_t) -> OSStatus;
+    pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
 }

@@ -158,6 +158,14 @@ impl SslContext {
         }
     }
 
+    pub fn negotiated_cipher(&self) -> Result<CipherSuite> {
+        unsafe {
+            let mut cipher = 0;
+            try!(cvt(SSLGetNegotiatedCipher(self.0, &mut cipher)));
+            Ok(CipherSuite::from_raw(cipher).unwrap())
+        }
+    }
+
     pub fn peer_trust(&self) -> Result<SecTrust> {
         unsafe {
             let mut trust = ptr::null_mut();
@@ -332,6 +340,10 @@ impl<S> SslStream<S> {
         &mut self.connection_mut().stream
     }
 
+    pub fn ctx(&self) -> &SslContext {
+        &self.ctx
+    }
+
     fn connection(&self) -> &Connection<S> {
         unsafe {
             let mut conn = ptr::null();
@@ -407,8 +419,12 @@ mod test {
     use std::io::prelude::*;
     use std::net::{TcpListener, TcpStream};
     use std::thread;
+    use std::sync::Mutex;
 
     use super::*;
+    use certificate::SecCertificate;
+    use cipher_suite::CipherSuite;
+    use identity::SecIdentity;
     use import_export::{SecItems, ImportOptions};
     use keychain::SecKeychain;
 
@@ -454,24 +470,41 @@ mod test {
         assert!(buf.ends_with("</html>"));
     }
 
+    fn identity() -> SecIdentity {
+        lazy_static! {
+            static ref MUTEX: Mutex<()> = Mutex::new(());
+        }
+
+        let _lock = MUTEX.lock().unwrap();
+        let identity = include_bytes!("../test/server.p12");
+        let mut items = SecItems::default();
+        p!(ImportOptions::new()
+           .filename("server.p12")
+           .passphrase("password123")
+           .items(&mut items)
+           .no_access_control(true)
+           .keychain(&SecKeychain::default().unwrap())
+           .import(identity));
+        items.identities.pop().unwrap()
+    }
+
+    fn certificate() -> SecCertificate {
+        let certificate = include_bytes!("../test/server.crt");
+        let mut items = SecItems::default();
+        p!(ImportOptions::new()
+           .filename("server.crt")
+           .items(&mut items)
+           .import(certificate));
+        items.certificates.pop().unwrap()
+    }
+
     #[test]
     fn server_client() {
         let listener = p!(TcpListener::bind("localhost:15410"));
 
         let handle = thread::spawn(move || {
-            let identity = include_bytes!("../test/server.p12");
-            let mut items = SecItems::default();
-            p!(ImportOptions::new()
-               .filename("server.p12")
-               .passphrase("password123")
-               .items(&mut items)
-               .no_access_control(true)
-               .keychain(&SecKeychain::default().unwrap())
-               .import(identity));
-            let identity = items.identities.pop().unwrap();
-
             let ctx = p!(SslContext::new(ProtocolSide::Server));
-            p!(ctx.set_certificate(&identity, &[]));
+            p!(ctx.set_certificate(&identity(), &[]));
 
             let stream = p!(listener.accept()).0;
             let mut stream = p!(ctx.handshake(stream));
@@ -491,15 +524,8 @@ mod test {
             Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
         };
 
-        let certificate = include_bytes!("../test/server.crt");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.crt")
-           .items(&mut items)
-           .import(certificate));
-
         let peer_trust = p!(stream.context().peer_trust());
-        p!(peer_trust.set_anchor_certificates(&items.certificates));
+        p!(peer_trust.set_anchor_certificates(&[certificate()]));
         let result = p!(peer_trust.evaluate());
         assert!(result.success());
 
@@ -525,5 +551,43 @@ mod test {
             .collect::<Vec<_>>();
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
+    }
+
+    #[test]
+    fn negotiated_cipher() {
+        let listener = p!(TcpListener::bind("localhost:15411"));
+
+        let handle = thread::spawn(move || {
+            let ctx = p!(SslContext::new(ProtocolSide::Server));
+            p!(ctx.set_certificate(&identity(), &[]));
+            p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                                         CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(ctx.handshake(stream));
+            assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                       p!(stream.ctx().negotiated_cipher()));
+            let mut buf = [0; 1];
+            p!(stream.read(&mut buf));
+        });
+
+        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        p!(ctx.set_break_on_server_auth(true));
+        p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
+                                     CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));
+        let stream = p!(TcpStream::connect("localhost:15411"));
+
+        let stream = match ctx.handshake(stream) {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
+        };
+
+        let mut stream = p!(stream.handshake());
+        assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                   p!(stream.ctx().negotiated_cipher()));
+        p!(stream.write(&[0]));
+
+        handle.join().unwrap();
     }
 }

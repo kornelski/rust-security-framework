@@ -10,6 +10,9 @@ core-foundation = { git = "https://github.com/sfackler/core-foundation-rs" }
 core-foundation-sys = { git = "https://github.com/sfackler/core-foundation-rs" }
 libc = "0.1"
 
+[dev-dependencies]
+lazy_static = "0.1"
+
 [features]
 OSX_10_8 = ["security-framework-sys/OSX_10_8"]
 OSX_10_9 = ["OSX_10_8", "security-framework-sys/OSX_10_9"]
