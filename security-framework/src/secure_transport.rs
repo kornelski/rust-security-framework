@@ -514,4 +514,16 @@ mod test {
         let ctx = p!(SslContext::new(ProtocolSide::Server));
         assert!(ctx.peer_trust().is_err());
     }
+
+    #[test]
+    fn cipher_configuration() {
+        let ctx = p!(SslContext::new(ProtocolSide::Server));
+        let ciphers = p!(ctx.enabled_ciphers());
+        let ciphers = ciphers.iter()
+            .enumerate()
+            .filter_map(|(i, c)| if i % 2 == 0 { Some(*c) } else { None })
+            .collect::<Vec<_>>();
+        p!(ctx.set_enabled_ciphers(&ciphers));
+        assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
+    }
 }
