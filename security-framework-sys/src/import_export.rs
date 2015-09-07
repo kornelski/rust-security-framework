@@ -30,8 +30,10 @@ pub struct SecItemImportExportKeyParameters {
 }
 
 extern {
-    pub fn SecItemImport(importedData: CFDataRef, fileNameOrExtension: CFStringRef,
-                         inputFormat: *mut SecExternalFormat, itemType: *mut SecExternalItemType,
+    pub fn SecItemImport(importedData: CFDataRef,
+                         fileNameOrExtension: CFStringRef,
+                         inputFormat: *mut SecExternalFormat,
+                         itemType: *mut SecExternalItemType,
                          flags: SecItemImportExportFlags,
                          keyParams: *const SecItemImportExportKeyParameters,
                          importKeychain: SecKeychainRef,

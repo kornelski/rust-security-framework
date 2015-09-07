@@ -3,6 +3,7 @@
 extern crate core_foundation_sys;
 extern crate libc;
 
+pub mod access;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;

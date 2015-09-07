@@ -10,6 +10,7 @@ use std::ptr;
 use std::os::unix::ffi::OsStrExt;
 
 use {cvt, ErrorNew};
+use access::SecAccess;
 use base::{Error, Result};
 
 pub struct SecKeychain(SecKeychainRef);
@@ -47,6 +48,7 @@ impl SecKeychain {
 pub struct CreateOptions {
     password: Option<String>,
     prompt_user: bool,
+    access: Option<SecAccess>,
 }
 
 impl CreateOptions {
@@ -64,6 +66,11 @@ impl CreateOptions {
         self
     }
 
+    pub fn access(&mut self, access: SecAccess) -> &mut CreateOptions {
+        self.access = Some(access);
+        self
+    }
+
     pub fn create<P: AsRef<Path>>(&self, path: P) -> Result<SecKeychain> {
         unsafe {
             let path_name = path.as_ref().as_os_str().as_bytes();
@@ -75,12 +82,17 @@ impl CreateOptions {
                 None => (ptr::null(), 0),
             };
 
+            let access = match self.access {
+                Some(ref access) => access.as_concrete_TypeRef(),
+                None => ptr::null_mut(),
+            };
+
             let mut keychain = ptr::null_mut();
             try!(cvt(SecKeychainCreate(path_name.as_ptr(),
                                        password_len,
                                        password,
                                        self.prompt_user as Boolean,
-                                       ptr::null_mut(),
+                                       access,
                                        &mut keychain)));
 
             Ok(SecKeychain::wrap_under_create_rule(keychain))

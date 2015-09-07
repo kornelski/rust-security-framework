@@ -15,6 +15,7 @@ use security_framework_sys::cipher_suite::SSLCipherSuite;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
 
+pub mod access;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
