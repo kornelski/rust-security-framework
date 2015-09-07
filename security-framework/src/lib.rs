@@ -5,9 +5,9 @@ extern crate security_framework_sys;
 extern crate core_foundation;
 extern crate core_foundation_sys;
 extern crate libc;
+
 #[cfg(test)]
-#[macro_use]
-extern crate lazy_static;
+extern crate tempdir;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;

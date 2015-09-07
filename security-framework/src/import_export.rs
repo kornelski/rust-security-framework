@@ -170,8 +170,10 @@ pub struct SecItems {
 
 #[cfg(test)]
 mod test {
+    use tempdir::TempDir;
+
     use super::*;
-    use keychain::SecKeychain;
+    use keychain;
 
     #[test]
     fn certificate() {
@@ -203,13 +205,19 @@ mod test {
 
     #[test]
     fn identity() {
+        let dir = TempDir::new("identity").unwrap();
+        let keychain = keychain::CreateOptions::new()
+            .password("password")
+            .create(dir.path().join("identity.keychain"))
+            .unwrap();
+
         let data = include_bytes!("../test/server.p12");
         let mut items = SecItems::default();
         ImportOptions::new()
             .filename("server.p12")
             .passphrase("password123")
             .items(&mut items)
-            .keychain(&SecKeychain::default().unwrap())
+            .keychain(&keychain)
             .import(data)
             .unwrap();
         assert_eq!(1, items.identities.len());
@@ -220,6 +228,12 @@ mod test {
     #[test]
     #[ignore] // since it requires manual intervention
     fn secure_passphrase_identity() {
+        let dir = TempDir::new("identity").unwrap();
+        let keychain = keychain::CreateOptions::new()
+            .password("password")
+            .create(dir.path().join("identity.keychain"))
+            .unwrap();
+
         let data = include_bytes!("../test/server.p12");
         let mut items = SecItems::default();
         ImportOptions::new()
@@ -228,7 +242,7 @@ mod test {
             .alert_title("alert title")
             .alert_prompt("alert prompt")
             .items(&mut items)
-            .keychain(&SecKeychain::default().unwrap())
+            .keychain(&keychain)
             .import(data)
             .unwrap();
         assert_eq!(1, items.identities.len());

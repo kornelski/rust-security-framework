@@ -11,7 +11,7 @@ core-foundation-sys = { git = "https://github.com/sfackler/core-foundation-rs" }
 libc = "0.1"
 
 [dev-dependencies]
-lazy_static = "0.1"
+tempdir = "0.3"
 
 [features]
 OSX_10_8 = ["security-framework-sys/OSX_10_8"]

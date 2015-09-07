@@ -419,14 +419,14 @@ mod test {
     use std::io::prelude::*;
     use std::net::{TcpListener, TcpStream};
     use std::thread;
-    use std::sync::Mutex;
+    use tempdir::TempDir;
 
     use super::*;
     use certificate::SecCertificate;
     use cipher_suite::CipherSuite;
     use identity::SecIdentity;
     use import_export::{SecItems, ImportOptions};
-    use keychain::SecKeychain;
+    use keychain;
 
     macro_rules! p {
         ($e:expr) => {
@@ -471,11 +471,11 @@ mod test {
     }
 
     fn identity() -> SecIdentity {
-        lazy_static! {
-            static ref MUTEX: Mutex<()> = Mutex::new(());
-        }
+        let dir = p!(TempDir::new("identity"));
 
-        let _lock = MUTEX.lock().unwrap();
+        let keychain = p!(keychain::CreateOptions::new()
+            .password("password")
+            .create(dir.path().join("identity.keychain")));
         let identity = include_bytes!("../test/server.p12");
         let mut items = SecItems::default();
         p!(ImportOptions::new()
@@ -483,7 +483,7 @@ mod test {
            .passphrase("password123")
            .items(&mut items)
            .no_access_control(true)
-           .keychain(&SecKeychain::default().unwrap())
+           .keychain(&keychain)
            .import(identity));
         items.identities.pop().unwrap()
     }
