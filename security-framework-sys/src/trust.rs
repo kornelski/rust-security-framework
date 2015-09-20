@@ -1,3 +1,4 @@
+use libc::c_void;
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID};
 use core_foundation_sys::array::CFArrayRef;
 
@@ -12,7 +13,7 @@ pub const kSecTrustResultFatalTrustFailure: SecTrustResultType = 6;
 pub const kSecTrustResultOtherError: SecTrustResultType = 7;
 
 #[repr(C)]
-struct __SecTrust;
+struct __SecTrust(c_void);
 
 pub type SecTrustRef = *mut __SecTrust;
 
