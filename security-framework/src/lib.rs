@@ -15,6 +15,16 @@ use security_framework_sys::cipher_suite::SSLCipherSuite;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
 
+#[cfg(test)]
+macro_rules! p {
+    ($e:expr) => {
+        match $e {
+            Ok(s) => s,
+            Err(e) => panic!("{:?}", e),
+        }
+    }
+}
+
 pub mod access;
 pub mod base;
 pub mod certificate;
@@ -39,5 +49,42 @@ fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),
         err => Err(Error::new(err)),
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use tempdir::TempDir;
+
+    use keychain;
+    use import_export::{SecItems, ImportOptions};
+    use identity::SecIdentity;
+    use certificate::SecCertificate;
+
+    pub fn identity() -> SecIdentity {
+        let dir = p!(TempDir::new("identity"));
+        let keychain = p!(keychain::CreateOptions::new()
+            .password("password")
+            .create(dir.path().join("identity.keychain")));
+
+        let identity = include_bytes!("../test/server.p12");
+        let mut items = SecItems::default();
+        p!(ImportOptions::new()
+           .filename("server.p12")
+           .passphrase("password123")
+           .items(&mut items)
+           .keychain(&keychain)
+           .import(identity));
+        items.identities.pop().unwrap()
+    }
+
+    pub fn certificate() -> SecCertificate {
+        let certificate = include_bytes!("../test/server.crt");
+        let mut items = SecItems::default();
+        p!(ImportOptions::new()
+           .filename("server.crt")
+           .items(&mut items)
+           .import(certificate));
+        items.certificates.pop().unwrap()
     }
 }

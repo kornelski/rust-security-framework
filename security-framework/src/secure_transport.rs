@@ -419,23 +419,10 @@ mod test {
     use std::io::prelude::*;
     use std::net::{TcpListener, TcpStream};
     use std::thread;
-    use tempdir::TempDir;
 
     use super::*;
-    use certificate::SecCertificate;
     use cipher_suite::CipherSuite;
-    use identity::SecIdentity;
-    use import_export::{SecItems, ImportOptions};
-    use keychain;
-
-    macro_rules! p {
-        ($e:expr) => {
-            match $e {
-                Ok(s) => s,
-                Err(e) => panic!("{:?}", e),
-            }
-        }
-    }
+    use test::{certificate, identity};
 
     #[test]
     fn connect() {
@@ -468,33 +455,6 @@ mod test {
         p!(stream.read_to_string(&mut buf));
         assert!(buf.starts_with("HTTP/1.0 200 OK"));
         assert!(buf.ends_with("</html>"));
-    }
-
-    fn identity() -> SecIdentity {
-        let dir = p!(TempDir::new("identity"));
-        let keychain = p!(keychain::CreateOptions::new()
-            .password("password")
-            .create(dir.path().join("identity.keychain")));
-
-        let identity = include_bytes!("../test/server.p12");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.p12")
-           .passphrase("password123")
-           .items(&mut items)
-           .keychain(&keychain)
-           .import(identity));
-        items.identities.pop().unwrap()
-    }
-
-    fn certificate() -> SecCertificate {
-        let certificate = include_bytes!("../test/server.crt");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.crt")
-           .items(&mut items)
-           .import(certificate));
-        items.certificates.pop().unwrap()
     }
 
     #[test]
