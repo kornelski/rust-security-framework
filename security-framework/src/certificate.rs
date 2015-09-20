@@ -8,6 +8,7 @@ use std::ptr;
 
 use cvt;
 use base::Result;
+use key::SecKey;
 
 pub struct SecCertificate(SecCertificateRef);
 
@@ -27,6 +28,14 @@ impl SecCertificate {
             Ok(CFString::wrap_under_create_rule(string))
         }
     }
+
+    pub fn public_key(&self) -> Result<SecKey> {
+        unsafe {
+            let mut key = ptr::null_mut();
+            try!(cvt(SecCertificateCopyPublicKey(self.0, &mut key)));
+            Ok(SecKey::wrap_under_create_rule(key))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -37,5 +46,11 @@ mod test {
     fn common_name() {
         let certificate = certificate();
         assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
+    }
+
+    #[test]
+    fn public_key() {
+        let certificate = certificate();
+        p!(certificate.public_key());
     }
 }
