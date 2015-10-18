@@ -39,8 +39,12 @@ pub enum SSLSessionOption {
     kSSLSessionOptionFalseStart = 3,
     #[cfg(feature = "OSX_10_9")]
     kSSLSessionOptionSendOneByteRecord = 4,
+    #[cfg(feature = "OSX_10_11")]
+    kSSLSessionOptionAllowServerIdentityChange = 5,
     #[cfg(feature = "OSX_10_10")]
     kSSLSessionOptionFallback = 6,
+    #[cfg(feature = "OSX_10_11")]
+    kSSLSessionOptionBreakOnClientHello = 7,
 }
 
 #[repr(C)]
