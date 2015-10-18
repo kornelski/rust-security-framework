@@ -14,3 +14,4 @@ core-foundation-sys = { git = "https://github.com/servo/core-foundation-rs" }
 OSX_10_8 = []
 OSX_10_9 = ["OSX_10_8"]
 OSX_10_10 = ["OSX_10_9"]
+OSX_10_11 = ["OSX_10_10"]
