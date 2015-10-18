@@ -8,7 +8,7 @@ links = "Security"
 
 [dependencies]
 libc = "0.1"
-core-foundation-sys = { git = "https://github.com/sfackler/core-foundation-rs" }
+core-foundation-sys = { git = "https://github.com/servo/core-foundation-rs" }
 
 [features]
 OSX_10_8 = []
