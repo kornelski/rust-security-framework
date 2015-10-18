@@ -2,6 +2,8 @@ use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
 use core_foundation::base::{TCFType, Boolean};
 use core_foundation_sys::base::{OSStatus};
+#[cfg(feature = "OSX_10_8")]
+use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
 use security_framework_sys::base::{errSecSuccess, errSecIO};
 use security_framework_sys::secure_transport::*;
 use std::io;
@@ -24,6 +26,16 @@ use trust::SecTrust;
 pub enum ProtocolSide {
     Server,
     Client,
+}
+
+impl ProtocolSide {
+    #[cfg(feature = "OSX_10_8")]
+    fn to_raw(&self) -> SSLProtocolSide {
+        match *self {
+            ProtocolSide::Server => SSLProtocolSide::kSSLServerSide,
+            ProtocolSide::Client => SSLProtocolSide::kSSLClientSide,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -89,6 +101,7 @@ impl fmt::Debug for SslContext {
 unsafe impl Send for SslContext {}
 
 impl SslContext {
+    #[cfg(not(feature = "OSX_10_8"))]
     pub fn new(side: ProtocolSide) -> Result<SslContext> {
         unsafe {
             let is_server = match side {
@@ -98,6 +111,16 @@ impl SslContext {
 
             let mut ctx = ptr::null_mut();
             try!(cvt(SSLNewContext(is_server, &mut ctx)));
+            Ok(SslContext(ctx))
+        }
+    }
+
+    #[cfg(feature = "OSX_10_8")]
+    pub fn new(side: ProtocolSide) -> Result<SslContext> {
+        unsafe {
+            let ctx = SSLCreateContext(kCFAllocatorDefault,
+                                       side.to_raw(),
+                                       SSLConnectionType::kSSLStreamType);
             Ok(SslContext(ctx))
         }
     }
@@ -218,9 +241,17 @@ impl SslContext {
 }
 
 impl Drop for SslContext {
+    #[cfg(not(feature = "OSX_10_8"))]
     fn drop(&mut self) {
         unsafe {
             SSLDisposeContext(self.0);
+        }
+    }
+
+    #[cfg(feature = "OSX_10_8")]
+    fn drop(&mut self) {
+        unsafe {
+            CFRelease(self.as_CFTypeRef());
         }
     }
 }
@@ -463,7 +494,8 @@ mod test {
 
         let handle = thread::spawn(move || {
             let ctx = p!(SslContext::new(ProtocolSide::Server));
-            p!(ctx.set_certificate(&identity(), &[]));
+            let (_dir, identity) = identity();
+            p!(ctx.set_certificate(&identity, &[]));
 
             let stream = p!(listener.accept()).0;
             let mut stream = p!(ctx.handshake(stream));
@@ -518,7 +550,8 @@ mod test {
 
         let handle = thread::spawn(move || {
             let ctx = p!(SslContext::new(ProtocolSide::Server));
-            p!(ctx.set_certificate(&identity(), &[]));
+            let (_dir, identity) = identity();
+            p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
                                          CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));
 

@@ -1,5 +1,7 @@
 use libc::{c_void, c_char, size_t};
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
+#[cfg(feature = "OSX_10_8")]
+use core_foundation_sys::base::CFAllocatorRef;
 use core_foundation_sys::array::CFArrayRef;
 
 use cipher_suite::SSLCipherSuite;
@@ -67,6 +69,7 @@ pub type SSLWriteFunc = extern fn(connection: SSLConnectionRef,
                                   dataLength: *mut size_t) -> OSStatus;
 
 #[repr(C)]
+#[cfg(feature = "OSX_10_8")]
 pub enum SSLProtocolSide {
     kSSLServerSide,
     kSSLClientSide,
@@ -89,6 +92,11 @@ pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 extern {
     #[cfg(feature = "OSX_10_8")]
     pub fn SSLContextGetTypeID() -> ::core_foundation_sys::base::CFTypeID;
+    #[cfg(feature = "OSX_10_8")]
+    pub fn SSLCreateContext(alloc: CFAllocatorRef,
+                            protocolSide: SSLProtocolSide,
+                            connectionType: SSLConnectionType)
+                            -> SSLContextRef;
 
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;
     pub fn SSLDisposeContext(context: SSLContextRef) -> OSStatus;

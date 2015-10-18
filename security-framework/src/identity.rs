@@ -44,14 +44,14 @@ mod test {
 
     #[test]
     fn certificate() {
-        let identity = identity();
+        let (_dir, identity) = identity();
         let certificate = p!(identity.certificate());
         assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
     }
 
     #[test]
     fn private_key() {
-        let identity = identity();
+        let (_dir, identity) = identity();
         p!(identity.private_key());
     }
 }

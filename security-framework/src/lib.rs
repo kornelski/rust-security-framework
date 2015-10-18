@@ -61,7 +61,7 @@ pub mod test {
     use identity::SecIdentity;
     use certificate::SecCertificate;
 
-    pub fn identity() -> SecIdentity {
+    pub fn identity() -> (TempDir, SecIdentity) {
         let dir = p!(TempDir::new("identity"));
         let keychain = p!(keychain::CreateOptions::new()
             .password("password")
@@ -75,7 +75,7 @@ pub mod test {
            .items(&mut items)
            .keychain(&keychain)
            .import(identity));
-        items.identities.pop().unwrap()
+        (dir, items.identities.pop().unwrap())
     }
 
     pub fn certificate() -> SecCertificate {
