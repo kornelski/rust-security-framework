@@ -4,7 +4,7 @@ use core_foundation::base::{TCFType, Boolean};
 use core_foundation_sys::base::{OSStatus};
 #[cfg(feature = "OSX_10_8")]
 use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
-use security_framework_sys::base::{errSecSuccess, errSecIO};
+use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq};
 use security_framework_sys::secure_transport::*;
 use std::io;
 use std::io::prelude::*;
@@ -190,6 +190,12 @@ impl SslContext {
     }
 
     pub fn peer_trust(&self) -> Result<SecTrust> {
+        // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
+        // so explicitly check for that
+        if let SessionState::Idle = try!(self.state()) {
+            try!(cvt(errSecBadReq));
+        }
+
         unsafe {
             let mut trust = ptr::null_mut();
             try!(cvt(SSLCopyPeerTrust(self.0, &mut trust)));
