@@ -1,0 +1,10 @@
+language: rust
+rust:
+- nightly
+- beta
+- stable
+os:
+- osx
+script:
+- (cd security-framework-sys && cargo build)
+- (cd security-framework && cargo test)
