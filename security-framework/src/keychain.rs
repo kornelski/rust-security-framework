@@ -52,7 +52,7 @@ impl SecKeychain {
         }
     }
 
-    pub fn unlock(&self, password: Option<&str>) -> Result<()> {
+    pub fn unlock(&mut self, password: Option<&str>) -> Result<()> {
         let (len, ptr, use_password) = match password {
             Some(password) => (password.len(), password.as_ptr() as *const _, true),
             None => (0, ptr::null(), false)

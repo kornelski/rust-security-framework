@@ -125,7 +125,7 @@ impl SslContext {
         }
     }
 
-    pub fn set_peer_domain_name(&self, peer_name: &str) -> Result<()> {
+    pub fn set_peer_domain_name(&mut self, peer_name: &str) -> Result<()> {
         unsafe {
             // SSLSetPeerDomainName doesn't need a null terminated string
             cvt(SSLSetPeerDomainName(self.0,
@@ -134,7 +134,10 @@ impl SslContext {
         }
     }
 
-    pub fn set_certificate(&self, identity: &SecIdentity, certs: &[SecCertificate]) -> Result<()> {
+    pub fn set_certificate(&mut self,
+                           identity: &SecIdentity,
+                           certs: &[SecCertificate])
+                           -> Result<()> {
         let mut arr = vec![identity.as_CFType()];
         arr.extend(certs.iter().map(|c| c.as_CFType()));
         let certs = CFArray::from_CFTypes(&arr);
@@ -144,7 +147,7 @@ impl SslContext {
         }
     }
 
-    pub fn set_break_on_server_auth(&self, break_on_server_auth: bool) -> Result<()> {
+    pub fn set_break_on_server_auth(&mut self, break_on_server_auth: bool) -> Result<()> {
         unsafe {
             cvt(SSLSetSessionOption(self.0,
                                     SSLSessionOption::kSSLSessionOptionBreakOnServerAuth,
@@ -174,7 +177,7 @@ impl SslContext {
         }
     }
 
-    pub fn set_enabled_ciphers(&self, ciphers: &[CipherSuite]) -> Result<()> {
+    pub fn set_enabled_ciphers(&mut self, ciphers: &[CipherSuite]) -> Result<()> {
         let ciphers = ciphers.iter().map(|c| c.to_raw()).collect::<Vec<_>>();
         unsafe {
             cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len() as size_t))
@@ -198,7 +201,7 @@ impl SslContext {
         }
     }
 
-    pub fn set_diffie_hellman_params(&self, dh_params: &[u8]) -> Result<()> {
+    pub fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()> {
         unsafe {
             cvt(SSLSetDiffieHellmanParams(self.0,
                                           dh_params.as_ptr() as *const _,
@@ -480,7 +483,7 @@ mod test {
 
     #[test]
     fn connect() {
-        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         p!(ctx.handshake(stream));
@@ -488,7 +491,7 @@ mod test {
 
     #[test]
     fn connect_bad_domain() {
-        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         match ctx.handshake(stream) {
@@ -499,7 +502,7 @@ mod test {
 
     #[test]
     fn load_page() {
-        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ctx.handshake(stream));
@@ -516,7 +519,7 @@ mod test {
         let listener = p!(TcpListener::bind("localhost:15410"));
 
         let handle = thread::spawn(move || {
-            let ctx = p!(SslContext::new(ProtocolSide::Server));
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server));
             let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
 
@@ -528,7 +531,7 @@ mod test {
             assert_eq!(&buf[..], b"hello world!");
         });
 
-        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect("localhost:15410"));
 
@@ -538,7 +541,7 @@ mod test {
             Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
         };
 
-        let peer_trust = p!(stream.context().peer_trust());
+        let mut peer_trust = p!(stream.context().peer_trust());
         p!(peer_trust.set_anchor_certificates(&[certificate()]));
         let result = p!(peer_trust.evaluate());
         assert!(result.success());
@@ -557,7 +560,7 @@ mod test {
 
     #[test]
     fn cipher_configuration() {
-        let ctx = p!(SslContext::new(ProtocolSide::Server));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Server));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers.iter()
             .enumerate()
@@ -572,7 +575,7 @@ mod test {
         let listener = p!(TcpListener::bind("localhost:15411"));
 
         let handle = thread::spawn(move || {
-            let ctx = p!(SslContext::new(ProtocolSide::Server));
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server));
             let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
@@ -586,7 +589,7 @@ mod test {
             p!(stream.read(&mut buf));
         });
 
-        let ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
         p!(ctx.set_break_on_server_auth(true));
         p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
                                      CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));

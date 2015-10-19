@@ -81,7 +81,7 @@ pub mod test {
 
     pub fn keychain() -> SecKeychain {
         // the path has to be absolute for some reason
-        let keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
+        let mut keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
         p!(keychain.unlock(Some("password123")));
         keychain
     }
