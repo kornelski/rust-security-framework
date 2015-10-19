@@ -12,4 +12,5 @@ extern {
                              promptUser: Boolean,
                              initialAccess: SecAccessRef,
                              keychain: *mut SecKeychainRef) -> OSStatus;
+    pub fn SecKeychainOpen(pathName: *const c_char, keychain: *mut SecKeychainRef) -> OSStatus;
 }

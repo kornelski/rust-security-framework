@@ -4,6 +4,7 @@ use security_framework_sys::base::SecKeyRef;
 use security_framework_sys::key::{SecKeyGetTypeID};
 use std::mem;
 
+#[derive(Debug)] // FIXME
 pub struct SecKey(SecKeyRef);
 
 impl Drop for SecKey {

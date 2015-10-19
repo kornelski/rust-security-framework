@@ -1,6 +1,6 @@
 use core_foundation_sys::base::{Boolean, CFRelease};
 use core_foundation::base::TCFType;
-use security_framework_sys::base::{errSecSuccess, SecKeychainRef};
+use security_framework_sys::base::SecKeychainRef;
 use security_framework_sys::keychain::*;
 use libc::c_void;
 use std::ffi::CString;
@@ -9,9 +9,9 @@ use std::path::Path;
 use std::ptr;
 use std::os::unix::ffi::OsStrExt;
 
-use {cvt, ErrorNew};
+use cvt;
 use access::SecAccess;
-use base::{Error, Result};
+use base::Result;
 
 pub struct SecKeychain(SecKeychainRef);
 
@@ -35,10 +35,19 @@ impl SecKeychain {
     pub fn default() -> Result<SecKeychain> {
         unsafe {
             let mut keychain = ptr::null_mut();
-            let ret = SecKeychainCopyDefault(&mut keychain);
-            if ret != errSecSuccess {
-                return Err(Error::new(ret));
-            }
+            try!(cvt(SecKeychainCopyDefault(&mut keychain)));
+            Ok(SecKeychain::wrap_under_create_rule(keychain))
+        }
+    }
+
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
+        let path_name = path.as_ref().as_os_str().as_bytes();
+        // FIXME
+        let path_name = CString::new(path_name).unwrap();
+
+        unsafe {
+            let mut keychain = ptr::null_mut();
+            try!(cvt(SecKeychainOpen(path_name.as_ptr(), &mut keychain)));
             Ok(SecKeychain::wrap_under_create_rule(keychain))
         }
     }

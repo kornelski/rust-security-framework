@@ -9,6 +9,7 @@ pub mod certificate;
 pub mod cipher_suite;
 pub mod identity;
 pub mod import_export;
+pub mod item;
 pub mod key;
 pub mod keychain;
 pub mod secure_transport;

@@ -10,6 +10,7 @@ use base::Result;
 use certificate::SecCertificate;
 use key::SecKey;
 
+#[derive(Debug)] // FIXME
 pub struct SecIdentity(SecIdentityRef);
 
 impl Drop for SecIdentity {

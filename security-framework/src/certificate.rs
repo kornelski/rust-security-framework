@@ -10,6 +10,7 @@ use cvt;
 use base::Result;
 use key::SecKey;
 
+#[derive(Debug)] // FIXME
 pub struct SecCertificate(SecCertificateRef);
 
 impl Drop for SecCertificate {
