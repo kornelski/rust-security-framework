@@ -500,7 +500,7 @@ mod test {
 
         let handle = thread::spawn(move || {
             let ctx = p!(SslContext::new(ProtocolSide::Server));
-            let (_dir, identity) = identity();
+            let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
 
             let stream = p!(listener.accept()).0;
@@ -556,7 +556,7 @@ mod test {
 
         let handle = thread::spawn(move || {
             let ctx = p!(SslContext::new(ProtocolSide::Server));
-            let (_dir, identity) = identity();
+            let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
                                          CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));

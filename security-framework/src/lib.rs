@@ -55,28 +55,18 @@ fn cvt(err: OSStatus) -> Result<()> {
 
 #[cfg(test)]
 pub mod test {
-    use tempdir::TempDir;
-
-    use keychain;
+    use item::{ItemSearchOptions, ItemClass};
     use import_export::{SecItems, ImportOptions};
     use identity::SecIdentity;
     use certificate::SecCertificate;
+    use keychain::SecKeychain;
 
-    pub fn identity() -> (TempDir, SecIdentity) {
-        let dir = p!(TempDir::new("identity"));
-        let keychain = p!(keychain::CreateOptions::new()
-            .password("password")
-            .create(dir.path().join("identity.keychain")));
-
-        let identity = include_bytes!("../test/server.p12");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.p12")
-           .passphrase("password123")
-           .items(&mut items)
-           .keychain(&keychain)
-           .import(identity));
-        (dir, items.identities.pop().unwrap())
+    pub fn identity() -> SecIdentity {
+        let mut items = p!(ItemSearchOptions::new()
+            .class(ItemClass::Identity)
+            .keychains(&[keychain()])
+            .search());
+        items.identities.pop().unwrap()
     }
 
     pub fn certificate() -> SecCertificate {
@@ -87,5 +77,12 @@ pub mod test {
            .items(&mut items)
            .import(certificate));
         items.certificates.pop().unwrap()
+    }
+
+    pub fn keychain() -> SecKeychain {
+        // the path has to be absolute for some reason
+        let keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
+        p!(keychain.unlock(Some("password123")));
+        keychain
     }
 }

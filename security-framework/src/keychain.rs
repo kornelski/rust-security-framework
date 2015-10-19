@@ -51,6 +51,17 @@ impl SecKeychain {
             Ok(SecKeychain::wrap_under_create_rule(keychain))
         }
     }
+
+    pub fn unlock(&self, password: Option<&str>) -> Result<()> {
+        let (len, ptr, use_password) = match password {
+            Some(password) => (password.len(), password.as_ptr() as *const _, true),
+            None => (0, ptr::null(), false)
+        };
+
+        unsafe {
+            cvt(SecKeychainUnlock(self.0, len as u32, ptr, use_password as Boolean))
+        }
+    }
 }
 
 #[derive(Default)]

@@ -13,4 +13,8 @@ extern {
                              initialAccess: SecAccessRef,
                              keychain: *mut SecKeychainRef) -> OSStatus;
     pub fn SecKeychainOpen(pathName: *const c_char, keychain: *mut SecKeychainRef) -> OSStatus;
+    pub fn SecKeychainUnlock(keychain: SecKeychainRef,
+                             passwordLength: u32,
+                             password: *const c_void,
+                             usePassword: Boolean) -> OSStatus;
 }
