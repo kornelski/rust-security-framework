@@ -128,4 +128,6 @@ extern {
     pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
     pub fn SSLSetEnabledCiphers(context: SSLContextRef, ciphers: *const SSLCipherSuite, numCiphers: size_t) -> OSStatus;
     pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
+    pub fn SSLSetDiffieHellmanParams(context: SSLContextRef, dhParams: *const c_void, dhParamsLen: size_t) -> OSStatus;
+    pub fn SSLGetDiffieHellmanParams(context: SSLContextRef, dhParams: *mut *const c_void, dhParamsLen: *mut size_t) -> OSStatus;
 }

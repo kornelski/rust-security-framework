@@ -189,6 +189,23 @@ impl SslContext {
         }
     }
 
+    pub fn diffie_hellman_params(&self) -> Result<&[u8]> {
+        unsafe {
+            let mut ptr = ptr::null();
+            let mut len = 0;
+            try!(cvt(SSLGetDiffieHellmanParams(self.0, &mut ptr, &mut len)));
+            Ok(slice::from_raw_parts(ptr as *const u8, len as usize))
+        }
+    }
+
+    pub fn set_diffie_hellman_params(&self, dh_params: &[u8]) -> Result<()> {
+        unsafe {
+            cvt(SSLSetDiffieHellmanParams(self.0,
+                                          dh_params.as_ptr() as *const _,
+                                          dh_params.len() as size_t))
+        }
+    }
+
     pub fn peer_trust(&self) -> Result<SecTrust> {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
