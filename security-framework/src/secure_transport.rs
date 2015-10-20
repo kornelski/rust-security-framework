@@ -397,7 +397,7 @@ impl<S> SslStream<S> {
         &mut self.connection_mut().stream
     }
 
-    pub fn ctx(&self) -> &SslContext {
+    pub fn context(&self) -> &SslContext {
         &self.ctx
     }
 
@@ -584,7 +584,7 @@ mod test {
             let stream = p!(listener.accept()).0;
             let mut stream = p!(ctx.handshake(stream));
             assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                       p!(stream.ctx().negotiated_cipher()));
+                       p!(stream.context().negotiated_cipher()));
             let mut buf = [0; 1];
             p!(stream.read(&mut buf));
         });
@@ -603,7 +603,7 @@ mod test {
 
         let mut stream = p!(stream.handshake());
         assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                   p!(stream.ctx().negotiated_cipher()));
+                   p!(stream.context().negotiated_cipher()));
         p!(stream.write(&[0]));
 
         handle.join().unwrap();
