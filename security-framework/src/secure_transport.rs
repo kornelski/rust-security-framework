@@ -301,64 +301,60 @@ fn translate_err(e: &io::Error) -> OSStatus {
     }
 }
 
-extern fn read_func<S: Read>(connection: SSLConnectionRef,
-                             data: *mut c_void,
-                             data_length: *mut size_t)
-                             -> OSStatus {
-    unsafe {
-        let mut conn: &mut Connection<S> = mem::transmute(connection);
-        let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length as usize);
-        let mut start = 0;
-        let mut ret = 0;
+unsafe extern fn read_func<S: Read>(connection: SSLConnectionRef,
+                                    data: *mut c_void,
+                                    data_length: *mut size_t)
+                                    -> OSStatus {
+    let mut conn: &mut Connection<S> = mem::transmute(connection);
+    let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length as usize);
+    let mut start = 0;
+    let mut ret = 0;
 
-        while start < data.len() {
-            match conn.stream.read(&mut data[start..]) {
-                Ok(0) => {
-                    ret = errSSLClosedNoNotify;
-                    break;
-                }
-                Ok(len) => start += len,
-                Err(e) => {
-                    ret = translate_err(&e);
-                    conn.err = Some(e);
-                    break;
-                }
+    while start < data.len() {
+        match conn.stream.read(&mut data[start..]) {
+            Ok(0) => {
+                ret = errSSLClosedNoNotify;
+                break;
+            }
+            Ok(len) => start += len,
+            Err(e) => {
+                ret = translate_err(&e);
+                conn.err = Some(e);
+                break;
             }
         }
-
-        *data_length = start as size_t;
-        ret
     }
+
+    *data_length = start as size_t;
+    ret
 }
 
-extern fn write_func<S: Write>(connection: SSLConnectionRef,
-                               data: *const c_void,
-                               data_length: *mut size_t)
-                               -> OSStatus {
-    unsafe {
-        let mut conn: &mut Connection<S> = mem::transmute(connection);
-        let data = slice::from_raw_parts(data as *mut u8, *data_length as usize);
-        let mut start = 0;
-        let mut ret = 0;
+unsafe extern fn write_func<S: Write>(connection: SSLConnectionRef,
+                                      data: *const c_void,
+                                      data_length: *mut size_t)
+                                      -> OSStatus {
+    let mut conn: &mut Connection<S> = mem::transmute(connection);
+    let data = slice::from_raw_parts(data as *mut u8, *data_length as usize);
+    let mut start = 0;
+    let mut ret = 0;
 
-        while start < data.len() {
-            match conn.stream.write(&data[start..]) {
-                Ok(0) => {
-                    ret = errSSLClosedNoNotify;
-                    break;
-                },
-                Ok(len) => start += len,
-                Err(e) => {
-                    ret = translate_err(&e);
-                    conn.err = Some(e);
-                    break;
-                }
+    while start < data.len() {
+        match conn.stream.write(&data[start..]) {
+            Ok(0) => {
+                ret = errSSLClosedNoNotify;
+                break;
+            },
+            Ok(len) => start += len,
+            Err(e) => {
+                ret = translate_err(&e);
+                conn.err = Some(e);
+                break;
             }
         }
-
-        *data_length = start as size_t;
-        ret
     }
+
+    *data_length = start as size_t;
+    ret
 }
 
 pub struct SslStream<S> {

@@ -64,13 +64,13 @@ pub enum SSLClientCertificateState {
     kSSLClientCertRejected
 }
 
-pub type SSLReadFunc = extern fn(connection: SSLConnectionRef,
-                                 data: *mut c_void,
-                                 dataLength: *mut size_t) -> OSStatus;
+pub type SSLReadFunc = unsafe extern fn(connection: SSLConnectionRef,
+                                        data: *mut c_void,
+                                        dataLength: *mut size_t) -> OSStatus;
 
-pub type SSLWriteFunc = extern fn(connection: SSLConnectionRef,
-                                  data: *const c_void,
-                                  dataLength: *mut size_t) -> OSStatus;
+pub type SSLWriteFunc = unsafe extern fn(connection: SSLConnectionRef,
+                                         data: *const c_void,
+                                         dataLength: *mut size_t) -> OSStatus;
 
 #[repr(C)]
 #[cfg(feature = "OSX_10_8")]
