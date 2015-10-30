@@ -38,6 +38,23 @@ impl ProtocolSide {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum ConnectionType {
+    Stream,
+    #[cfg(feature = "OSX_10_8")]
+    Datagram,
+}
+
+impl ConnectionType {
+    #[cfg(feature = "OSX_10_8")]
+    fn to_raw(&self) -> SSLConnectionType {
+        match *self {
+            ConnectionType::Stream => SSLConnectionType::kSSLStreamType,
+            ConnectionType::Datagram => SSLConnectionType::kSSLDatagramType,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum HandshakeError<S> {
     Failure(Error),
@@ -101,8 +118,12 @@ impl fmt::Debug for SslContext {
 unsafe impl Send for SslContext {}
 
 impl SslContext {
+    pub fn new(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
+        SslContext::new_inner(side, type_)
+    }
+
     #[cfg(not(feature = "OSX_10_8"))]
-    pub fn new(side: ProtocolSide) -> Result<SslContext> {
+    fn new_inner(side: ProtocolSide, _: ConnectionType) -> Result<SslContext> {
         unsafe {
             let is_server = match side {
                 ProtocolSide::Server => 1,
@@ -116,11 +137,9 @@ impl SslContext {
     }
 
     #[cfg(feature = "OSX_10_8")]
-    pub fn new(side: ProtocolSide) -> Result<SslContext> {
+    pub fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         unsafe {
-            let ctx = SSLCreateContext(kCFAllocatorDefault,
-                                       side.to_raw(),
-                                       SSLConnectionType::kSSLStreamType);
+            let ctx = SSLCreateContext(kCFAllocatorDefault, side.to_raw(), type_.to_raw());
             Ok(SslContext(ctx))
         }
     }
@@ -479,7 +498,7 @@ mod test {
 
     #[test]
     fn connect() {
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         p!(ctx.handshake(stream));
@@ -487,7 +506,7 @@ mod test {
 
     #[test]
     fn connect_bad_domain() {
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         match ctx.handshake(stream) {
@@ -498,7 +517,7 @@ mod test {
 
     #[test]
     fn load_page() {
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ctx.handshake(stream));
@@ -515,7 +534,7 @@ mod test {
         let listener = p!(TcpListener::bind("localhost:15410"));
 
         let handle = thread::spawn(move || {
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server));
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
             let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
 
@@ -527,7 +546,7 @@ mod test {
             assert_eq!(&buf[..], b"hello world!");
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect("localhost:15410"));
 
@@ -550,13 +569,13 @@ mod test {
 
     #[test]
     fn idle_context_peer_trust() {
-        let ctx = p!(SslContext::new(ProtocolSide::Server));
+        let ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         assert!(ctx.peer_trust().is_err());
     }
 
     #[test]
     fn cipher_configuration() {
-        let mut ctx = p!(SslContext::new(ProtocolSide::Server));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers.iter()
             .enumerate()
@@ -571,7 +590,7 @@ mod test {
         let listener = p!(TcpListener::bind("localhost:15411"));
 
         let handle = thread::spawn(move || {
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server));
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
             let identity = identity();
             p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
@@ -585,7 +604,7 @@ mod test {
             p!(stream.read(&mut buf));
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client));
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_break_on_server_auth(true));
         p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
                                      CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));
