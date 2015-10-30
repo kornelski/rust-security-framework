@@ -266,10 +266,10 @@ impl SslContext {
                 stream: stream,
                 err: None,
             };
-            let stream = mem::transmute::<_, SSLConnectionRef>(Box::new(stream));
+            let stream = Box::into_raw(Box::new(stream)) as *mut _;
             let ret = SSLSetConnection(self.0, stream);
             if ret != errSecSuccess {
-                let _conn = mem::transmute::<_, Box<Connection<S>>>(stream);
+                let _conn = Box::from_raw(stream as *mut _);
                 return Err(HandshakeError::Failure(Error::new(ret)));
             }
 
@@ -405,7 +405,7 @@ impl<S> Drop for SslStream<S> {
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
             assert!(ret == errSecSuccess);
-            mem::transmute::<_, Box<Connection<S>>>(conn);
+            Box::<Connection<S>>::from_raw(conn as *mut _);
         }
     }
 }
