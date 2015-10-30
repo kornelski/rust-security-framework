@@ -59,6 +59,7 @@ impl ConnectionType {
 pub enum HandshakeError<S> {
     Failure(Error),
     ServerAuthCompleted(MidHandshakeSslStream<S>),
+    ClientCertRequested(MidHandshakeSslStream<S>),
 }
 
 #[derive(Debug)]
@@ -69,13 +70,16 @@ impl<S> MidHandshakeSslStream<S> {
         &self.0.ctx
     }
 
+    pub fn mut_context(&mut self) -> &mut SslContext {
+        &mut self.0.ctx
+    }
+
     pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
         unsafe {
             match SSLHandshake(self.0.ctx.0) {
                 errSecSuccess => Ok(self.0),
-                errSSLPeerAuthCompleted => {
-                    Err(HandshakeError::ServerAuthCompleted(self))
-                }
+                errSSLPeerAuthCompleted => Err(HandshakeError::ServerAuthCompleted(self)),
+                errSSLClientCertRequested => Err(HandshakeError::ClientCertRequested(self)),
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }
@@ -278,6 +282,9 @@ impl SslContext {
                 errSecSuccess => Ok(stream),
                 errSSLPeerAuthCompleted => {
                     Err(HandshakeError::ServerAuthCompleted(MidHandshakeSslStream(stream)))
+                }
+                errSSLClientCertRequested => {
+                    Err(HandshakeError::ClientCertRequested(MidHandshakeSslStream(stream)))
                 }
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
@@ -553,7 +560,7 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
-            Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
+            Err(err) => panic!("unexpected error {:?}", err),
         };
 
         let mut peer_trust = p!(stream.context().peer_trust());
@@ -613,7 +620,7 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
-            Err(HandshakeError::Failure(err)) => panic!("unexpected error {}", err),
+            Err(err) => panic!("unexpected error {:?}", err),
         };
 
         let mut stream = p!(stream.handshake());

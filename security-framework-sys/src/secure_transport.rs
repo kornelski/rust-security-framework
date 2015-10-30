@@ -92,6 +92,7 @@ pub const errSSLClosedGraceful: OSStatus = -9805;
 pub const errSSLClosedAbort: OSStatus = -9806;
 pub const errSSLClosedNoNotify: OSStatus = -9816;
 pub const errSSLPeerAuthCompleted: OSStatus = -9841;
+pub const errSSLClientCertRequested: OSStatus = -9842;
 
 extern {
     #[cfg(feature = "OSX_10_8")]
