@@ -7,8 +7,8 @@ build = "build.rs"
 links = "Security"
 
 [dependencies]
-libc = "0.1"
-core-foundation-sys = { git = "https://github.com/servo/core-foundation-rs" }
+libc = "0.2"
+core-foundation-sys = "0.2"
 
 [features]
 OSX_10_8 = []

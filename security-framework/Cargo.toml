@@ -6,9 +6,9 @@ license = "MIT"
 
 [dependencies]
 security-framework-sys = { path = "../security-framework-sys" }
-core-foundation = { git = "https://github.com/servo/core-foundation-rs" }
-core-foundation-sys = { git = "https://github.com/servo/core-foundation-rs" }
-libc = "0.1"
+core-foundation = "0.2"
+core-foundation-sys = "0.2"
+libc = "0.2"
 
 [dev-dependencies]
 tempdir = "0.3"
