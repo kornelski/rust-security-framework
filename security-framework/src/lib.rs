@@ -59,3 +59,12 @@ fn cvt(err: OSStatus) -> Result<()> {
         err => Err(Error::new(err)),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use certificate::SecCertificate;
+    pub fn certificate() -> SecCertificate {
+        let certificate = include_bytes!("../test/server.der");
+        p!(SecCertificate::from_der(certificate))
+    }
+}

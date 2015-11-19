@@ -177,10 +177,10 @@ mod test {
 
     #[test]
     fn certificate() {
-        let data = include_bytes!("../../../test/server.crt");
+        let data = include_bytes!("../../../test/server.der");
         let mut items = SecItems::default();
         ImportOptions::new()
-            .filename("server.crt")
+            .filename("server.der")
             .items(&mut items)
             .import(data)
             .unwrap();

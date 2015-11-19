@@ -24,6 +24,7 @@ pub type SecIdentityRef = *mut OpaqueSecIdentityRef;
 
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
+pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;
 
 extern {

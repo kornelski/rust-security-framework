@@ -33,7 +33,7 @@ impl SecCertificateExt for SecCertificate {
 
 #[cfg(test)]
 mod test {
-    use os::macos::test::certificate;
+    use test::certificate;
     use super::SecCertificateExt;
 
     #[test]

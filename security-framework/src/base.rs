@@ -1,4 +1,5 @@
 use core_foundation_sys::base::OSStatus;
+use core_foundation::string::CFString;
 use std::error;
 use std::fmt;
 use std::result;
@@ -28,10 +29,9 @@ impl ErrorNew for Error {
 
 impl Error {
     #[cfg(target_os = "macos")]
-    pub fn message(&self) -> Option<String> {
+    pub fn message(&self) -> Option<CFString> {
         use security_framework_sys::base::SecCopyErrorMessageString;
         use core_foundation::base::TCFType;
-        use core_foundation::string::CFString;
         use std::ptr;
 
         unsafe {
@@ -39,14 +39,13 @@ impl Error {
             if s.is_null() {
                 None
             } else {
-                let s = CFString::wrap_under_create_rule(s);
-                Some(s.to_string())
+                Some(CFString::wrap_under_create_rule(s))
             }
         }
     }
 
     #[cfg(target_os = "ios")]
-    pub fn message(&self) -> Option<String> {
+    pub fn message(&self) -> Option<CFString> {
         None
     }
 

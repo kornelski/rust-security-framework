@@ -36,7 +36,8 @@ mod test {
     use std::net::{TcpListener, TcpStream};
     use std::thread;
 
-    use os::macos::test::{certificate, identity};
+    use test::certificate;
+    use os::macos::test::identity;
     use cipher_suite::CipherSuite;
     use secure_transport::*;
 

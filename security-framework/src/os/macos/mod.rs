@@ -8,10 +8,8 @@ pub mod keychain;
 #[cfg(test)]
 pub mod test {
     use item::{ItemSearchOptions, ItemClass};
-    use os::macos::import_export::{SecItems, ImportOptions};
     use os::macos::keychain::SecKeychainExt;
     use identity::SecIdentity;
-    use certificate::SecCertificate;
     use keychain::SecKeychain;
 
     pub fn identity() -> SecIdentity {
@@ -20,16 +18,6 @@ pub mod test {
             .keychains(&[keychain()])
             .search());
         items.identities.pop().unwrap()
-    }
-
-    pub fn certificate() -> SecCertificate {
-        let certificate = include_bytes!("../../../test/server.crt");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.crt")
-           .items(&mut items)
-           .import(certificate));
-        items.certificates.pop().unwrap()
     }
 
     pub fn keychain() -> SecKeychain {
