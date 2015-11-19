@@ -49,7 +49,6 @@ trait CipherSuiteInternals {
 
 trait AsInner {
     type Inner;
-
     fn as_inner(&self) -> Self::Inner;
 }
 

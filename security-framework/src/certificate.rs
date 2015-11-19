@@ -5,12 +5,20 @@ use core_foundation::string::CFString;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use std::mem;
+use std::fmt;
 
 use ErrorNew;
 use base::{Error, Result};
 
-#[derive(Debug)] // FIXME
 pub struct SecCertificate(SecCertificateRef);
+
+impl fmt::Debug for SecCertificate {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("SecCertificate")
+           .field("subject", &self.subject_summary())
+           .finish()
+    }
+}
 
 impl Drop for SecCertificate {
     fn drop(&mut self) {
