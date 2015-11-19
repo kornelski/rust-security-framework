@@ -119,25 +119,9 @@ pub struct SearchResults {
 #[cfg(test)]
 mod test {
     use super::*;
-    use keychain::SecKeychain;
 
     #[test]
     fn find_nothing() {
         assert!(ItemSearchOptions::new().search().is_err());
-    }
-
-    #[test]
-    fn find_certificate() {
-        // the path has to be absolute for some reason
-        let keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
-
-        let results = p!(ItemSearchOptions::new()
-                     .keychains(&[keychain])
-                     .class(ItemClass::Certificate)
-                     .search());
-        assert_eq!(1, results.certificates.len());
-        assert_eq!("foobar.com", p!(results.certificates[0].common_name()).to_string());
-        assert!(results.keys.is_empty());
-        assert!(results.identities.is_empty());
     }
 }

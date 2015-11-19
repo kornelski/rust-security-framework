@@ -5,8 +5,10 @@ use base::{SecCertificateRef, SecKeyRef};
 
 extern {
     pub fn SecCertificateGetTypeID() -> CFTypeID;
+    #[cfg(target_os = "macos")]
     pub fn SecCertificateCopyCommonName(certificate: SecCertificateRef,
                                         common_name: *mut CFStringRef) -> OSStatus;
+    #[cfg(target_os = "macos")]
     pub fn SecCertificateCopyPublicKey(certificate: SecCertificateRef,
                                        key: *mut SecKeyRef) -> OSStatus;
 }

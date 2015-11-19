@@ -173,11 +173,11 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use keychain;
+    use os::macos::keychain;
 
     #[test]
     fn certificate() {
-        let data = include_bytes!("../test/server.crt");
+        let data = include_bytes!("../../../test/server.crt");
         let mut items = SecItems::default();
         ImportOptions::new()
             .filename("server.crt")
@@ -191,7 +191,7 @@ mod test {
 
     #[test]
     fn key() {
-        let data = include_bytes!("../test/server.key");
+        let data = include_bytes!("../../../test/server.key");
         let mut items = SecItems::default();
         ImportOptions::new()
             .filename("server.key")
@@ -211,7 +211,7 @@ mod test {
             .create(dir.path().join("identity.keychain"))
             .unwrap();
 
-        let data = include_bytes!("../test/server.p12");
+        let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();
         ImportOptions::new()
             .filename("server.p12")
@@ -234,7 +234,7 @@ mod test {
             .create(dir.path().join("identity.keychain"))
             .unwrap();
 
-        let data = include_bytes!("../test/server.p12");
+        let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();
         ImportOptions::new()
             .filename("server.p12")

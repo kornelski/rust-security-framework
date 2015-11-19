@@ -1,4 +1,5 @@
 #![allow(non_upper_case_globals)]
+#![cfg_attr(target_os = "ios", feature(box_raw))]
 
 extern crate security_framework_sys;
 #[macro_use]
@@ -30,10 +31,10 @@ pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
 pub mod identity;
-pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
+pub mod os;
 pub mod secure_transport;
 pub mod trust;
 
@@ -46,43 +47,15 @@ trait CipherSuiteInternals {
     fn to_raw(&self) -> SSLCipherSuite;
 }
 
+trait AsInner {
+    type Inner;
+
+    fn as_inner(&self) -> Self::Inner;
+}
+
 fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),
         err => Err(Error::new(err)),
-    }
-}
-
-#[cfg(test)]
-pub mod test {
-    use item::{ItemSearchOptions, ItemClass};
-    use import_export::{SecItems, ImportOptions};
-    use identity::SecIdentity;
-    use certificate::SecCertificate;
-    use keychain::SecKeychain;
-
-    pub fn identity() -> SecIdentity {
-        let mut items = p!(ItemSearchOptions::new()
-            .class(ItemClass::Identity)
-            .keychains(&[keychain()])
-            .search());
-        items.identities.pop().unwrap()
-    }
-
-    pub fn certificate() -> SecCertificate {
-        let certificate = include_bytes!("../test/server.crt");
-        let mut items = SecItems::default();
-        p!(ImportOptions::new()
-           .filename("server.crt")
-           .items(&mut items)
-           .import(certificate));
-        items.certificates.pop().unwrap()
-    }
-
-    pub fn keychain() -> SecKeychain {
-        // the path has to be absolute for some reason
-        let mut keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
-        p!(keychain.unlock(Some("password123")));
-        keychain
     }
 }

@@ -1,10 +1,6 @@
 use core_foundation_sys::base::OSStatus;
-use core_foundation::base::TCFType;
-use core_foundation::string::CFString;
-use security_framework_sys::base::SecCopyErrorMessageString;
 use std::error;
 use std::fmt;
-use std::ptr;
 use std::result;
 
 use ErrorNew;
@@ -31,7 +27,13 @@ impl ErrorNew for Error {
 }
 
 impl Error {
+    #[cfg(target_os = "macos")]
     pub fn message(&self) -> Option<String> {
+        use security_framework_sys::base::SecCopyErrorMessageString;
+        use core_foundation::base::TCFType;
+        use core_foundation::string::CFString;
+        use std::ptr;
+
         unsafe {
             let s = SecCopyErrorMessageString(self.0, ptr::null_mut());
             if s.is_null() {
@@ -41,6 +43,11 @@ impl Error {
                 Some(s.to_string())
             }
         }
+    }
+
+    #[cfg(target_os = "ios")]
+    pub fn message(&self) -> Option<String> {
+        None
     }
 
     pub fn code(&self) -> OSStatus {

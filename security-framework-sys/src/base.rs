@@ -27,5 +27,6 @@ pub const errSecIO: OSStatus = -36;
 pub const errSecBadReq: OSStatus = -909;
 
 extern {
+    #[cfg(target_os = "macos")]
     pub fn SecCopyErrorMessageString(status: OSStatus, reserved: *mut c_void) -> CFStringRef;
 }

@@ -2,7 +2,7 @@ use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
 use core_foundation::base::{TCFType, Boolean};
 use core_foundation_sys::base::{OSStatus};
-#[cfg(feature = "OSX_10_8")]
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
 use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq};
 use security_framework_sys::secure_transport::*;
@@ -15,7 +15,7 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals};
+use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
@@ -29,7 +29,7 @@ pub enum ProtocolSide {
 }
 
 impl ProtocolSide {
-    #[cfg(feature = "OSX_10_8")]
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     fn to_raw(&self) -> SSLProtocolSide {
         match *self {
             ProtocolSide::Server => SSLProtocolSide::kSSLServerSide,
@@ -41,12 +41,12 @@ impl ProtocolSide {
 #[derive(Debug, Copy, Clone)]
 pub enum ConnectionType {
     Stream,
-    #[cfg(feature = "OSX_10_8")]
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     Datagram,
 }
 
 impl ConnectionType {
-    #[cfg(feature = "OSX_10_8")]
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     fn to_raw(&self) -> SSLConnectionType {
         match *self {
             ConnectionType::Stream => SSLConnectionType::kSSLStreamType,
@@ -121,12 +121,20 @@ impl fmt::Debug for SslContext {
 
 unsafe impl Send for SslContext {}
 
+impl AsInner for SslContext {
+    type Inner = SSLContextRef;
+
+    fn as_inner(&self) -> SSLContextRef {
+        self.0
+    }
+}
+
 impl SslContext {
     pub fn new(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         SslContext::new_inner(side, type_)
     }
 
-    #[cfg(not(feature = "OSX_10_8"))]
+    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
     fn new_inner(side: ProtocolSide, _: ConnectionType) -> Result<SslContext> {
         unsafe {
             let is_server = match side {
@@ -140,7 +148,7 @@ impl SslContext {
         }
     }
 
-    #[cfg(feature = "OSX_10_8")]
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         unsafe {
             let ctx = SSLCreateContext(kCFAllocatorDefault, side.to_raw(), type_.to_raw());
@@ -215,23 +223,6 @@ impl SslContext {
         }
     }
 
-    pub fn diffie_hellman_params(&self) -> Result<&[u8]> {
-        unsafe {
-            let mut ptr = ptr::null();
-            let mut len = 0;
-            try!(cvt(SSLGetDiffieHellmanParams(self.0, &mut ptr, &mut len)));
-            Ok(slice::from_raw_parts(ptr as *const u8, len as usize))
-        }
-    }
-
-    pub fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()> {
-        unsafe {
-            cvt(SSLSetDiffieHellmanParams(self.0,
-                                          dh_params.as_ptr() as *const _,
-                                          dh_params.len() as size_t))
-        }
-    }
-
     pub fn peer_trust(&self) -> Result<SecTrust> {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
@@ -293,14 +284,14 @@ impl SslContext {
 }
 
 impl Drop for SslContext {
-    #[cfg(not(feature = "OSX_10_8"))]
+    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
     fn drop(&mut self) {
         unsafe {
             SSLDisposeContext(self.0);
         }
     }
 
-    #[cfg(feature = "OSX_10_8")]
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     fn drop(&mut self) {
         unsafe {
             CFRelease(self.as_CFTypeRef());
@@ -308,7 +299,7 @@ impl Drop for SslContext {
     }
 }
 
-#[cfg(feature = "OSX_10_8")]
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 struct Connection<S> {
@@ -496,12 +487,9 @@ impl<S: Read + Write> Write for SslStream<S> {
 #[cfg(test)]
 mod test {
     use std::io::prelude::*;
-    use std::net::{TcpListener, TcpStream};
-    use std::thread;
+    use std::net::TcpStream;
 
     use super::*;
-    use cipher_suite::CipherSuite;
-    use test::{certificate, identity};
 
     #[test]
     fn connect() {
@@ -537,50 +525,6 @@ mod test {
     }
 
     #[test]
-    fn server_client() {
-        let listener = p!(TcpListener::bind("localhost:15410"));
-
-        let handle = thread::spawn(move || {
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-            let identity = identity();
-            p!(ctx.set_certificate(&identity, &[]));
-
-            let stream = p!(listener.accept()).0;
-            let mut stream = p!(ctx.handshake(stream));
-
-            let mut buf = [0; 12];
-            p!(stream.read(&mut buf));
-            assert_eq!(&buf[..], b"hello world!");
-        });
-
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        p!(ctx.set_break_on_server_auth(true));
-        let stream = p!(TcpStream::connect("localhost:15410"));
-
-        let stream = match ctx.handshake(stream) {
-            Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
-        };
-
-        let mut peer_trust = p!(stream.context().peer_trust());
-        p!(peer_trust.set_anchor_certificates(&[certificate()]));
-        let result = p!(peer_trust.evaluate());
-        assert!(result.success());
-
-        let mut stream = p!(stream.handshake());
-        p!(stream.write_all(b"hello world!"));
-
-        handle.join().unwrap();
-    }
-
-    #[test]
-    fn idle_context_peer_trust() {
-        let ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-        assert!(ctx.peer_trust().is_err());
-    }
-
-    #[test]
     fn cipher_configuration() {
         let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         let ciphers = p!(ctx.enabled_ciphers());
@@ -590,44 +534,5 @@ mod test {
             .collect::<Vec<_>>();
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
-    }
-
-    #[test]
-    fn negotiated_cipher() {
-        let listener = p!(TcpListener::bind("localhost:15411"));
-
-        let handle = thread::spawn(move || {
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-            let identity = identity();
-            p!(ctx.set_certificate(&identity, &[]));
-            p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                                         CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));
-
-            let stream = p!(listener.accept()).0;
-            let mut stream = p!(ctx.handshake(stream));
-            assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                       p!(stream.context().negotiated_cipher()));
-            let mut buf = [0; 1];
-            p!(stream.read(&mut buf));
-        });
-
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        p!(ctx.set_break_on_server_auth(true));
-        p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
-                                     CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));
-        let stream = p!(TcpStream::connect("localhost:15411"));
-
-        let stream = match ctx.handshake(stream) {
-            Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
-        };
-
-        let mut stream = p!(stream.handshake());
-        assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                   p!(stream.context().negotiated_cipher()));
-        p!(stream.write(&[0]));
-
-        handle.join().unwrap();
     }
 }
