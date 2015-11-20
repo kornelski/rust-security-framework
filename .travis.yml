@@ -2,12 +2,11 @@ language: rust
 rust:
 - nightly
 - beta
-- stable
+- 1.4.0
 os:
 - osx
 env:
 - FEATURES="OSX_10_9"
 - FEATURES=""
 script:
-- (cd security-framework-sys && cargo build --features "$FEATURES")
-- (cd security-framework && env RUST_TEST_THREADS=1 cargo test --features "$FEATURES")
+- cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES"
