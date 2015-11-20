@@ -369,7 +369,7 @@ pub struct SslStream<S> {
 impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SslStream")
-           .field("ctx", &self.ctx)
+           .field("context", &self.ctx)
            .field("stream", self.get_ref())
            .finish()
     }
