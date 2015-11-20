@@ -34,17 +34,17 @@ impl SecCertificate {
         }
     }
 
-    pub fn to_der(&self) -> CFData {
+    pub fn to_der(&self) -> Vec<u8> {
         unsafe {
             let der_data = SecCertificateCopyData(self.0);
-            CFData::wrap_under_create_rule(der_data)
+            CFData::wrap_under_create_rule(der_data).to_owned()
         }
     }
 
-    pub fn subject_summary(&self) -> CFString {
+    pub fn subject_summary(&self) -> String {
         unsafe {
             let summary = SecCertificateCopySubjectSummary(self.0);
-            CFString::wrap_under_create_rule(summary)
+            CFString::wrap_under_create_rule(summary).to_string()
         }
     }
 }
@@ -56,6 +56,6 @@ mod test {
     #[test]
     fn subject_summary() {
         let cert = certificate();
-        assert_eq!("foobar.com", cert.subject_summary().to_string());
+        assert_eq!("foobar.com", cert.subject_summary());
     }
 }

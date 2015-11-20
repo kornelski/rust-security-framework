@@ -29,7 +29,7 @@ impl ErrorNew for Error {
 
 impl Error {
     #[cfg(target_os = "macos")]
-    pub fn message(&self) -> Option<CFString> {
+    pub fn message(&self) -> Option<String> {
         use security_framework_sys::base::SecCopyErrorMessageString;
         use core_foundation::base::TCFType;
         use std::ptr;
@@ -39,13 +39,13 @@ impl Error {
             if s.is_null() {
                 None
             } else {
-                Some(CFString::wrap_under_create_rule(s))
+                Some(CFString::wrap_under_create_rule(s).to_string())
             }
         }
     }
 
     #[cfg(target_os = "ios")]
-    pub fn message(&self) -> Option<CFString> {
+    pub fn message(&self) -> Option<String> {
         None
     }
 
