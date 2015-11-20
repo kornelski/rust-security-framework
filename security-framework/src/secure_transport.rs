@@ -1,7 +1,7 @@
 use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
 use core_foundation::base::{TCFType, Boolean};
-use core_foundation_sys::base::{OSStatus};
+use core_foundation_sys::base::OSStatus;
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
 use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq};
@@ -163,9 +163,7 @@ impl SslContext {
         arr.extend(certs.iter().map(|c| c.as_CFType()));
         let certs = CFArray::from_CFTypes(&arr);
 
-        unsafe {
-            cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef()))
-        }
+        unsafe { cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
     }
 
     pub fn set_break_on_server_auth(&mut self, break_on_server_auth: bool) -> Result<()> {
@@ -200,9 +198,7 @@ impl SslContext {
 
     pub fn set_enabled_ciphers(&mut self, ciphers: &[CipherSuite]) -> Result<()> {
         let ciphers = ciphers.iter().map(|c| c.to_raw()).collect::<Vec<_>>();
-        unsafe {
-            cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len() as size_t))
-        }
+        unsafe { cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len() as size_t)) }
     }
 
     pub fn negotiated_cipher(&self) -> Result<CipherSuite> {
@@ -236,7 +232,8 @@ impl SslContext {
     }
 
     pub fn handshake<S>(self, stream: S) -> result::Result<SslStream<S>, HandshakeError<S>>
-            where S: Read + Write {
+        where S: Read + Write
+    {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
@@ -308,10 +305,10 @@ fn translate_err(e: &io::Error) -> OSStatus {
     }
 }
 
-unsafe extern fn read_func<S: Read>(connection: SSLConnectionRef,
-                                    data: *mut c_void,
-                                    data_length: *mut size_t)
-                                    -> OSStatus {
+unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
+                                        data: *mut c_void,
+                                        data_length: *mut size_t)
+                                        -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
     let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
@@ -336,10 +333,10 @@ unsafe extern fn read_func<S: Read>(connection: SSLConnectionRef,
     ret
 }
 
-unsafe extern fn write_func<S: Write>(connection: SSLConnectionRef,
-                                      data: *const c_void,
-                                      data_length: *mut size_t)
-                                      -> OSStatus {
+unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
+                                          data: *const c_void,
+                                          data_length: *mut size_t)
+                                          -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
     let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;
@@ -350,7 +347,7 @@ unsafe extern fn write_func<S: Write>(connection: SSLConnectionRef,
             Ok(0) => {
                 ret = errSSLClosedNoNotify;
                 break;
-            },
+            }
             Ok(len) => start += len,
             Err(e) => {
                 ret = translate_err(&e);
@@ -372,9 +369,9 @@ pub struct SslStream<S> {
 impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SslStream")
-            .field("ctx", &self.ctx)
-            .field("stream", self.get_ref())
-            .finish()
+           .field("ctx", &self.ctx)
+           .field("stream", self.get_ref())
+           .finish()
     }
 }
 
@@ -444,9 +441,9 @@ impl<S: Read + Write> Read for SslStream<S> {
                               &mut nread);
             match ret {
                 errSecSuccess => Ok(nread as usize),
-                errSSLClosedGraceful
-                    | errSSLClosedAbort
-                    | errSSLClosedNoNotify => Ok(0),
+                errSSLClosedGraceful |
+                errSSLClosedAbort |
+                errSSLClosedNoNotify => Ok(0),
                 _ => Err(self.get_error(ret)),
             }
         }
@@ -519,9 +516,15 @@ mod test {
         let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers.iter()
-            .enumerate()
-            .filter_map(|(i, c)| if i % 2 == 0 { Some(*c) } else { None })
-            .collect::<Vec<_>>();
+                             .enumerate()
+                             .filter_map(|(i, c)| {
+                                 if i % 2 == 0 {
+                                     Some(*c)
+                                 } else {
+                                     None
+                                 }
+                             })
+                             .collect::<Vec<_>>();
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
     }

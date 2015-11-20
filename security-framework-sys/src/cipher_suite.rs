@@ -36,7 +36,7 @@ pub const SSL_DH_anon_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x001B;
 pub const SSL_FORTEZZA_DMS_WITH_NULL_SHA: SSLCipherSuite = 0x001C;
 pub const SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA: SSLCipherSuite = 0x001D;
 
-/* TLS addenda using AES, per RFC 3268 */
+// TLS addenda using AES, per RFC 3268
 pub const TLS_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x002F;
 pub const TLS_DH_DSS_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0030;
 pub const TLS_DH_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0031;
@@ -50,7 +50,7 @@ pub const TLS_DHE_DSS_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0038;
 pub const TLS_DHE_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0039;
 pub const TLS_DH_anon_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x003A;
 
-/* ECDSA addenda, RFC 4492 */
+// ECDSA addenda, RFC 4492
 pub const TLS_ECDH_ECDSA_WITH_NULL_SHA: SSLCipherSuite = 0xC001;
 pub const TLS_ECDH_ECDSA_WITH_RC4_128_SHA: SSLCipherSuite = 0xC002;
 pub const TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0xC003;
@@ -77,36 +77,36 @@ pub const TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0xC017;
 pub const TLS_ECDH_anon_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0xC018;
 pub const TLS_ECDH_anon_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0xC019;
 
-/* TLS 1.2 addenda, RFC 5246 */
+// TLS 1.2 addenda, RFC 5246
 
-/* Initial state. */
+// Initial state.
 pub const TLS_NULL_WITH_NULL_NULL: SSLCipherSuite = 0x0000;
 
-/* Server provided RSA certificate for key exchange. */
+// Server provided RSA certificate for key exchange.
 pub const TLS_RSA_WITH_NULL_MD5: SSLCipherSuite = 0x0001;
 pub const TLS_RSA_WITH_NULL_SHA: SSLCipherSuite = 0x0002;
 pub const TLS_RSA_WITH_RC4_128_MD5: SSLCipherSuite = 0x0004;
 pub const TLS_RSA_WITH_RC4_128_SHA: SSLCipherSuite = 0x0005;
 pub const TLS_RSA_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x000A;
-//pub const TLS_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x002F;
-//pub const TLS_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0035;
+// pub const TLS_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x002F;
+// pub const TLS_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0035;
 pub const TLS_RSA_WITH_NULL_SHA256: SSLCipherSuite = 0x003B;
 pub const TLS_RSA_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x003C;
 pub const TLS_RSA_WITH_AES_256_CBC_SHA256: SSLCipherSuite = 0x003D;
 
-/* Server-authenticated (and optionally client-authenticated) Diffie-Hellman. */
+// Server-authenticated (and optionally client-authenticated) Diffie-Hellman.
 pub const TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x000D;
 pub const TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x0010;
 pub const TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x0013;
 pub const TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x0016;
-//pub const TLS_DH_DSS_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0030;
-//pub const TLS_DH_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0031;
-//pub const TLS_DHE_DSS_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0032;
-//pub const TLS_DHE_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0033;
-//pub const TLS_DH_DSS_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0036;
-//pub const TLS_DH_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0037;
-//pub const TLS_DHE_DSS_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0038;
-//pub const TLS_DHE_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0039;
+// pub const TLS_DH_DSS_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0030;
+// pub const TLS_DH_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0031;
+// pub const TLS_DHE_DSS_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0032;
+// pub const TLS_DHE_RSA_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0033;
+// pub const TLS_DH_DSS_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0036;
+// pub const TLS_DH_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0037;
+// pub const TLS_DHE_DSS_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0038;
+// pub const TLS_DHE_RSA_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0039;
 pub const TLS_DH_DSS_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x003E;
 pub const TLS_DH_RSA_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x003F;
 pub const TLS_DHE_DSS_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x0040;
@@ -116,15 +116,15 @@ pub const TLS_DH_RSA_WITH_AES_256_CBC_SHA256: SSLCipherSuite = 0x0069;
 pub const TLS_DHE_DSS_WITH_AES_256_CBC_SHA256: SSLCipherSuite = 0x006A;
 pub const TLS_DHE_RSA_WITH_AES_256_CBC_SHA256: SSLCipherSuite = 0x006B;
 
-/* Completely anonymous Diffie-Hellman */
+// Completely anonymous Diffie-Hellman
 pub const TLS_DH_anon_WITH_RC4_128_MD5: SSLCipherSuite = 0x0018;
 pub const TLS_DH_anon_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x001B;
-//pub const TLS_DH_anon_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0034;
-//pub const TLS_DH_anon_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x003A;
+// pub const TLS_DH_anon_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0034;
+// pub const TLS_DH_anon_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x003A;
 pub const TLS_DH_anon_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x006C;
 pub const TLS_DH_anon_WITH_AES_256_CBC_SHA256: SSLCipherSuite = 0x006D;
 
-/* Addendum from RFC 4279, TLS PSK */
+// Addendum from RFC 4279, TLS PSK
 
 pub const TLS_PSK_WITH_RC4_128_SHA: SSLCipherSuite = 0x008A;
 pub const TLS_PSK_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x008B;
@@ -139,14 +139,14 @@ pub const TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA: SSLCipherSuite = 0x0093;
 pub const TLS_RSA_PSK_WITH_AES_128_CBC_SHA: SSLCipherSuite = 0x0094;
 pub const TLS_RSA_PSK_WITH_AES_256_CBC_SHA: SSLCipherSuite = 0x0095;
 
-/* RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption */
+// RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption
 
 pub const TLS_PSK_WITH_NULL_SHA: SSLCipherSuite = 0x002C;
 pub const TLS_DHE_PSK_WITH_NULL_SHA: SSLCipherSuite = 0x002D;
 pub const TLS_RSA_PSK_WITH_NULL_SHA: SSLCipherSuite = 0x002E;
 
-/* Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites
-   for TLS. */
+// Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites
+// for TLS.
 pub const TLS_RSA_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0x009C;
 pub const TLS_RSA_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0x009D;
 pub const TLS_DHE_RSA_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0x009E;
@@ -160,7 +160,7 @@ pub const TLS_DH_DSS_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0x00A5;
 pub const TLS_DH_anon_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0x00A6;
 pub const TLS_DH_anon_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0x00A7;
 
-/* RFC 5487 - PSK with SHA-256/384 and AES GCM */
+// RFC 5487 - PSK with SHA-256/384 and AES GCM
 pub const TLS_PSK_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0x00A8;
 pub const TLS_PSK_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0x00A9;
 pub const TLS_DHE_PSK_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0x00AA;
@@ -184,8 +184,8 @@ pub const TLS_RSA_PSK_WITH_NULL_SHA256: SSLCipherSuite = 0x00B8;
 pub const TLS_RSA_PSK_WITH_NULL_SHA384: SSLCipherSuite = 0x00B9;
 
 
-/* Addenda from rfc 5289  Elliptic Curve Cipher Suites with
-   HMAC SHA-256/384. */
+// Addenda from rfc 5289  Elliptic Curve Cipher Suites with
+// HMAC SHA-256/384.
 pub const TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0xC023;
 pub const TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384: SSLCipherSuite = 0xC024;
 pub const TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0xC025;
@@ -195,8 +195,8 @@ pub const TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384: SSLCipherSuite = 0xC028;
 pub const TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0xC029;
 pub const TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384: SSLCipherSuite = 0xC02A;
 
-/* Addenda from rfc 5289  Elliptic Curve Cipher Suites with
-   SHA-256/384 and AES Galois Counter Mode (GCM) */
+// Addenda from rfc 5289  Elliptic Curve Cipher Suites with
+// SHA-256/384 and AES Galois Counter Mode (GCM)
 pub const TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0xC02B;
 pub const TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0xC02C;
 pub const TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0xC02D;
@@ -206,12 +206,12 @@ pub const TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0xC030;
 pub const TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256: SSLCipherSuite = 0xC031;
 pub const TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0xC032;
 
-/* RFC 5746 - Secure Renegotiation */
+// RFC 5746 - Secure Renegotiation
 pub const TLS_EMPTY_RENEGOTIATION_INFO_SCSV: SSLCipherSuite = 0x00FF;
-/*
- * Tags for SSL 2 cipher kinds which are not specified
- * for SSL 3.
- */
+//
+// Tags for SSL 2 cipher kinds which are not specified
+// for SSL 3.
+//
 pub const SSL_RSA_WITH_RC2_CBC_MD5: SSLCipherSuite = 0xFF80;
 pub const SSL_RSA_WITH_IDEA_CBC_MD5: SSLCipherSuite = 0xFF81;
 pub const SSL_RSA_WITH_DES_CBC_MD5: SSLCipherSuite = 0xFF82;

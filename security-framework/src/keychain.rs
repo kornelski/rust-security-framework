@@ -8,15 +8,15 @@ pub struct SecKeychain(SecKeychainRef);
 
 impl Drop for SecKeychain {
     fn drop(&mut self) {
-        unsafe { CFRelease(self.0 as *mut _); }
+        unsafe {
+            CFRelease(self.0 as *mut _);
+        }
     }
 }
 
 impl Clone for SecKeychain {
     fn clone(&self) -> SecKeychain {
-        unsafe {
-            SecKeychain::wrap_under_get_rule(self.as_concrete_TypeRef())
-        }
+        unsafe { SecKeychain::wrap_under_get_rule(self.as_concrete_TypeRef()) }
     }
 }
 

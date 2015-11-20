@@ -31,9 +31,7 @@ impl ItemClass {
             ItemClass::Key => kSecClassKey,
             ItemClass::Identity => kSecClassIdentity,
         };
-        unsafe {
-            CFType::wrap_under_get_rule(raw as *const _)
-        }
+        unsafe { CFType::wrap_under_get_rule(raw as *const _) }
     }
 }
 

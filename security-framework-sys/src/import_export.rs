@@ -37,5 +37,6 @@ extern {
                          flags: SecItemImportExportFlags,
                          keyParams: *const SecItemImportExportKeyParameters,
                          importKeychain: SecKeychainRef,
-                         outItems: *mut CFArrayRef) -> OSStatus;
+                         outItems: *mut CFArrayRef)
+                         -> OSStatus;
 }

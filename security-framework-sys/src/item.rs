@@ -19,4 +19,3 @@ extern {
 
     pub fn SecItemCopyMatching(query: CFDictionaryRef, result: *mut CFTypeRef) -> OSStatus;
 }
-

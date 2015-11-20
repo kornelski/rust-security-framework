@@ -15,7 +15,9 @@ pub struct SecIdentity(SecIdentityRef);
 
 impl Drop for SecIdentity {
     fn drop(&mut self) {
-        unsafe { CFRelease(self.0 as *mut _); }
+        unsafe {
+            CFRelease(self.0 as *mut _);
+        }
     }
 }
 

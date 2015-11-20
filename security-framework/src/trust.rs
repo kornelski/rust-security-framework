@@ -44,7 +44,9 @@ pub struct SecTrust(SecTrustRef);
 
 impl Drop for SecTrust {
     fn drop(&mut self) {
-        unsafe { CFRelease(self.0 as *mut _); }
+        unsafe {
+            CFRelease(self.0 as *mut _);
+        }
     }
 }
 
@@ -52,9 +54,7 @@ impl SecTrust {
     pub fn set_anchor_certificates(&mut self, certs: &[SecCertificate]) -> Result<()> {
         let certs = CFArray::from_CFTypes(&certs);
 
-        unsafe {
-            cvt(SecTrustSetAnchorCertificates(self.0, certs.as_concrete_TypeRef()))
-        }
+        unsafe { cvt(SecTrustSetAnchorCertificates(self.0, certs.as_concrete_TypeRef())) }
     }
 
     pub fn set_trust_anchor_certificates_only(&mut self, only: bool) -> Result<()> {

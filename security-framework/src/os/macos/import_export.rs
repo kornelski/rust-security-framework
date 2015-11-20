@@ -145,7 +145,8 @@ impl<'a> ImportOptions<'a> {
                 for item in raw_items.iter() {
                     let type_id = CFType::wrap_under_get_rule(item as *mut _).type_of();
                     if type_id == SecCertificate::type_id() {
-                        items.certificates.push(SecCertificate::wrap_under_get_rule(item as *mut _));
+                        items.certificates
+                             .push(SecCertificate::wrap_under_get_rule(item as *mut _));
                     } else if type_id == SecIdentity::type_id() {
                         items.identities.push(SecIdentity::wrap_under_get_rule(item as *mut _));
                     } else if type_id == SecKey::type_id() {
@@ -207,9 +208,9 @@ mod test {
     fn identity() {
         let dir = TempDir::new("identity").unwrap();
         let keychain = keychain::CreateOptions::new()
-            .password("password")
-            .create(dir.path().join("identity.keychain"))
-            .unwrap();
+                           .password("password")
+                           .create(dir.path().join("identity.keychain"))
+                           .unwrap();
 
         let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();
@@ -230,9 +231,9 @@ mod test {
     fn secure_passphrase_identity() {
         let dir = TempDir::new("identity").unwrap();
         let keychain = keychain::CreateOptions::new()
-            .password("password")
-            .create(dir.path().join("identity.keychain"))
-            .unwrap();
+                           .password("password")
+                           .create(dir.path().join("identity.keychain"))
+                           .unwrap();
 
         let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();

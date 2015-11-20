@@ -61,7 +61,7 @@ pub enum SSLClientCertificateState {
     kSSLClientCertNone,
     kSSLClientCertRequested,
     kSSLClientCertSent,
-    kSSLClientCertRejected
+    kSSLClientCertRejected,
 }
 
 pub type SSLReadFunc = unsafe extern fn(connection: SSLConnectionRef,
@@ -109,31 +109,68 @@ extern {
     pub fn SSLDisposeContext(context: SSLContextRef) -> OSStatus;
     pub fn SSLSetConnection(context: SSLContextRef, connection: SSLConnectionRef) -> OSStatus;
     pub fn SSLGetConnection(context: SSLContextRef, connection: *mut SSLConnectionRef) -> OSStatus;
-    pub fn SSLSetIOFuncs(context: SSLContextRef, read: SSLReadFunc, write: SSLWriteFunc) -> OSStatus;
+    pub fn SSLSetIOFuncs(context: SSLContextRef,
+                         read: SSLReadFunc,
+                         write: SSLWriteFunc)
+                         -> OSStatus;
     pub fn SSLHandshake(context: SSLContextRef) -> OSStatus;
     pub fn SSLClose(context: SSLContextRef) -> OSStatus;
-    pub fn SSLRead(context: SSLContextRef, data: *mut c_void, dataLen: size_t, processed: *mut size_t) -> OSStatus;
-    pub fn SSLWrite(context: SSLContextRef, data: *const c_void, dataLen: size_t, processed: *mut size_t) -> OSStatus;
+    pub fn SSLRead(context: SSLContextRef,
+                   data: *mut c_void,
+                   dataLen: size_t,
+                   processed: *mut size_t)
+                   -> OSStatus;
+    pub fn SSLWrite(context: SSLContextRef,
+                    data: *const c_void,
+                    dataLen: size_t,
+                    processed: *mut size_t)
+                    -> OSStatus;
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
-    pub fn SSLSetPeerDomainName(context: SSLContextRef, peerName: *const c_char, peerNameLen: size_t) -> OSStatus;
+    pub fn SSLSetPeerDomainName(context: SSLContextRef,
+                                peerName: *const c_char,
+                                peerNameLen: size_t)
+                                -> OSStatus;
     pub fn SSLSetCertificate(context: SSLContextRef, certRefs: CFArrayRef) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SSLSetCertificateAuthorities(context: SSLContextRef,
                                         certificateOrArray: CFTypeRef,
                                         replaceExisting: Boolean)
                                         -> OSStatus;
-    pub fn SSLSetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: Boolean) -> OSStatus;
-    pub fn SSLGetSessionOption(context: SSLContextRef, option: SSLSessionOption, value: *mut Boolean) -> OSStatus;
+    pub fn SSLSetSessionOption(context: SSLContextRef,
+                               option: SSLSessionOption,
+                               value: Boolean)
+                               -> OSStatus;
+    pub fn SSLGetSessionOption(context: SSLContextRef,
+                               option: SSLSessionOption,
+                               value: *mut Boolean)
+                               -> OSStatus;
     pub fn SSLCopyPeerTrust(context: SSLContextRef, trust: *mut SecTrustRef) -> OSStatus;
     pub fn SSLGetSessionState(context: SSLContextRef, state: *mut SSLSessionState) -> OSStatus;
-    pub fn SSLGetSupportedCiphers(context: SSLContextRef, ciphers: *mut SSLCipherSuite, numCiphers: *mut size_t) -> OSStatus;
-    pub fn SSLGetNumberSupportedCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
-    pub fn SSLGetEnabledCiphers(context: SSLContextRef, ciphers: *mut SSLCipherSuite, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLGetSupportedCiphers(context: SSLContextRef,
+                                  ciphers: *mut SSLCipherSuite,
+                                  numCiphers: *mut size_t)
+                                  -> OSStatus;
+    pub fn SSLGetNumberSupportedCiphers(context: SSLContextRef,
+                                        numCiphers: *mut size_t)
+                                        -> OSStatus;
+    pub fn SSLGetEnabledCiphers(context: SSLContextRef,
+                                ciphers: *mut SSLCipherSuite,
+                                numCiphers: *mut size_t)
+                                -> OSStatus;
     pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
-    pub fn SSLSetEnabledCiphers(context: SSLContextRef, ciphers: *const SSLCipherSuite, numCiphers: size_t) -> OSStatus;
+    pub fn SSLSetEnabledCiphers(context: SSLContextRef,
+                                ciphers: *const SSLCipherSuite,
+                                numCiphers: size_t)
+                                -> OSStatus;
     pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
     #[cfg(target_os = "macos")]
-    pub fn SSLSetDiffieHellmanParams(context: SSLContextRef, dhParams: *const c_void, dhParamsLen: size_t) -> OSStatus;
+    pub fn SSLSetDiffieHellmanParams(context: SSLContextRef,
+                                     dhParams: *const c_void,
+                                     dhParamsLen: size_t)
+                                     -> OSStatus;
     #[cfg(target_os = "macos")]
-    pub fn SSLGetDiffieHellmanParams(context: SSLContextRef, dhParams: *mut *const c_void, dhParamsLen: *mut size_t) -> OSStatus;
+    pub fn SSLGetDiffieHellmanParams(context: SSLContextRef,
+                                     dhParams: *mut *const c_void,
+                                     dhParamsLen: *mut size_t)
+                                     -> OSStatus;
 }

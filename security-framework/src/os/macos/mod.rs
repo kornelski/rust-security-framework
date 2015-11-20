@@ -14,9 +14,9 @@ pub mod test {
 
     pub fn identity() -> SecIdentity {
         let mut items = p!(ItemSearchOptions::new()
-            .class(ItemClass::Identity)
-            .keychains(&[keychain()])
-            .search());
+                               .class(ItemClass::Identity)
+                               .keychains(&[keychain()])
+                               .search());
         items.identities.pop().unwrap()
     }
 

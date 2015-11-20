@@ -13,12 +13,14 @@ extern {
                              password: *const c_void,
                              promptUser: Boolean,
                              initialAccess: SecAccessRef,
-                             keychain: *mut SecKeychainRef) -> OSStatus;
+                             keychain: *mut SecKeychainRef)
+                             -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SecKeychainOpen(pathName: *const c_char, keychain: *mut SecKeychainRef) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SecKeychainUnlock(keychain: SecKeychainRef,
                              passwordLength: u32,
                              password: *const c_void,
-                             usePassword: Boolean) -> OSStatus;
+                             usePassword: Boolean)
+                             -> OSStatus;
 }

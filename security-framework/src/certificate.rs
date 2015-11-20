@@ -22,7 +22,9 @@ impl fmt::Debug for SecCertificate {
 
 impl Drop for SecCertificate {
     fn drop(&mut self) {
-        unsafe { CFRelease(self.0 as *mut _); }
+        unsafe {
+            CFRelease(self.0 as *mut _);
+        }
     }
 }
 
