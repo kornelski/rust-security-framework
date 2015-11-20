@@ -28,31 +28,11 @@ pub enum ProtocolSide {
     Client,
 }
 
-impl ProtocolSide {
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn to_raw(&self) -> SSLProtocolSide {
-        match *self {
-            ProtocolSide::Server => SSLProtocolSide::kSSLServerSide,
-            ProtocolSide::Client => SSLProtocolSide::kSSLClientSide,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 pub enum ConnectionType {
     Stream,
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     Datagram,
-}
-
-impl ConnectionType {
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn to_raw(&self) -> SSLConnectionType {
-        match *self {
-            ConnectionType::Stream => SSLConnectionType::kSSLStreamType,
-            ConnectionType::Datagram => SSLConnectionType::kSSLDatagramType,
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -150,8 +130,18 @@ impl SslContext {
 
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
+        let side = match side {
+            ProtocolSide::Server => SSLProtocolSide::kSSLServerSide,
+            ProtocolSide::Client => SSLProtocolSide::kSSLClientSide,
+        };
+
+        let type_ = match type_ {
+            ConnectionType::Stream => SSLConnectionType::kSSLStreamType,
+            ConnectionType::Datagram => SSLConnectionType::kSSLDatagramType,
+        };
+
         unsafe {
-            let ctx = SSLCreateContext(kCFAllocatorDefault, side.to_raw(), type_.to_raw());
+            let ctx = SSLCreateContext(kCFAllocatorDefault, side, type_);
             Ok(SslContext(ctx))
         }
     }
