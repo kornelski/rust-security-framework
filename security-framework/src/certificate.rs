@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{CFRelease, kCFAllocatorDefault};
+use core_foundation_sys::base::kCFAllocatorDefault;
 use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
 use core_foundation::string::CFString;
@@ -10,21 +10,13 @@ use std::fmt;
 use ErrorNew;
 use base::{Error, Result};
 
-pub struct SecCertificate(SecCertificateRef);
+make_wrapper!(SecCertificate, SecCertificateRef, SecCertificateGetTypeID);
 
 impl fmt::Debug for SecCertificate {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SecCertificate")
            .field("subject", &self.subject_summary())
            .finish()
-    }
-}
-
-impl Drop for SecCertificate {
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.0 as *mut _);
-        }
     }
 }
 
@@ -56,8 +48,6 @@ impl SecCertificate {
         }
     }
 }
-
-impl_TCFType!(SecCertificate, SecCertificateRef, SecCertificateGetTypeID);
 
 #[cfg(test)]
 mod test {

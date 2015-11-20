@@ -1,18 +1,14 @@
-use core_foundation_sys::base::CFRelease;
 use core_foundation::base::TCFType;
 use security_framework_sys::base::SecKeyRef;
 use security_framework_sys::key::SecKeyGetTypeID;
 use std::mem;
+use std::fmt;
 
-#[derive(Debug)] // FIXME
-pub struct SecKey(SecKeyRef);
+make_wrapper!(SecKey, SecKeyRef, SecKeyGetTypeID);
 
-impl Drop for SecKey {
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.0 as *mut _);
-        }
+// FIXME
+impl fmt::Debug for SecKey {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "SecKey")
     }
 }
-
-impl_TCFType!(SecKey, SecKeyRef, SecKeyGetTypeID);

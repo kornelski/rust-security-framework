@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{Boolean, CFRelease};
+use core_foundation_sys::base::Boolean;
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 use security_framework_sys::trust::*;
@@ -40,15 +40,7 @@ impl TrustResult {
     }
 }
 
-pub struct SecTrust(SecTrustRef);
-
-impl Drop for SecTrust {
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.0 as *mut _);
-        }
-    }
-}
+make_wrapper!(SecTrust, SecTrustRef, SecTrustGetTypeID);
 
 impl SecTrust {
     pub fn set_anchor_certificates(&mut self, certs: &[SecCertificate]) -> Result<()> {
@@ -69,5 +61,3 @@ impl SecTrust {
         }
     }
 }
-
-impl_TCFType!(SecTrust, SecTrustRef, SecTrustGetTypeID);

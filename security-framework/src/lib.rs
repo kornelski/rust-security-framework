@@ -16,6 +16,32 @@ use security_framework_sys::cipher_suite::SSLCipherSuite;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
 
+macro_rules! make_wrapper {
+    ($name:ident, $raw:ident, $ty_fn:ident) => {
+        pub struct $name($raw);
+
+        impl Drop for $name {
+            fn drop(&mut self) {
+                unsafe {
+                    ::core_foundation_sys::base::CFRelease(self.0 as *mut _);
+                }
+            }
+        }
+
+        impl Clone for $name {
+            fn clone(&self) -> $name {
+                use core_foundation::base::TCFType;
+
+                unsafe {
+                    TCFType::wrap_under_get_rule(self.as_concrete_TypeRef())
+                }
+            }
+        }
+
+        impl_TCFType!($name, $raw, $ty_fn);
+    }
+}
+
 #[cfg(test)]
 macro_rules! p {
     ($e:expr) => {

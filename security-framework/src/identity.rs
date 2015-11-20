@@ -1,27 +1,29 @@
-use core_foundation_sys::base::CFRelease;
 use core_foundation::base::TCFType;
 use security_framework_sys::base::SecIdentityRef;
 use security_framework_sys::identity::*;
 use std::mem;
 use std::ptr;
+use std::fmt;
 
 use cvt;
 use base::Result;
 use certificate::SecCertificate;
 use key::SecKey;
 
-#[derive(Debug)] // FIXME
-pub struct SecIdentity(SecIdentityRef);
+make_wrapper!(SecIdentity, SecIdentityRef, SecIdentityGetTypeID);
 
-impl Drop for SecIdentity {
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.0 as *mut _);
+impl fmt::Debug for SecIdentity {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let mut builder = fmt.debug_struct("SecIdentity");
+        if let Ok(cert) = self.certificate() {
+            builder.field("certificate", &cert);
         }
+        if let Ok(key) = self.private_key() {
+            builder.field("private_key", &key);
+        }
+        builder.finish()
     }
 }
-
-impl_TCFType!(SecIdentity, SecIdentityRef, SecIdentityGetTypeID);
 
 impl SecIdentity {
     pub fn certificate(&self) -> Result<SecCertificate> {
