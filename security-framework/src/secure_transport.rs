@@ -227,7 +227,7 @@ impl SslContext {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
         if let SessionState::Idle = try!(self.state()) {
-            try!(cvt(errSecBadReq));
+            return Err(Error::new(errSecBadReq));
         }
 
         unsafe {
