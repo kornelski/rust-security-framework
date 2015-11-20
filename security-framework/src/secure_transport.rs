@@ -323,7 +323,7 @@ unsafe extern fn read_func<S: Read>(connection: SSLConnectionRef,
                                     data_length: *mut size_t)
                                     -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
-    let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length as usize);
+    let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = 0;
 
@@ -351,7 +351,7 @@ unsafe extern fn write_func<S: Write>(connection: SSLConnectionRef,
                                       data_length: *mut size_t)
                                       -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
-    let data = slice::from_raw_parts(data as *mut u8, *data_length as usize);
+    let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = 0;
 
