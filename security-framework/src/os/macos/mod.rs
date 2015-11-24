@@ -13,9 +13,11 @@ pub mod test {
     use keychain::SecKeychain;
 
     pub fn identity() -> SecIdentity {
+        // FIXME https://github.com/rust-lang/rust/issues/30018
+        let keychain = keychain();
         let mut items = p!(ItemSearchOptions::new()
                                .class(ItemClass::Identity)
-                               .keychains(&[keychain()])
+                               .keychains(&[keychain])
                                .search());
         items.identities.pop().unwrap()
     }
