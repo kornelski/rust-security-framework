@@ -3,6 +3,7 @@ use core_foundation::boolean::CFBoolean;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::string::CFString;
+use core_foundation_sys::base::CFGetTypeID;
 use security_framework_sys::item::*;
 use std::ptr;
 
@@ -84,7 +85,7 @@ impl ItemSearchOptions {
 
             let mut ret = ptr::null();
             try!(cvt(SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret)));
-            let type_id = CFType::wrap_under_get_rule(ret).type_of();
+            let type_id = CFGetTypeID(ret);
 
             let mut results = SearchResults {
                 certificates: vec![],
@@ -93,11 +94,11 @@ impl ItemSearchOptions {
             };
 
             if type_id == SecCertificate::type_id() {
-                results.certificates.push(SecCertificate::wrap_under_get_rule(ret as *mut _));
+                results.certificates.push(SecCertificate::wrap_under_create_rule(ret as *mut _));
             } else if type_id == SecKey::type_id() {
-                results.keys.push(SecKey::wrap_under_get_rule(ret as *mut _));
+                results.keys.push(SecKey::wrap_under_create_rule(ret as *mut _));
             } else if type_id == SecIdentity::type_id() {
-                results.identities.push(SecIdentity::wrap_under_get_rule(ret as *mut _));
+                results.identities.push(SecIdentity::wrap_under_create_rule(ret as *mut _));
             } else {
                 panic!("Got bad type from SecItemCopyMatching: {}", type_id);
             }
