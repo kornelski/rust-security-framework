@@ -2,6 +2,7 @@ use core_foundation::array::CFArray;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::data::CFData;
 use core_foundation::string::CFString;
+use core_foundation_sys::base::CFGetTypeID;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::import_export::*;
 use std::ptr;
@@ -143,7 +144,7 @@ impl<'a> ImportOptions<'a> {
             if let Some(ref mut items) = self.items {
                 let raw_items = CFArray::wrap_under_create_rule(raw_items);
                 for item in raw_items.iter() {
-                    let type_id = CFType::wrap_under_get_rule(item as *mut _).type_of();
+                    let type_id = CFGetTypeID(item as *mut _);
                     if type_id == SecCertificate::type_id() {
                         items.certificates
                              .push(SecCertificate::wrap_under_get_rule(item as *mut _));
