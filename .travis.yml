@@ -9,4 +9,4 @@ env:
 - FEATURES="OSX_10_9"
 - FEATURES=""
 script:
-- (cd security-framework && env RUST_TEST_THREADS=1 cargo test --features "$FEATURES")
+- (cd security-framework && cargo test --features "$FEATURES")
