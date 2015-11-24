@@ -35,6 +35,7 @@ mod test {
     use std::io::prelude::*;
     use std::net::{TcpListener, TcpStream};
     use std::thread;
+    use tempdir::TempDir;
 
     use test::certificate;
     use os::macos::test::identity;
@@ -46,8 +47,10 @@ mod test {
         let listener = p!(TcpListener::bind("localhost:15410"));
 
         let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("server_client"));
+
             let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-            let identity = identity();
+            let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
 
             let stream = p!(listener.accept()).0;
@@ -80,18 +83,14 @@ mod test {
     }
 
     #[test]
-    fn idle_context_peer_trust() {
-        let ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-        assert!(ctx.peer_trust().is_err());
-    }
-
-    #[test]
     fn negotiated_cipher() {
         let listener = p!(TcpListener::bind("localhost:15411"));
 
         let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("negotiated_cipher"));
+
             let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
-            let identity = identity();
+            let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
                                          CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));

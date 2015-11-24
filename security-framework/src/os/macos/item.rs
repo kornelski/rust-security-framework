@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod test {
-    use keychain::SecKeychain;
+    use tempdir::TempDir;
+
     use item::*;
     use os::macos::certificate::SecCertificateExt;
-    use os::macos::keychain::SecKeychainExt;
+    use os::macos::test::keychain;
 
     #[test]
     fn find_certificate() {
-        // the path has to be absolute for some reason
-        let keychain = p!(SecKeychain::open(concat!(env!("PWD"), "/test/server.keychain")));
-
+        let dir = p!(TempDir::new("find_certificate"));
+        let keychain = keychain(dir.path());
         let results = p!(ItemSearchOptions::new()
                              .keychains(&[keychain])
                              .class(ItemClass::Certificate)

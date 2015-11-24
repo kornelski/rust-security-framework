@@ -528,4 +528,10 @@ mod test {
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
     }
+
+    #[test]
+    fn idle_context_peer_trust() {
+        let ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        assert!(ctx.peer_trust().is_err());
+    }
 }
