@@ -82,7 +82,7 @@ impl Pkcs12ImportOptions {
             let mut items = vec![];
 
             for raw_item in &raw_items {
-                let raw_item = CFDictionary::wrap_under_get_rule(raw_item as usize as *mut _);
+                let raw_item = CFDictionary::wrap_under_get_rule(raw_item as *mut _);
                 let label = raw_item.get(kSecImportItemLabel as *const _);
                 let label = CFString::wrap_under_get_rule(label as *const _).to_string();
                 let key_id = raw_item.get(kSecImportItemKeyID as *const _);
@@ -92,7 +92,7 @@ impl Pkcs12ImportOptions {
                 let cert_chain = raw_item.get(kSecImportItemCertChain as *const _);
                 let cert_chain = CFArray::wrap_under_get_rule(cert_chain as *const _);
                 let cert_chain = cert_chain.iter()
-                                           .map(|c| SecCertificate::wrap_under_get_rule(c as usize as *mut _))
+                                           .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
                                            .collect();
                 let identity = raw_item.get(kSecImportItemIdentity as *const _);
                 let identity = SecIdentity::wrap_under_get_rule(identity as usize as *mut _);
