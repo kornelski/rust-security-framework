@@ -9,4 +9,4 @@ env:
 - FEATURES="OSX_10_9"
 - FEATURES=""
 script:
-- cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES"
+- env RUST_TEST_THREADS=1 cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES"
