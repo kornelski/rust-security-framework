@@ -7,17 +7,21 @@ use base::Result;
 use {cvt, AsInner};
 
 pub trait SslContextExt {
-    fn diffie_hellman_params(&self) -> Result<&[u8]>;
+    fn diffie_hellman_params(&self) -> Result<Option<&[u8]>>;
     fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()>;
 }
 
 impl SslContextExt for SslContext {
-    fn diffie_hellman_params(&self) -> Result<&[u8]> {
+    fn diffie_hellman_params(&self) -> Result<Option<&[u8]>> {
         unsafe {
             let mut ptr = ptr::null();
             let mut len = 0;
             try!(cvt(SSLGetDiffieHellmanParams(self.as_inner(), &mut ptr, &mut len)));
-            Ok(slice::from_raw_parts(ptr as *const u8, len))
+            if len == 0 {
+                Ok(None)
+            } else {
+                Ok(Some(slice::from_raw_parts(ptr as *const u8, len)))
+            }
         }
     }
 
@@ -37,6 +41,7 @@ mod test {
     use std::thread;
     use tempdir::TempDir;
 
+    use super::*;
     use test::certificate;
     use os::macos::test::identity;
     use cipher_suite::CipherSuite;
@@ -121,5 +126,15 @@ mod test {
         p!(stream.write(&[0]));
 
         handle.join().unwrap();
+    }
+
+    #[test]
+    fn dh_params() {
+        let params = include_bytes!("../../../test/dhparam.der");
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        assert!(p!(ctx.diffie_hellman_params()).is_none());
+        p!(ctx.set_diffie_hellman_params(params));
+        assert_eq!(p!(ctx.diffie_hellman_params()).unwrap(), &params[..]);
     }
 }
