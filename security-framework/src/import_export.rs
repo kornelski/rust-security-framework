@@ -68,7 +68,7 @@ impl Pkcs12ImportOptions {
 
             if let Some(ref access) = self.access {
                 options.push((CFString::wrap_under_get_rule(kSecImportExportAccess),
-                             access.as_CFType()));
+                              access.as_CFType()));
             }
 
             let options = CFDictionary::from_CFType_pairs(&options);
@@ -92,7 +92,9 @@ impl Pkcs12ImportOptions {
                 let cert_chain = raw_item.get(kSecImportItemCertChain as *const _);
                 let cert_chain = CFArray::wrap_under_get_rule(cert_chain as *const _);
                 let cert_chain = cert_chain.iter()
-                                           .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
+                                           .map(|c| {
+                                               SecCertificate::wrap_under_get_rule(c as *mut _)
+                                           })
                                            .collect();
                 let identity = raw_item.get(kSecImportItemIdentity as *const _);
                 let identity = SecIdentity::wrap_under_get_rule(identity as usize as *mut _);

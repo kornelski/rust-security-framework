@@ -263,10 +263,11 @@ mod test {
 
         let data = include_bytes!("../../../test/server.p12");
         let identities = p!(Pkcs12ImportOptions::new()
-            .passphrase("password123")
-            .keychain(keychain)
-            .import(data));
+                                .passphrase("password123")
+                                .keychain(keychain)
+                                .import(data));
         assert_eq!(1, identities.len());
-        assert_eq!(identities[0].key_id.to_hex(), "ed6492936dcc8907e397e573b36e633458dc33f1");
+        assert_eq!(identities[0].key_id.to_hex(),
+                   "ed6492936dcc8907e397e573b36e633458dc33f1");
     }
 }
