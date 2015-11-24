@@ -1,5 +1,4 @@
 #![allow(non_upper_case_globals)]
-#![cfg_attr(target_os = "ios", feature(box_raw))]
 
 extern crate security_framework_sys;
 #[macro_use]
@@ -9,6 +8,8 @@ extern crate libc;
 
 #[cfg(test)]
 extern crate tempdir;
+#[cfg(test)]
+extern crate rustc_serialize;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
@@ -57,6 +58,7 @@ pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
 pub mod identity;
+pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
@@ -88,6 +90,7 @@ fn cvt(err: OSStatus) -> Result<()> {
 #[cfg(test)]
 mod test {
     use certificate::SecCertificate;
+
     pub fn certificate() -> SecCertificate {
         let certificate = include_bytes!("../test/server.der");
         p!(SecCertificate::from_der(certificate))

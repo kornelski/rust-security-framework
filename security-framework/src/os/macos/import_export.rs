@@ -172,9 +172,11 @@ pub struct SecItems {
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;
+    use rustc_serialize::hex::ToHex;
 
     use super::*;
     use os::macos::keychain;
+    use import_export::*;
 
     #[test]
     fn certificate() {
@@ -249,5 +251,22 @@ mod test {
         assert_eq!(1, items.identities.len());
         assert_eq!(0, items.certificates.len());
         assert_eq!(0, items.keys.len());
+    }
+
+    #[test]
+    fn pkcs12_import() {
+        let dir = TempDir::new("pkcs12_import").unwrap();
+        let keychain = keychain::CreateOptions::new()
+                           .password("password")
+                           .create(dir.path().join("pkcs12_import"))
+                           .unwrap();
+
+        let data = include_bytes!("../../../test/server.p12");
+        let identities = p!(Pkcs12ImportOptions::new()
+            .passphrase("password123")
+            .keychain(keychain)
+            .import(data));
+        assert_eq!(1, identities.len());
+        assert_eq!(identities[0].key_id.to_hex(), "ed6492936dcc8907e397e573b36e633458dc33f1");
     }
 }

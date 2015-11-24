@@ -1,6 +1,7 @@
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{OSStatus, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
+use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 
 use base::{SecKeychainRef, SecAccessRef};
@@ -39,4 +40,19 @@ extern {
                          importKeychain: SecKeychainRef,
                          outItems: *mut CFArrayRef)
                          -> OSStatus;
+
+    pub static kSecImportExportPassphrase: CFStringRef;
+    pub static kSecImportExportKeychain: CFStringRef;
+    pub static kSecImportExportAccess: CFStringRef;
+
+    pub static kSecImportItemLabel: CFStringRef;
+    pub static kSecImportItemKeyID: CFStringRef;
+    pub static kSecImportItemTrust: CFStringRef;
+    pub static kSecImportItemCertChain: CFStringRef;
+    pub static kSecImportItemIdentity: CFStringRef;
+
+    pub fn SecPKCS12Import(pkcs12_data: CFDataRef,
+                           options: CFDictionaryRef,
+                           items: *mut CFArrayRef)
+                           -> OSStatus;
 }
