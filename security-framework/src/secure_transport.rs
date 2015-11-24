@@ -247,7 +247,7 @@ impl SslContext {
             let stream = Box::into_raw(Box::new(stream)) as *mut _;
             let ret = SSLSetConnection(self.0, stream);
             if ret != errSecSuccess {
-                let _conn = Box::from_raw(stream as *mut _);
+                let _conn = Box::<Connection<S>>::from_raw(stream as *mut _);
                 return Err(HandshakeError::Failure(Error::new(ret)));
             }
 
