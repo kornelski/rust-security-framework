@@ -40,6 +40,7 @@ pub enum HandshakeError<S> {
     Failure(Error),
     ServerAuthCompleted(MidHandshakeSslStream<S>),
     ClientCertRequested(MidHandshakeSslStream<S>),
+    WouldBlock(MidHandshakeSslStream<S>),
 }
 
 #[derive(Debug)]
@@ -60,6 +61,7 @@ impl<S> MidHandshakeSslStream<S> {
                 errSecSuccess => Ok(self.0),
                 errSSLPeerAuthCompleted => Err(HandshakeError::ServerAuthCompleted(self)),
                 errSSLClientCertRequested => Err(HandshakeError::ClientCertRequested(self)),
+                errSSLWouldBlock => Err(HandshakeError::WouldBlock(self)),
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }
@@ -328,6 +330,7 @@ impl SslContext {
                 errSSLClientCertRequested => {
                     Err(HandshakeError::ClientCertRequested(MidHandshakeSslStream(stream)))
                 }
+                errSSLWouldBlock => Err(HandshakeError::WouldBlock(MidHandshakeSslStream(stream))),
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }

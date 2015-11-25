@@ -1,7 +1,7 @@
 use security_framework_sys::secure_transport::*;
 use secure_transport::SslContext;
 use core_foundation::array::CFArray;
-use core_foundation::base::{TCFType, Boolean};
+use core_foundation::base::TCFType;
 use std::ptr;
 use std::slice;
 
@@ -34,7 +34,11 @@ macro_rules! impl_options {
         $(
             $(#[$a])*
             fn $set(&mut self, value: bool) -> Result<()> {
-                unsafe { cvt(SSLSetSessionOption(self.as_inner(), $opt, value as Boolean)) }
+                unsafe {
+                    cvt(SSLSetSessionOption(self.as_inner(),
+                                            $opt,
+                                            value as ::core_foundation::base::Boolean))
+                }
             }
 
             $(#[$a])*
