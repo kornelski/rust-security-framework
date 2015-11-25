@@ -181,4 +181,12 @@ extern {
                                      dhParams: *mut *const c_void,
                                      dhParamsLen: *mut size_t)
                                      -> OSStatus;
+    pub fn SSLSetPeerID(context: SSLContextRef,
+                        peerID: *const c_void,
+                        peerIDLen: size_t)
+                        -> OSStatus;
+    pub fn SSLGetPeerID(context: SSLContextRef,
+                        peerID: *mut *const c_void,
+                        peerIDLen: *mut size_t)
+                        -> OSStatus;
 }

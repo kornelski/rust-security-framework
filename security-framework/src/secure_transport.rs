@@ -181,6 +181,25 @@ impl SslContext {
         }
     }
 
+    pub fn peer_id(&self) -> Result<Option<&[u8]>> {
+        unsafe {
+            let mut ptr = ptr::null();
+            let mut len = 0;
+            try!(cvt(SSLGetPeerID(self.0, &mut ptr, &mut len)));
+            if ptr.is_null() {
+                Ok(None)
+            } else {
+                Ok(Some(slice::from_raw_parts(ptr as *const _, len)))
+            }
+        }
+    }
+
+    pub fn set_peer_id(&mut self, peer_id: &[u8]) -> Result<()> {
+        unsafe {
+            cvt(SSLSetPeerID(self.0, peer_id.as_ptr() as *const _, peer_id.len()))
+        }
+    }
+
     pub fn supported_ciphers(&self) -> Result<Vec<CipherSuite>> {
         unsafe {
             let mut num_ciphers = 0;
@@ -552,5 +571,13 @@ mod test {
     fn idle_context_peer_trust() {
         let ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         assert!(ctx.peer_trust().is_err());
+    }
+
+    #[test]
+    fn peer_id() {
+        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        assert!(p!(ctx.peer_id()).is_none());
+        p!(ctx.set_peer_id(b"foobar"));
+        assert_eq!(p!(ctx.peer_id()), Some(&b"foobar"[..]));
     }
 }
