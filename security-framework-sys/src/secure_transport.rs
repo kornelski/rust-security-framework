@@ -1,4 +1,4 @@
-use libc::{c_void, c_char, size_t};
+use libc::{c_void, c_char, size_t, c_int};
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 use core_foundation_sys::base::CFAllocatorRef;
@@ -56,14 +56,6 @@ pub enum SSLSessionState {
     kSSLAborted,
 }
 
-#[repr(C)]
-pub enum SSLClientCertificateState {
-    kSSLClientCertNone,
-    kSSLClientCertRequested,
-    kSSLClientCertSent,
-    kSSLClientCertRejected,
-}
-
 pub type SSLReadFunc = unsafe extern fn(connection: SSLConnectionRef,
                                         data: *mut c_void,
                                         dataLength: *mut size_t) -> OSStatus;
@@ -100,6 +92,12 @@ pub enum SSLAuthenticate {
     kAlwaysAuthenticate,
     kTryAuthenticate,
 }
+
+pub type SSLClientCertificateState = c_int;
+pub const kSSLClientCertNone: SSLClientCertificateState = 0;
+pub const kSSLClientCertRequested: SSLClientCertificateState = 1;
+pub const kSSLClientCertSent: SSLClientCertificateState = 2;
+pub const kSSLClientCertRejected: SSLClientCertificateState = 3;
 
 extern {
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
@@ -194,4 +192,7 @@ extern {
                         peerIDLen: *mut size_t)
                         -> OSStatus;
     pub fn SSLGetBufferedReadSize(context: SSLContextRef, bufSize: *mut size_t) -> OSStatus;
+    pub fn SSLGetClientCertificateState(context: SSLContextRef,
+                                        clientState: *mut SSLClientCertificateState)
+                                        -> OSStatus;
 }

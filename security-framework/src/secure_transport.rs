@@ -94,6 +94,14 @@ pub enum SslAuthenticate {
     Try,
 }
 
+#[derive(Debug)]
+pub enum SslClientCertificateState {
+    None,
+    Requested,
+    Sent,
+    Rejected,
+}
+
 pub struct SslContext(SSLContextRef);
 
 impl fmt::Debug for SslContext {
@@ -245,6 +253,23 @@ impl SslContext {
         unsafe {
             cvt(SSLSetClientSideAuthenticate(self.0, auth))
         }
+    }
+
+    pub fn client_certificate_state(&self) -> Result<SslClientCertificateState> {
+        let mut state = 0;
+
+        unsafe {
+            try!(cvt(SSLGetClientCertificateState(self.0, &mut state)));
+        }
+
+        let state = match state {
+            kSSLClientCertNone => SslClientCertificateState::None,
+            kSSLClientCertRequested => SslClientCertificateState::Requested,
+            kSSLClientCertSent => SslClientCertificateState::Sent,
+            kSSLClientCertRejected => SslClientCertificateState::Rejected,
+            _ => panic!("got invalid client cert state {}", state),
+        };
+        Ok(state)
     }
 
     pub fn peer_trust(&self) -> Result<SecTrust> {
