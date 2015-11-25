@@ -94,6 +94,13 @@ pub const errSSLClosedNoNotify: OSStatus = -9816;
 pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 pub const errSSLClientCertRequested: OSStatus = -9842;
 
+#[repr(C)]
+pub enum SSLAuthenticate {
+    kNeverAuthenticate,
+    kAlwaysAuthenticate,
+    kTryAuthenticate,
+}
+
 extern {
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLContextGetTypeID() -> ::core_foundation_sys::base::CFTypeID;
@@ -163,6 +170,7 @@ extern {
                                 numCiphers: size_t)
                                 -> OSStatus;
     pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
+    pub fn SSLSetClientSideAuthenticate(context: SSLContextRef, auth: SSLAuthenticate) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SSLSetDiffieHellmanParams(context: SSLContextRef,
                                      dhParams: *const c_void,

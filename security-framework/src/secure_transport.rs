@@ -87,6 +87,13 @@ impl SessionState {
     }
 }
 
+#[derive(Debug)]
+pub enum SslAuthenticate {
+    Never,
+    Always,
+    Try,
+}
+
 pub struct SslContext(SSLContextRef);
 
 impl fmt::Debug for SslContext {
@@ -206,6 +213,18 @@ impl SslContext {
             let mut cipher = 0;
             try!(cvt(SSLGetNegotiatedCipher(self.0, &mut cipher)));
             Ok(CipherSuite::from_raw(cipher).unwrap())
+        }
+    }
+
+    pub fn set_client_side_authenticate(&mut self, auth: SslAuthenticate) -> Result<()> {
+        let auth = match auth {
+            SslAuthenticate::Never => SSLAuthenticate::kNeverAuthenticate,
+            SslAuthenticate::Always => SSLAuthenticate::kAlwaysAuthenticate,
+            SslAuthenticate::Try => SSLAuthenticate::kTryAuthenticate,
+        };
+
+        unsafe {
+            cvt(SSLSetClientSideAuthenticate(self.0, auth))
         }
     }
 

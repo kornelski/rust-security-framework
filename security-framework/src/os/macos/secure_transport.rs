@@ -137,4 +137,121 @@ mod test {
         p!(ctx.set_diffie_hellman_params(params));
         assert_eq!(p!(ctx.diffie_hellman_params()).unwrap(), &params[..]);
     }
+
+    #[test]
+    fn try_authenticate_no_cert() {
+        let listener = p!(TcpListener::bind("localhost:15412"));
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("negotiated_cipher"));
+
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let identity = identity(dir.path());
+            p!(ctx.set_certificate(&identity, &[]));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::Try));
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(ctx.handshake(stream));
+            let mut buf = [0; 1];
+            p!(stream.read(&mut buf));
+        });
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_break_on_server_auth(true));
+        let stream = p!(TcpStream::connect("localhost:15412"));
+
+        let stream = match ctx.handshake(stream) {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(err) => panic!("unexpected error {:?}", err),
+        };
+
+        let mut stream = p!(stream.handshake());
+        p!(stream.write(&[0]));
+
+        handle.join().unwrap();
+    }
+
+    #[test]
+    fn always_authenticate_no_cert() {
+        let listener = p!(TcpListener::bind("localhost:15413"));
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("negotiated_cipher"));
+
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let identity = identity(dir.path());
+            p!(ctx.set_certificate(&identity, &[]));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::Always));
+
+            let stream = p!(listener.accept()).0;
+
+            match ctx.handshake(stream) {
+                Ok(_) => panic!("unexpected success"),
+                Err(HandshakeError::Failure(_)) => {},
+                Err(err) => panic!("unexpected error {:?}", err),
+            }
+        });
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_break_on_server_auth(true));
+        let stream = p!(TcpStream::connect("localhost:15413"));
+
+        let stream = match ctx.handshake(stream) {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(err) => panic!("unexpected error {:?}", err),
+        };
+
+        match stream.handshake() {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::Failure(_)) => {},
+            Err(err) => panic!("unexpected error {:?}", err),
+        }
+
+        handle.join().unwrap();
+    }
+
+    #[test]
+    fn always_authenticate_with_cert() {
+        let listener = p!(TcpListener::bind("localhost:15414"));
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("negotiated_cipher"));
+
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let identity = identity(dir.path());
+            p!(ctx.set_certificate(&identity, &[]));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::Always));
+
+            let stream = p!(listener.accept()).0;
+
+            match ctx.handshake(stream) {
+                Ok(_) => panic!("unexpected success"),
+                Err(HandshakeError::Failure(_)) => {},
+                Err(err) => panic!("unexpected error {:?}", err),
+            }
+        });
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_break_on_server_auth(true));
+        let dir = p!(TempDir::new("negotiated_cipher"));
+        let identity = identity(dir.path());
+        p!(ctx.set_certificate(&identity, &[]));
+        let stream = p!(TcpStream::connect("localhost:15414"));
+
+        let stream = match ctx.handshake(stream) {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(err) => panic!("unexpected error {:?}", err),
+        };
+
+        match stream.handshake() {
+            Ok(_) => panic!("unexpected success"),
+            Err(HandshakeError::Failure(_)) => {},
+            Err(err) => panic!("unexpected error {:?}", err),
+        }
+
+        handle.join().unwrap();
+    }
 }
