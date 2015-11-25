@@ -363,12 +363,6 @@ impl_options! {
     const kSSLSessionOptionFalseStart: false_start & set_false_start,
     #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
     const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
-    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
-    const kSSLSessionOptionAllowServerIdentityChange: allow_server_identity_change & set_allow_server_identity_change,
-    #[cfg(all(feature = "OSX_10_10", not(target_os = "ios")))]
-    const kSSLSessionOptionFallback: fallback & set_fallback,
-    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
-    const kSSLSessionOptionBreakOnClientHello: break_on_client_hello & set_break_on_client_hello,
 }
 
 impl Drop for SslContext {

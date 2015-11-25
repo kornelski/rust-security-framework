@@ -1,7 +1,7 @@
 use security_framework_sys::secure_transport::*;
 use secure_transport::SslContext;
 use core_foundation::array::CFArray;
-use core_foundation::base::TCFType;
+use core_foundation::base::{TCFType, Boolean};
 use std::ptr;
 use std::slice;
 
@@ -15,6 +15,36 @@ pub trait SslContextExt {
     fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>>;
     fn set_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
     fn add_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
+    #[cfg(feature = "OSX_10_11")]
+    fn allow_server_identity_change(&self) -> Result<bool>;
+    #[cfg(feature = "OSX_10_11")]
+    fn set_allow_server_identity_change(&mut self, value: bool) -> Result<()>;
+    #[cfg(feature = "OSX_10_10")]
+    fn fallback(&self) -> Result<bool>;
+    #[cfg(feature = "OSX_10_10")]
+    fn set_fallback(&mut self, value: bool) -> Result<()>;
+    #[cfg(feature = "OSX_10_11")]
+    fn break_on_client_hello(&self) -> Result<bool>;
+    #[cfg(feature = "OSX_10_11")]
+    fn set_break_on_client_hello(&mut self, value: bool) -> Result<()>;
+}
+
+macro_rules! impl_options {
+    ($($(#[$a:meta])* const $opt:ident: $get:ident & $set:ident,)*) => {
+        $(
+            $(#[$a])*
+            fn $set(&mut self, value: bool) -> Result<()> {
+                unsafe { cvt(SSLSetSessionOption(self.as_inner(), $opt, value as Boolean)) }
+            }
+
+            $(#[$a])*
+            fn $get(&self) -> Result<bool> {
+                let mut value = 0;
+                unsafe { try!(cvt(SSLGetSessionOption(self.as_inner(), $opt, &mut value))); }
+                Ok(value != 0)
+            }
+        )*
+    }
 }
 
 impl SslContextExt for SslContext {
@@ -67,6 +97,15 @@ impl SslContextExt for SslContext {
             let certs = CFArray::from_CFTypes(certs);
             cvt(SSLSetCertificateAuthorities(self.as_inner(), certs.as_CFTypeRef(), 0))
         }
+    }
+
+    impl_options! {
+        #[cfg(feature = "OSX_10_11")]
+        const kSSLSessionOptionAllowServerIdentityChange: allow_server_identity_change & set_allow_server_identity_change,
+        #[cfg(feature = "OSX_10_10")]
+        const kSSLSessionOptionFallback: fallback & set_fallback,
+        #[cfg(feature = "OSX_10_11")]
+        const kSSLSessionOptionBreakOnClientHello: break_on_client_hello & set_break_on_client_hello,
     }
 }
 
