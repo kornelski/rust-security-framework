@@ -17,7 +17,7 @@ impl SslContextExt for SslContext {
             let mut ptr = ptr::null();
             let mut len = 0;
             try!(cvt(SSLGetDiffieHellmanParams(self.as_inner(), &mut ptr, &mut len)));
-            if len == 0 {
+            if ptr.is_null() {
                 Ok(None)
             } else {
                 Ok(Some(slice::from_raw_parts(ptr as *const u8, len)))
