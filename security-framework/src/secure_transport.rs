@@ -182,14 +182,6 @@ impl SslContext {
         unsafe { cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
     }
 
-    pub fn set_break_on_server_auth(&mut self, break_on_server_auth: bool) -> Result<()> {
-        unsafe {
-            cvt(SSLSetSessionOption(self.0,
-                                    kSSLSessionOptionBreakOnServerAuth,
-                                    break_on_server_auth as Boolean))
-        }
-    }
-
     pub fn peer_id(&self) -> Result<Option<&[u8]>> {
         unsafe {
             let mut ptr = ptr::null();
@@ -340,6 +332,43 @@ impl SslContext {
             }
         }
     }
+}
+
+macro_rules! impl_options {
+    ($($(#[$a:meta])* const $opt:ident: $get:ident & $set:ident,)*) => {
+        impl SslContext {
+            $(
+                $(#[$a])*
+                pub fn $set(&mut self, value: bool) -> Result<()> {
+                    unsafe { cvt(SSLSetSessionOption(self.0, $opt, value as Boolean)) }
+                }
+
+                $(#[$a])*
+                pub fn $get(&self) -> Result<bool> {
+                    let mut value = 0;
+                    unsafe { try!(cvt(SSLGetSessionOption(self.0, $opt, &mut value))); }
+                    Ok(value != 0)
+                }
+            )*
+        }
+    }
+}
+
+impl_options! {
+    const kSSLSessionOptionBreakOnServerAuth: break_on_server_auth & set_break_on_server_auth,
+    const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    const kSSLSessionOptionFalseStart: false_start & set_false_start,
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
+    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
+    const kSSLSessionOptionAllowServerIdentityChange: allow_server_identity_change & set_allow_server_identity_change,
+    #[cfg(all(feature = "OSX_10_10", not(target_os = "ios")))]
+    const kSSLSessionOptionFallback: fallback & set_fallback,
+    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
+    const kSSLSessionOptionBreakOnClientHello: break_on_client_hello & set_break_on_client_hello,
 }
 
 impl Drop for SslContext {
