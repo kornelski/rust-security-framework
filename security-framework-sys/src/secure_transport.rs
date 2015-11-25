@@ -143,6 +143,10 @@ extern {
                                         certificateOrArray: CFTypeRef,
                                         replaceExisting: Boolean)
                                         -> OSStatus;
+    #[cfg(target_os = "macos")]
+    pub fn SSLCopyCertificateAuthorities(context: SSLContextRef,
+                                         certificates: *mut CFArrayRef)
+                                         -> OSStatus;
     pub fn SSLSetSessionOption(context: SSLContextRef,
                                option: SSLSessionOption,
                                value: Boolean)

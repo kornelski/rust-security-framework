@@ -1,14 +1,20 @@
 use security_framework_sys::secure_transport::*;
 use secure_transport::SslContext;
+use core_foundation::array::CFArray;
+use core_foundation::base::TCFType;
 use std::ptr;
 use std::slice;
 
 use base::Result;
+use certificate::SecCertificate;
 use {cvt, AsInner};
 
 pub trait SslContextExt {
     fn diffie_hellman_params(&self) -> Result<Option<&[u8]>>;
     fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()>;
+    fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>>;
+    fn set_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
+    fn add_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
 }
 
 impl SslContextExt for SslContext {
@@ -30,6 +36,36 @@ impl SslContextExt for SslContext {
             cvt(SSLSetDiffieHellmanParams(self.as_inner(),
                                           dh_params.as_ptr() as *const _,
                                           dh_params.len()))
+        }
+    }
+
+    fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>> {
+        unsafe {
+            let mut raw_certs = ptr::null();
+            try!(cvt(SSLCopyCertificateAuthorities(self.as_inner(), &mut raw_certs)));
+            if raw_certs.is_null() {
+                Ok(None)
+            } else {
+                let certs = CFArray::wrap_under_create_rule(raw_certs)
+                                .iter()
+                                .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
+                                .collect();
+                Ok(Some(certs))
+            }
+        }
+    }
+
+    fn set_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()> {
+        unsafe {
+            let certs = CFArray::from_CFTypes(certs);
+            cvt(SSLSetCertificateAuthorities(self.as_inner(), certs.as_CFTypeRef(), 1))
+        }
+    }
+
+    fn add_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()> {
+        unsafe {
+            let certs = CFArray::from_CFTypes(certs);
+            cvt(SSLSetCertificateAuthorities(self.as_inner(), certs.as_CFTypeRef(), 0))
         }
     }
 }
@@ -258,5 +294,13 @@ mod test {
         }
 
         handle.join().unwrap();
+    }
+
+    #[test]
+    fn certificate_authorities() {
+        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        assert!(p!(ctx.certificate_authorities()).is_none());
+        p!(ctx.set_certificate_authorities(&[certificate()]));
+        assert_eq!(p!(ctx.certificate_authorities()).unwrap().len(), 1);
     }
 }
