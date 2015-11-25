@@ -47,6 +47,14 @@ pub enum HandshakeError<S> {
 pub struct MidHandshakeSslStream<S>(SslStream<S>);
 
 impl<S> MidHandshakeSslStream<S> {
+    pub fn get_ref(&self) -> &S {
+        self.0.get_ref()
+    }
+
+    pub fn get_mut(&mut self) -> &mut S {
+        self.0.get_mut()
+    }
+
     pub fn context(&self) -> &SslContext {
         &self.0.ctx
     }
