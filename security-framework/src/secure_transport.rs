@@ -269,6 +269,14 @@ impl SslContext {
         }
     }
 
+    pub fn buffered_read_size(&self) -> Result<usize> {
+        unsafe {
+            let mut size = 0;
+            try!(cvt(SSLGetBufferedReadSize(self.0, &mut size)));
+            Ok(size)
+        }
+    }
+
     pub fn handshake<S>(self, stream: S) -> result::Result<SslStream<S>, HandshakeError<S>>
         where S: Read + Write
     {

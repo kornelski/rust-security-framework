@@ -189,4 +189,5 @@ extern {
                         peerID: *mut *const c_void,
                         peerIDLen: *mut size_t)
                         -> OSStatus;
+    pub fn SSLGetBufferedReadSize(context: SSLContextRef, bufSize: *mut size_t) -> OSStatus;
 }
