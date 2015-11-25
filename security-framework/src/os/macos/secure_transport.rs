@@ -42,14 +42,15 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use test::certificate;
+    use test::{next_port, certificate};
     use os::macos::test::identity;
     use cipher_suite::CipherSuite;
     use secure_transport::*;
 
     #[test]
     fn server_client() {
-        let listener = p!(TcpListener::bind("localhost:15410"));
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("server_client"));
@@ -68,7 +69,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_break_on_server_auth(true));
-        let stream = p!(TcpStream::connect("localhost:15410"));
+        let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
@@ -89,7 +90,8 @@ mod test {
 
     #[test]
     fn negotiated_cipher() {
-        let listener = p!(TcpListener::bind("localhost:15411"));
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -112,7 +114,7 @@ mod test {
         p!(ctx.set_break_on_server_auth(true));
         p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
                                      CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));
-        let stream = p!(TcpStream::connect("localhost:15411"));
+        let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
@@ -140,7 +142,8 @@ mod test {
 
     #[test]
     fn try_authenticate_no_cert() {
-        let listener = p!(TcpListener::bind("localhost:15412"));
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -158,7 +161,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_break_on_server_auth(true));
-        let stream = p!(TcpStream::connect("localhost:15412"));
+        let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
@@ -174,7 +177,8 @@ mod test {
 
     #[test]
     fn always_authenticate_no_cert() {
-        let listener = p!(TcpListener::bind("localhost:15413"));
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -195,7 +199,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         p!(ctx.set_break_on_server_auth(true));
-        let stream = p!(TcpStream::connect("localhost:15413"));
+        let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
@@ -214,7 +218,8 @@ mod test {
 
     #[test]
     fn always_authenticate_with_cert() {
-        let listener = p!(TcpListener::bind("localhost:15414"));
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -238,7 +243,7 @@ mod test {
         let dir = p!(TempDir::new("negotiated_cipher"));
         let identity = identity(dir.path());
         p!(ctx.set_certificate(&identity, &[]));
-        let stream = p!(TcpStream::connect("localhost:15414"));
+        let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
