@@ -78,11 +78,12 @@ pub enum SessionState {
 impl SessionState {
     fn from_raw(raw: SSLSessionState) -> SessionState {
         match raw {
-            SSLSessionState::kSSLIdle => SessionState::Idle,
-            SSLSessionState::kSSLHandshake => SessionState::Handshake,
-            SSLSessionState::kSSLConnected => SessionState::Connected,
-            SSLSessionState::kSSLClosed => SessionState::Closed,
-            SSLSessionState::kSSLAborted => SessionState::Aborted,
+            kSSLIdle => SessionState::Idle,
+            kSSLHandshake => SessionState::Handshake,
+            kSSLConnected => SessionState::Connected,
+            kSSLClosed => SessionState::Closed,
+            kSSLAborted => SessionState::Aborted,
+            _ => panic!("bad session state value {}", raw),
         }
     }
 }
@@ -146,13 +147,13 @@ impl SslContext {
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         let side = match side {
-            ProtocolSide::Server => SSLProtocolSide::kSSLServerSide,
-            ProtocolSide::Client => SSLProtocolSide::kSSLClientSide,
+            ProtocolSide::Server => kSSLServerSide,
+            ProtocolSide::Client => kSSLClientSide,
         };
 
         let type_ = match type_ {
-            ConnectionType::Stream => SSLConnectionType::kSSLStreamType,
-            ConnectionType::Datagram => SSLConnectionType::kSSLDatagramType,
+            ConnectionType::Stream => kSSLStreamType,
+            ConnectionType::Datagram => kSSLDatagramType,
         };
 
         unsafe {
@@ -184,7 +185,7 @@ impl SslContext {
     pub fn set_break_on_server_auth(&mut self, break_on_server_auth: bool) -> Result<()> {
         unsafe {
             cvt(SSLSetSessionOption(self.0,
-                                    SSLSessionOption::kSSLSessionOptionBreakOnServerAuth,
+                                    kSSLSessionOptionBreakOnServerAuth,
                                     break_on_server_auth as Boolean))
         }
     }
@@ -245,9 +246,9 @@ impl SslContext {
 
     pub fn set_client_side_authenticate(&mut self, auth: SslAuthenticate) -> Result<()> {
         let auth = match auth {
-            SslAuthenticate::Never => SSLAuthenticate::kNeverAuthenticate,
-            SslAuthenticate::Always => SSLAuthenticate::kAlwaysAuthenticate,
-            SslAuthenticate::Try => SSLAuthenticate::kTryAuthenticate,
+            SslAuthenticate::Never => kNeverAuthenticate,
+            SslAuthenticate::Always => kAlwaysAuthenticate,
+            SslAuthenticate::Try => kTryAuthenticate,
         };
 
         unsafe {
@@ -288,7 +289,7 @@ impl SslContext {
 
     pub fn state(&self) -> Result<SessionState> {
         unsafe {
-            let mut state = SSLSessionState::kSSLIdle;
+            let mut state = 0;
             try!(cvt(SSLGetSessionState(self.0, &mut state)));
             Ok(SessionState::from_raw(state))
         }

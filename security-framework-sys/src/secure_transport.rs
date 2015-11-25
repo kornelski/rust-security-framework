@@ -12,49 +12,43 @@ pub type SSLContextRef = *mut SSLContext;
 
 pub type SSLConnectionRef = *const c_void;
 
-#[repr(C)]
-pub enum SSLProtocol {
-    kSSLProtocolUnknown = 0,
-    kSSLProtocol3 = 2,
-    kTLSProtocol1 = 4,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    kTLSProtocol11 = 7,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    kTLSProtocol12 = 8,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    kDTLSProtocol1 = 9,
-    kSSLProtocol2 = 1,
-    kSSLProtocol3Only = 3,
-    kTLSProtocol1Only = 5,
-    kSSLProtocolAll = 6,
-}
+pub type SSLProtocol = c_int;
+pub const kSSLProtocolUnknown: SSLProtocol = 0;
+pub const kSSLProtocol3: SSLProtocol = 2;
+pub const kTLSProtocol1: SSLProtocol = 4;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kTLSProtocol11: SSLProtocol = 7;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kTLSProtocol12: SSLProtocol = 8;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kDTLSProtocol1: SSLProtocol = 9;
+pub const kSSLProtocol2: SSLProtocol = 1;
+pub const kSSLProtocol3Only: SSLProtocol = 3;
+pub const kTLSProtocol1Only: SSLProtocol = 5;
+pub const kSSLProtocolAll: SSLProtocol = 6;
 
-#[repr(C)]
-pub enum SSLSessionOption {
-    kSSLSessionOptionBreakOnServerAuth = 0,
-    kSSLSessionOptionBreakOnCertRequested = 1,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    kSSLSessionOptionBreakOnClientAuth = 2,
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
-    kSSLSessionOptionFalseStart = 3,
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
-    kSSLSessionOptionSendOneByteRecord = 4,
-    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
-    kSSLSessionOptionAllowServerIdentityChange = 5,
-    #[cfg(all(feature = "OSX_10_10", not(target_os = "ios")))]
-    kSSLSessionOptionFallback = 6,
-    #[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
-    kSSLSessionOptionBreakOnClientHello = 7,
-}
+pub type SSLSessionOption = c_int;
+pub const kSSLSessionOptionBreakOnServerAuth: SSLSessionOption = 0;
+pub const kSSLSessionOptionBreakOnCertRequested: SSLSessionOption = 1;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kSSLSessionOptionBreakOnClientAuth: SSLSessionOption = 2;
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+pub const kSSLSessionOptionFalseStart: SSLSessionOption = 3;
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+pub const kSSLSessionOptionSendOneByteRecord: SSLSessionOption = 4;
+#[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
+pub const kSSLSessionOptionAllowServerIdentityChange: SSLSessionOption = 5;
+#[cfg(all(feature = "OSX_10_10", not(target_os = "ios")))]
+pub const kSSLSessionOptionFallback: SSLSessionOption = 6;
+#[cfg(all(feature = "OSX_10_11", not(target_os = "ios")))]
+pub const kSSLSessionOptionBreakOnClientHello: SSLSessionOption = 7;
 
-#[repr(C)]
-pub enum SSLSessionState {
-    kSSLIdle,
-    kSSLHandshake,
-    kSSLConnected,
-    kSSLClosed,
-    kSSLAborted,
-}
+pub type SSLSessionState = c_int;
+pub const kSSLIdle: SSLSessionState = 0;
+pub const kSSLHandshake: SSLSessionState = 1;
+pub const kSSLConnected: SSLSessionState = 2;
+pub const kSSLClosed: SSLSessionState = 3;
+pub const kSSLAborted: SSLSessionState = 4;
 
 pub type SSLReadFunc = unsafe extern fn(connection: SSLConnectionRef,
                                         data: *mut c_void,
@@ -64,19 +58,19 @@ pub type SSLWriteFunc = unsafe extern fn(connection: SSLConnectionRef,
                                          data: *const c_void,
                                          dataLength: *mut size_t) -> OSStatus;
 
-#[repr(C)]
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-pub enum SSLProtocolSide {
-    kSSLServerSide,
-    kSSLClientSide,
-}
+pub type SSLProtocolSide = c_int;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kSSLServerSide: SSLProtocolSide = 0;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kSSLClientSide: SSLProtocolSide = 1;
 
-#[repr(C)]
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-pub enum SSLConnectionType {
-    kSSLStreamType,
-    kSSLDatagramType,
-}
+pub type SSLConnectionType = c_int;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kSSLStreamType: SSLConnectionType = 0;
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+pub const kSSLDatagramType: SSLConnectionType = 1;
 
 pub const errSSLProtocol: OSStatus = -9800;
 pub const errSSLWouldBlock: OSStatus = -9803;
@@ -86,12 +80,10 @@ pub const errSSLClosedNoNotify: OSStatus = -9816;
 pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 pub const errSSLClientCertRequested: OSStatus = -9842;
 
-#[repr(C)]
-pub enum SSLAuthenticate {
-    kNeverAuthenticate,
-    kAlwaysAuthenticate,
-    kTryAuthenticate,
-}
+pub type SSLAuthenticate = c_int;
+pub const kNeverAuthenticate: SSLAuthenticate = 0;
+pub const kAlwaysAuthenticate: SSLAuthenticate = 1;
+pub const kTryAuthenticate: SSLAuthenticate = 2;
 
 pub type SSLClientCertificateState = c_int;
 pub const kSSLClientCertNone: SSLClientCertificateState = 0;
