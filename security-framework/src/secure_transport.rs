@@ -510,7 +510,7 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
     let mut conn: &mut Connection<S> = mem::transmute(connection);
     let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
-    let mut ret = 0;
+    let mut ret = errSecSuccess;
 
     while start < data.len() {
         match conn.stream.read(&mut data[start..]) {
@@ -538,7 +538,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut conn: &mut Connection<S> = mem::transmute(connection);
     let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;
-    let mut ret = 0;
+    let mut ret = errSecSuccess;
 
     while start < data.len() {
         match conn.stream.write(&data[start..]) {
