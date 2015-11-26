@@ -314,8 +314,7 @@ impl SslContext {
         unsafe {
             let mut num_ciphers = 0;
             try!(cvt(SSLGetNumberSupportedCiphers(self.0, &mut num_ciphers)));
-            let mut ciphers = Vec::with_capacity(num_ciphers as usize);
-            ciphers.set_len(num_ciphers as usize);
+            let mut ciphers = vec![0; num_ciphers];
             try!(cvt(SSLGetSupportedCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
             Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
         }
@@ -325,8 +324,7 @@ impl SslContext {
         unsafe {
             let mut num_ciphers = 0;
             try!(cvt(SSLGetNumberEnabledCiphers(self.0, &mut num_ciphers)));
-            let mut ciphers = Vec::with_capacity(num_ciphers as usize);
-            ciphers.set_len(num_ciphers as usize);
+            let mut ciphers = vec![0; num_ciphers];
             try!(cvt(SSLGetEnabledCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
             Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
         }
