@@ -320,7 +320,7 @@ impl SslContext {
 
     pub fn set_enabled_ciphers(&mut self, ciphers: &[CipherSuite]) -> Result<()> {
         let ciphers = ciphers.iter().map(|c| c.to_raw()).collect::<Vec<_>>();
-        unsafe { cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len() as size_t)) }
+        unsafe { cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len())) }
     }
 
     pub fn negotiated_cipher(&self) -> Result<CipherSuite> {
@@ -541,7 +541,7 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
         }
     }
 
-    *data_length = start as size_t;
+    *data_length = start;
     ret
 }
 
@@ -569,7 +569,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
         }
     }
 
-    *data_length = start as size_t;
+    *data_length = start;
     ret
 }
 
@@ -649,7 +649,7 @@ impl<S: Read + Write> Read for SslStream<S> {
             let mut nread = 0;
             let ret = SSLRead(self.ctx.0,
                               buf.as_mut_ptr() as *mut _,
-                              buf.len() as size_t,
+                              buf.len(),
                               &mut nread);
             match ret {
                 errSecSuccess => Ok(nread as usize),
@@ -668,7 +668,7 @@ impl<S: Read + Write> Write for SslStream<S> {
             let mut nwritten = 0;
             let ret = SSLWrite(self.ctx.0,
                                buf.as_ptr() as *const _,
-                               buf.len() as size_t,
+                               buf.len(),
                                &mut nwritten);
             if ret == errSecSuccess {
                 Ok(nwritten as usize)
