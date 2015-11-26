@@ -1,15 +1,16 @@
 use core_foundation::array::CFArray;
-use core_foundation::boolean::CFBoolean;
 use core_foundation::base::{CFType, TCFType};
+use core_foundation::boolean::CFBoolean;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::CFGetTypeID;
 use security_framework_sys::item::*;
+use std::fmt;
 use std::ptr;
 
-use cvt;
 use base::Result;
 use certificate::SecCertificate;
+use cvt;
 use identity::SecIdentity;
 use key::SecKey;
 use keychain::SecKeychain;
@@ -108,6 +109,7 @@ impl ItemSearchOptions {
     }
 }
 
+#[derive(Debug)]
 pub enum Reference {
     Identity(SecIdentity),
     Certificate(SecCertificate),
@@ -120,11 +122,12 @@ pub struct SearchResult {
     _p: (),
 }
 
-#[derive(Debug)]
-pub struct SearchResults {
-    pub certificates: Vec<SecCertificate>,
-    pub keys: Vec<SecKey>,
-    pub identities: Vec<SecIdentity>,
+impl fmt::Debug for SearchResult {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("SearchResult")
+           .field("reference", &self.reference)
+           .finish()
+    }
 }
 
 #[cfg(test)]
