@@ -271,7 +271,7 @@ mod test {
 
             match ctx.handshake(stream) {
                 Ok(_) => panic!("unexpected success"),
-                Err(HandshakeError::Failure(_)) => {},
+                Err(HandshakeError::Failure(_)) => {}
                 Err(err) => panic!("unexpected error {:?}", err),
             }
         });
@@ -288,7 +288,7 @@ mod test {
 
         match stream.handshake() {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::Failure(_)) => {},
+            Err(HandshakeError::Failure(_)) => {}
             Err(err) => panic!("unexpected error {:?}", err),
         }
 
@@ -312,7 +312,7 @@ mod test {
 
             match ctx.handshake(stream) {
                 Ok(_) => panic!("unexpected success"),
-                Err(HandshakeError::Failure(_)) => {},
+                Err(HandshakeError::Failure(_)) => {}
                 Err(err) => panic!("unexpected error {:?}", err),
             }
         });
@@ -332,7 +332,7 @@ mod test {
 
         match stream.handshake() {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::Failure(_)) => {},
+            Err(HandshakeError::Failure(_)) => {}
             Err(err) => panic!("unexpected error {:?}", err),
         }
 

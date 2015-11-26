@@ -250,9 +250,7 @@ impl SslContext {
     pub fn set_peer_domain_name(&mut self, peer_name: &str) -> Result<()> {
         unsafe {
             // SSLSetPeerDomainName doesn't need a null terminated string
-            cvt(SSLSetPeerDomainName(self.0,
-                                     peer_name.as_ptr() as *const _,
-                                     peer_name.len()))
+            cvt(SSLSetPeerDomainName(self.0, peer_name.as_ptr() as *const _, peer_name.len()))
         }
     }
 
@@ -291,9 +289,7 @@ impl SslContext {
     }
 
     pub fn set_peer_id(&mut self, peer_id: &[u8]) -> Result<()> {
-        unsafe {
-            cvt(SSLSetPeerID(self.0, peer_id.as_ptr() as *const _, peer_id.len()))
-        }
+        unsafe { cvt(SSLSetPeerID(self.0, peer_id.as_ptr() as *const _, peer_id.len())) }
     }
 
     pub fn supported_ciphers(&self) -> Result<Vec<CipherSuite>> {
@@ -338,9 +334,7 @@ impl SslContext {
             SslAuthenticate::Try => kTryAuthenticate,
         };
 
-        unsafe {
-            cvt(SSLSetClientSideAuthenticate(self.0, auth))
-        }
+        unsafe { cvt(SSLSetClientSideAuthenticate(self.0, auth)) }
     }
 
     pub fn client_certificate_state(&self) -> Result<SslClientCertificateState> {
@@ -401,9 +395,7 @@ impl SslContext {
 
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
-        unsafe {
-            cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw()))
-        }
+        unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw())) }
     }
 
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
@@ -417,9 +409,7 @@ impl SslContext {
 
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
-        unsafe {
-            cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw()))
-        }
+        unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
     }
 
     pub fn buffered_read_size(&self) -> Result<usize> {

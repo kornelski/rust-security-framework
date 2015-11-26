@@ -174,10 +174,10 @@ mod test {
     #[test]
     fn limit_two() {
         let results = ItemSearchOptions::new()
-                        .class(ItemClass::Certificate)
-                        .limit(2)
-                        .search()
-                        .unwrap();
+                          .class(ItemClass::Certificate)
+                          .limit(2)
+                          .search()
+                          .unwrap();
         assert_eq!(results.len(), 2);
     }
 }
