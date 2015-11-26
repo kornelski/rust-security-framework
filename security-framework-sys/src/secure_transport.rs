@@ -127,6 +127,11 @@ extern {
                                 peerName: *const c_char,
                                 peerNameLen: size_t)
                                 -> OSStatus;
+    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut size_t) -> OSStatus;
+    pub fn SSLGetPeerDomainName(context: SSLContextRef,
+                                peerName: *mut c_char,
+                                peerNameLen: *mut size_t)
+                                -> OSStatus;
     pub fn SSLSetCertificate(context: SSLContextRef, certRefs: CFArrayRef) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SSLSetCertificateAuthorities(context: SSLContextRef,

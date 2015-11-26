@@ -177,7 +177,17 @@ impl SslContext {
             // SSLSetPeerDomainName doesn't need a null terminated string
             cvt(SSLSetPeerDomainName(self.0,
                                      peer_name.as_ptr() as *const _,
-                                     peer_name.len() as size_t))
+                                     peer_name.len()))
+        }
+    }
+
+    pub fn peer_domain_name(&self) -> Result<String> {
+        unsafe {
+            let mut len = 0;
+            try!(cvt(SSLGetPeerDomainNameLength(self.0, &mut len)));
+            let mut buf = vec![0; len];
+            try!(cvt(SSLGetPeerDomainName(self.0, buf.as_mut_ptr() as *mut _, &mut len)));
+            Ok(String::from_utf8(buf).unwrap())
         }
     }
 
@@ -647,5 +657,13 @@ mod test {
         assert!(p!(ctx.peer_id()).is_none());
         p!(ctx.set_peer_id(b"foobar"));
         assert_eq!(p!(ctx.peer_id()), Some(&b"foobar"[..]));
+    }
+
+    #[test]
+    fn peer_domain_name() {
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        assert_eq!("", p!(ctx.peer_domain_name()));
+        p!(ctx.set_peer_domain_name("foobar.com"));
+        assert_eq!("foobar.com", p!(ctx.peer_domain_name()));
     }
 }
