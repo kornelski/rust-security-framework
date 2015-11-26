@@ -113,6 +113,62 @@ pub enum SslClientCertificateState {
     Rejected,
 }
 
+macro_rules! ssl_protocol {
+    ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
+        pub enum SslProtocol {
+            $($(#[$a])* $variant,)+
+        }
+
+        // #[derive(Debug)] doesn't work with macro expanded cfg'd variants
+        impl fmt::Debug for SslProtocol {
+            fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+                use self::SslProtocol::*;
+
+                let s = match *self {
+                    $($(#[$a])* $variant => stringify!($variant),)+
+                };
+                fmt.write_str(s)
+            }
+        }
+
+        impl SslProtocol {
+            fn from_raw(raw: SSLProtocol) -> SslProtocol {
+                use self::SslProtocol::*;
+
+                match raw {
+                    $($(#[$a])* $value => $variant,)+
+                    _ => panic!("invalid ssl protocol {}", raw),
+                }
+            }
+
+            #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+            fn to_raw(&self) -> SSLProtocol {
+                use self::SslProtocol::*;
+
+                match *self {
+                    $($(#[$a])* $variant => $value,)+
+                }
+            }
+        }
+    }
+}
+
+ssl_protocol! {
+    const Unknown = kSSLProtocolUnknown,
+    const Ssl3 = kSSLProtocol3,
+    const Tls1 = kTLSProtocol1,
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    const Tls11 = kTLSProtocol11,
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    const Tls12 = kTLSProtocol12,
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    const Dtls1 = kDTLSProtocol1,
+    const Ssl2 = kSSLProtocol2,
+    const Ssl3Only = kSSLProtocol3Only,
+    const Tls1Only = kTLSProtocol1Only,
+    const All = kSSLProtocolAll,
+}
+
 pub struct SslContext(SSLContextRef);
 
 impl Drop for SslContext {
@@ -323,6 +379,46 @@ impl SslContext {
             let mut state = 0;
             try!(cvt(SSLGetSessionState(self.0, &mut state)));
             Ok(SessionState::from_raw(state))
+        }
+    }
+
+    pub fn negotiated_protocol_version(&self) -> Result<SslProtocol> {
+        unsafe {
+            let mut version = 0;
+            try!(cvt(SSLGetNegotiatedProtocolVersion(self.0, &mut version)));
+            Ok(SslProtocol::from_raw(version))
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn protocol_version_max(&self) -> Result<SslProtocol> {
+        unsafe {
+            let mut version = 0;
+            try!(cvt(SSLGetProtocolVersionMax(self.0, &mut version)));
+            Ok(SslProtocol::from_raw(version))
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
+        unsafe {
+            cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw()))
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn protocol_version_min(&self) -> Result<SslProtocol> {
+        unsafe {
+            let mut version = 0;
+            try!(cvt(SSLGetProtocolVersionMin(self.0, &mut version)));
+            Ok(SslProtocol::from_raw(version))
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
+        unsafe {
+            cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw()))
         }
     }
 

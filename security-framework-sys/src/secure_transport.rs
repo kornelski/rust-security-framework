@@ -99,7 +99,6 @@ extern {
                             protocolSide: SSLProtocolSide,
                             connectionType: SSLConnectionType)
                             -> SSLContextRef;
-
     #[cfg(target_os = "macos")]
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;
     #[cfg(target_os = "macos")]
@@ -122,7 +121,6 @@ extern {
                     dataLen: size_t,
                     processed: *mut size_t)
                     -> OSStatus;
-    pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
     pub fn SSLSetPeerDomainName(context: SSLContextRef,
                                 peerName: *const c_char,
                                 peerNameLen: size_t)
@@ -192,4 +190,19 @@ extern {
     pub fn SSLGetClientCertificateState(context: SSLContextRef,
                                         clientState: *mut SSLClientCertificateState)
                                         -> OSStatus;
+    pub fn SSLGetNegotiatedProtocolVersion(context: SSLContextRef,
+                                           protocol: *mut SSLProtocol)
+                                           -> OSStatus;
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn SSLGetProtocolVersionMax(context: SSLContextRef,
+                                    maxVersion: *mut SSLProtocol)
+                                    -> OSStatus;
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn SSLGetProtocolVersionMin(context: SSLContextRef,
+                                    minVersion: *mut SSLProtocol)
+                                    -> OSStatus;
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    pub fn SSLSetProtocolVersionMin(context: SSLContextRef, minVersion: SSLProtocol) -> OSStatus;
 }
