@@ -10,6 +10,8 @@ extern {
     pub static kSecClassKey: CFStringRef;
     pub static kSecClassIdentity: CFStringRef;
 
+    pub static kSecMatchLimit: CFStringRef;
+
     pub static kSecReturnData: CFStringRef;
     pub static kSecReturnAttributes: CFStringRef;
     pub static kSecReturnRef: CFStringRef;
