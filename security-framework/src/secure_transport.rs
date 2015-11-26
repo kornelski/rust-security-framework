@@ -115,6 +115,25 @@ pub enum SslClientCertificateState {
 
 pub struct SslContext(SSLContextRef);
 
+impl Drop for SslContext {
+    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
+    fn drop(&mut self) {
+        unsafe {
+            SSLDisposeContext(self.0);
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    fn drop(&mut self) {
+        unsafe {
+            CFRelease(self.as_CFTypeRef());
+        }
+    }
+}
+
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
+
 impl fmt::Debug for SslContext {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let mut builder = fmt.debug_struct("SslContext");
@@ -385,25 +404,6 @@ impl_options! {
     #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
     const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
 }
-
-impl Drop for SslContext {
-    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
-    fn drop(&mut self) {
-        unsafe {
-            SSLDisposeContext(self.0);
-        }
-    }
-
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.as_CFTypeRef());
-        }
-    }
-}
-
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 struct Connection<S> {
     stream: S,
