@@ -13,6 +13,7 @@ use certificate::SecCertificate;
 use identity::SecIdentity;
 use key::SecKey;
 use keychain::SecKeychain;
+use keychain_item::SecKeychainItem;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ItemClass {
@@ -63,7 +64,7 @@ impl ItemSearchOptions {
         self
     }
 
-    pub fn search(&self) -> Result<SearchResults> {
+    pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
             let mut params = vec![];
 
@@ -87,25 +88,36 @@ impl ItemSearchOptions {
             try!(cvt(SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret)));
             let type_id = CFGetTypeID(ret);
 
-            let mut results = SearchResults {
-                certificates: vec![],
-                keys: vec![],
-                identities: vec![],
-            };
-
-            if type_id == SecCertificate::type_id() {
-                results.certificates.push(SecCertificate::wrap_under_create_rule(ret as *mut _));
+            let reference = if type_id == SecCertificate::type_id() {
+                Reference::Certificate(SecCertificate::wrap_under_create_rule(ret as *mut _))
             } else if type_id == SecKey::type_id() {
-                results.keys.push(SecKey::wrap_under_create_rule(ret as *mut _));
+                Reference::Key(SecKey::wrap_under_create_rule(ret as *mut _))
             } else if type_id == SecIdentity::type_id() {
-                results.identities.push(SecIdentity::wrap_under_create_rule(ret as *mut _));
+                Reference::Identity(SecIdentity::wrap_under_create_rule(ret as *mut _))
+            } else if type_id == SecKeychainItem::type_id() {
+                Reference::KeychainItem(SecKeychainItem::wrap_under_create_rule(ret as *mut _))
             } else {
                 panic!("Got bad type from SecItemCopyMatching: {}", type_id);
-            }
+            };
 
-            Ok(results)
+            Ok(vec![SearchResult {
+                reference: Some(reference),
+                _p: (),
+            }])
         }
     }
+}
+
+pub enum Reference {
+    Identity(SecIdentity),
+    Certificate(SecCertificate),
+    Key(SecKey),
+    KeychainItem(SecKeychainItem),
+}
+
+pub struct SearchResult {
+    pub reference: Option<Reference>,
+    _p: (),
 }
 
 #[derive(Debug)]

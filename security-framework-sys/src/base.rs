@@ -7,6 +7,10 @@ struct OpaqueSecKeychainRef(c_void);
 pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 
 #[repr(C)]
+struct OpaqueSecKeychainItemRef(c_void);
+pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
+
+#[repr(C)]
 struct OpaqueSecCertificateRef(c_void);
 pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
 

@@ -11,7 +11,7 @@ pub mod test {
     use std::fs::File;
     use std::io::prelude::*;
 
-    use item::{ItemSearchOptions, ItemClass};
+    use item::{ItemSearchOptions, ItemClass, Reference};
     use os::macos::keychain::SecKeychainExt;
     use identity::SecIdentity;
     use keychain::SecKeychain;
@@ -23,7 +23,10 @@ pub mod test {
                                .class(ItemClass::Identity)
                                .keychains(&[keychain])
                                .search());
-        items.identities.pop().unwrap()
+        match items.pop().unwrap().reference {
+            Some(Reference::Identity(identity)) => identity,
+            _ => panic!("expected identity"),
+        }
     }
 
     pub fn keychain(dir: &Path) -> SecKeychain {
@@ -32,7 +35,6 @@ pub mod test {
         p!(file.write_all(include_bytes!("../../../test/server.keychain")));
         drop(file);
 
-        // the path has to be absolute for some reason
         let mut keychain = p!(SecKeychain::open(&path));
         p!(keychain.unlock(Some("password123")));
         keychain
