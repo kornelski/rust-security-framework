@@ -39,7 +39,7 @@ pub enum ConnectionType {
     /// A DTLS session.
     ///
     /// Requires the `OSX_10_8` (or higher) feature.
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     Datagram,
 }
 
@@ -178,7 +178,7 @@ macro_rules! ssl_protocol {
                 }
             }
 
-            #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+            #[cfg(feature = "OSX_10_8")]
             fn to_raw(&self) -> SSLProtocol {
                 use self::SslProtocol::*;
 
@@ -194,11 +194,11 @@ ssl_protocol! {
     const Unknown = kSSLProtocolUnknown,
     const Ssl3 = kSSLProtocol3,
     const Tls1 = kTLSProtocol1,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     const Tls11 = kTLSProtocol11,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     const Tls12 = kTLSProtocol12,
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     const Dtls1 = kDTLSProtocol1,
     const Ssl2 = kSSLProtocol2,
     const Ssl3Only = kSSLProtocol3Only,
@@ -225,7 +225,7 @@ impl Drop for SslContext {
     }
 }
 
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+#[cfg(feature = "OSX_10_8")]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 impl fmt::Debug for SslContext {
@@ -481,7 +481,7 @@ impl SslContext {
     /// Returns the maximum protocol version allowed by the session.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_max(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -493,7 +493,7 @@ impl SslContext {
     /// Sets the maximum protocol version allowed by the session.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw())) }
     }
@@ -501,7 +501,7 @@ impl SslContext {
     /// Returns the minimum protocol version allowed by the session.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_min(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -513,7 +513,7 @@ impl SslContext {
     /// Sets the minimum protocol version allowed by the session.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
     }
@@ -531,11 +531,11 @@ impl SslContext {
     impl_options! {
         const kSSLSessionOptionBreakOnServerAuth: break_on_server_auth & set_break_on_server_auth,
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
-        #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
+        #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
-        #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+        #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionFalseStart: false_start & set_false_start,
-        #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+        #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }
 
