@@ -1,4 +1,5 @@
 //! Wrappers around the OSX Security Framework.
+#![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 
 extern crate security_framework_sys;
@@ -19,7 +20,8 @@ use base::{Result, Error};
 use cipher_suite::CipherSuite;
 
 macro_rules! make_wrapper {
-    ($name:ident, $raw:ident, $ty_fn:ident) => {
+    ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
+        $(#[$a])*
         pub struct $name($raw);
 
         impl Drop for $name {

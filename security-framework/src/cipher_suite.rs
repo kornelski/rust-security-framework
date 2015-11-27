@@ -6,7 +6,7 @@ use CipherSuiteInternals;
 macro_rules! make_suites {
     ($($suite:ident),+) => {
         /// Specifies cipher suites
-        #[allow(non_camel_case_types)]
+        #[allow(non_camel_case_types, missing_docs)]
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum CipherSuite {
             $($suite),+

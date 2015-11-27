@@ -6,7 +6,10 @@ use security_framework_sys::key::SecKeyGetTypeID;
 use std::mem;
 use std::fmt;
 
-make_wrapper!(SecKey, SecKeyRef, SecKeyGetTypeID);
+make_wrapper! {
+    /// A type representing an encryption key.
+    struct SecKey, SecKeyRef, SecKeyGetTypeID
+}
 
 // FIXME
 impl fmt::Debug for SecKey {

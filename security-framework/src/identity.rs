@@ -1,6 +1,4 @@
 //! Identity support.
-//!
-//! Identities are a certificate paired with the corresponding private key.
 
 use core_foundation::base::TCFType;
 use security_framework_sys::base::SecIdentityRef;
@@ -14,7 +12,12 @@ use base::Result;
 use certificate::SecCertificate;
 use key::SecKey;
 
-make_wrapper!(SecIdentity, SecIdentityRef, SecIdentityGetTypeID);
+make_wrapper! {
+    /// A type representing an identity.
+    ///
+    /// Identities are a certificate paired with the corresponding private key.
+    struct SecIdentity, SecIdentityRef, SecIdentityGetTypeID
+}
 
 impl fmt::Debug for SecIdentity {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

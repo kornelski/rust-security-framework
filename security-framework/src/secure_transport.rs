@@ -154,6 +154,7 @@ pub enum SslClientCertificateState {
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
         /// Specifies protocol versions.
+        #[allow(missing_docs)] // FIXME
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
         }
@@ -209,6 +210,9 @@ ssl_protocol! {
 }
 
 /// A Secure Transport SSL/TLS context object.
+///
+/// `SslContext` implements `TCFType` if the `OSX_10_8` (or greater) feature is
+/// enabled.
 pub struct SslContext(SSLContextRef);
 
 impl Drop for SslContext {
@@ -290,7 +294,7 @@ impl SslContext {
     }
 
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    pub fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
+    fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         let side = match side {
             ProtocolSide::Server => kSSLServerSide,
             ProtocolSide::Client => kSSLClientSide,

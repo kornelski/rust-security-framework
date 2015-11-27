@@ -12,7 +12,10 @@ use std::fmt;
 use ErrorNew;
 use base::{Error, Result};
 
-make_wrapper!(SecCertificate, SecCertificateRef, SecCertificateGetTypeID);
+make_wrapper! {
+    /// A type representing a certificate.
+    struct SecCertificate, SecCertificateRef, SecCertificateGetTypeID
+}
 
 impl fmt::Debug for SecCertificate {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

@@ -5,7 +5,10 @@ use security_framework_sys::keychain_item::SecKeychainItemGetTypeID;
 use std::mem;
 use std::fmt;
 
-make_wrapper!(SecKeychainItem, SecKeychainItemRef, SecKeychainItemGetTypeID);
+make_wrapper! {
+    /// A type representing a keychain item.
+    struct SecKeychainItem, SecKeychainItemRef, SecKeychainItemGetTypeID
+}
 
 // FIXME
 impl fmt::Debug for SecKeychainItem {

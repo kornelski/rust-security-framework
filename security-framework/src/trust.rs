@@ -52,7 +52,10 @@ impl TrustResult {
     }
 }
 
-make_wrapper!(SecTrust, SecTrustRef, SecTrustGetTypeID);
+make_wrapper! {
+    /// A type representing a trust evaluation for a certificate.
+    struct SecTrust, SecTrustRef, SecTrustGetTypeID
+}
 
 impl SecTrust {
     /// Sets additional anchor certificates used to validate trust.
