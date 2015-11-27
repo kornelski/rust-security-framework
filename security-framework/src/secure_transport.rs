@@ -1,3 +1,5 @@
+//! SSL/TLS encryption support using Secure Transport.
+
 use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
 use core_foundation::base::{TCFType, Boolean};
@@ -529,12 +531,28 @@ impl SslContext {
     }
 
     impl_options! {
+        /// If enabled, the handshake process will pause and return instead of
+        /// automatically validating a server's certificate.
         const kSSLSessionOptionBreakOnServerAuth: break_on_server_auth & set_break_on_server_auth,
+        /// If enabled, the handshake process will pause and return after
+        /// the server requests a certificate from the client.
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
+        /// If enabled, the handshake process will pause and return instead of
+        /// automatically validating a client's certificate.
+        ///
+        /// Requires the `OSX_10_8` (or greater) feature.
         #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
+        /// If enabled, TLS false start will be performed if an appropriate
+        /// cipher suite is negotiated.
+        ///
+        /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionFalseStart: false_start & set_false_start,
+        /// If enabled, 1/n-1 record splitting will be enabled for TLS 1.0
+        /// connections using block ciphers to mitigate the BEAST attack.
+        ///
+        /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }

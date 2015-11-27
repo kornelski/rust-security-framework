@@ -1,3 +1,5 @@
+//! OSX specific extensions to Secure Transport functionality.
+
 use security_framework_sys::secure_transport::*;
 use secure_transport::SslContext;
 use core_foundation::array::CFArray;
@@ -9,22 +11,79 @@ use base::Result;
 use certificate::SecCertificate;
 use {cvt, AsInner};
 
+/// An extension trait adding OSX specific functionality to the `SslContext`
+/// type.
 pub trait SslContextExt {
+    /// Returns the DER encoded data specifying the parameters used for
+    /// Diffie-Hellman key exchange.
     fn diffie_hellman_params(&self) -> Result<Option<&[u8]>>;
+
+    /// Sets the parameters used for Diffie-Hellman key exchange, in the
+    /// DER format used by OpenSSL.
+    ///
+    /// If a cipher suite which uses Diffie-Hellman key exchange is selected,
+    /// parameters will automatically be generated if none are provided with
+    /// this method, but this process can take up to 30 seconds.
+    ///
+    /// This can only be called on server-side sessions.
     fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()>;
+
+    /// Returns the certificate authorities used to validate client
+    /// certificates.
     fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>>;
+
+    /// Sets the certificate authorities used to validate client certificates,
+    /// replacing any that are already present.
     fn set_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
+
+    /// Adds certificate authorities used to validate client certificates.
     fn add_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()>;
+
+    /// If enabled, server identity changes are allowed during renegotiation.
+    ///
+    /// It is disabled by default to protect against triple handshake attacks.
+    ///
+    /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
     fn allow_server_identity_change(&self) -> Result<bool>;
+
+    /// If enabled, server identity changes are allowed during renegotiation.
+    ///
+    /// It is disabled by default to protect against triple handshake attacks.
+    ///
+    /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
     fn set_allow_server_identity_change(&mut self, value: bool) -> Result<()>;
+
+    /// If enabled, fallback countermeasures will be used during negotiation.
+    ///
+    /// It should be enabled when renegotiating with a peer with a lower
+    /// maximum protocol version due to an earlier failure to connect.
+    ///
+    /// Requires the `OSX_10_10` (or greater) feature.
     #[cfg(feature = "OSX_10_10")]
     fn fallback(&self) -> Result<bool>;
+
+    /// If enabled, fallback countermeasures will be used during negotiation.
+    ///
+    /// It should be enabled when renegotiating with a peer with a lower
+    /// maximum protocol version due to an earlier failure to connect.
+    ///
+    /// Requires the `OSX_10_10` (or greater) feature.
     #[cfg(feature = "OSX_10_10")]
     fn set_fallback(&mut self, value: bool) -> Result<()>;
+
+    /// If enabled, the handshake process will pause and return when the client
+    /// hello is recieved to support server name identification.
+    ///
+    /// Requires the `OSX_10_11` feature.
     #[cfg(feature = "OSX_10_11")]
     fn break_on_client_hello(&self) -> Result<bool>;
+
+    /// If enabled, the handshake process will pause and return when the client
+    /// hello is recieved to support server name identification.
+    ///
+    /// Requires the `OSX_10_11` feature.
     #[cfg(feature = "OSX_10_11")]
     fn set_break_on_client_hello(&mut self, value: bool) -> Result<()>;
 }
