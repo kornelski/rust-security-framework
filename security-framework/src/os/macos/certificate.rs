@@ -1,3 +1,5 @@
+//! OSX specific extensions to certificate functionality.
+
 use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use security_framework_sys::certificate::*;
@@ -8,17 +10,21 @@ use base::Result;
 use certificate::SecCertificate;
 use key::SecKey;
 
+/// An extension trait adding OSX specific functionality to `SecCertificate`.
 pub trait SecCertificateExt {
-    fn common_name(&self) -> Result<CFString>;
+    /// Returns the common name associated with the certificate.
+    fn common_name(&self) -> Result<String>;
+
+    /// Returns the public key associated with the certificate.
     fn public_key(&self) -> Result<SecKey>;
 }
 
 impl SecCertificateExt for SecCertificate {
-    fn common_name(&self) -> Result<CFString> {
+    fn common_name(&self) -> Result<String> {
         unsafe {
             let mut string = ptr::null();
             try!(cvt(SecCertificateCopyCommonName(self.as_concrete_TypeRef(), &mut string)));
-            Ok(CFString::wrap_under_create_rule(string))
+            Ok(CFString::wrap_under_create_rule(string).to_string())
         }
     }
 

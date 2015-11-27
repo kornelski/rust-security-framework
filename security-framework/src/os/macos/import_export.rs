@@ -1,3 +1,5 @@
+//! OSX specific extensions to import/export functionality.
+
 use core_foundation::array::CFArray;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::data::CFData;
@@ -15,6 +17,7 @@ use identity::SecIdentity;
 use key::SecKey;
 use keychain::SecKeychain;
 
+/// A builder type to import Security Framework types from serialized formats.
 #[derive(Default)]
 pub struct ImportOptions<'a> {
     filename: Option<CFString>,
@@ -28,55 +31,73 @@ pub struct ImportOptions<'a> {
 }
 
 impl<'a> ImportOptions<'a> {
+    /// Creates a new builder with default options.
     pub fn new() -> ImportOptions<'a> {
         ImportOptions::default()
     }
 
+    /// Sets the filename from which the imported data came.
+    ///
+    /// The extension of the file will used as a hint for parsing.
     pub fn filename(&mut self, filename: &str) -> &mut ImportOptions<'a> {
         self.filename = Some(CFString::from_str(filename).unwrap());
         self
     }
 
+    /// Sets the passphrase to be used to decrypt the imported data.
     pub fn passphrase(&mut self, passphrase: &str) -> &mut ImportOptions<'a> {
         self.passphrase = Some(CFString::from_str(passphrase).unwrap().as_CFType());
         self
     }
 
+    /// Sets the passphrase to be used to decrypt the imported data.
     pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut ImportOptions<'a> {
         self.passphrase = Some(CFData::from_buffer(passphrase).as_CFType());
         self
     }
 
+    /// If set, the user will be prompted to imput the passphrase used to
+    /// decrypt the imported data.
     pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut ImportOptions<'a> {
         self.secure_passphrase = secure_passphrase;
         self
     }
 
+    /// If set, imported items will have no access controls imposed on them.
     pub fn no_access_control(&mut self, no_access_control: bool) -> &mut ImportOptions<'a> {
         self.no_access_control = no_access_control;
         self
     }
 
+    /// Sets the title of the alert popup used with the `secure_passphrase`
+    /// option.
     pub fn alert_title(&mut self, alert_title: &str) -> &mut ImportOptions<'a> {
         self.alert_title = Some(CFString::from_str(alert_title).unwrap());
         self
     }
 
+    /// Sets the prompt of the alert popup used with the `secure_passphrase`
+    /// option.
     pub fn alert_prompt(&mut self, alert_prompt: &str) -> &mut ImportOptions<'a> {
         self.alert_prompt = Some(CFString::from_str(alert_prompt).unwrap());
         self
     }
 
+    /// Sets the object into which imported items will be placed.
     pub fn items(&mut self, items: &'a mut SecItems) -> &mut ImportOptions<'a> {
         self.items = Some(items);
         self
     }
 
+    /// Sets the keychain into which items will be imported.
+    ///
+    /// This must be specified to import `SecIdentity`s.
     pub fn keychain(&mut self, keychain: &SecKeychain) -> &mut ImportOptions<'a> {
         self.keychain = Some(keychain.clone());
         self
     }
 
+    /// Imports items from serialized data.
     pub fn import(&mut self, data: &[u8]) -> Result<()> {
         let data = CFData::from_buffer(data);
         let data = data.as_concrete_TypeRef();
@@ -163,10 +184,16 @@ impl<'a> ImportOptions<'a> {
     }
 }
 
+/// A type which holds items imported from serialized data.
+///
+/// Pass a reference to `ImportOptions::items`.
 #[derive(Default)]
 pub struct SecItems {
+    /// Imported certificates.
     pub certificates: Vec<SecCertificate>,
+    /// Imported identities.
     pub identities: Vec<SecIdentity>,
+    /// Imported keys.
     pub keys: Vec<SecKey>,
 }
 

@@ -1,3 +1,5 @@
+//! OSX specific extensions.
+
 pub mod certificate;
 pub mod import_export;
 mod identity;
