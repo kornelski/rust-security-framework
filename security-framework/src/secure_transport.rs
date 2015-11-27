@@ -79,7 +79,7 @@ impl<S> MidHandshakeSslStream<S> {
     }
 
     /// Returns a mutable reference to the `SslContext` of the stream.
-    pub fn mut_context(&mut self) -> &mut SslContext {
+    pub fn context_mut(&mut self) -> &mut SslContext {
         &mut self.0.ctx
     }
 
