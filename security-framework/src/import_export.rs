@@ -67,7 +67,7 @@ impl Pkcs12ImportOptions {
         self
     }
 
-    /// Imports an identity from PKCS#12 encoded data.
+    /// Imports identities from PKCS#12 encoded data.
     pub fn import(&self, pkcs12_data: &[u8]) -> Result<Vec<ImportedIdentity>> {
         unsafe {
             let pkcs12_data = CFData::from_buffer(pkcs12_data);

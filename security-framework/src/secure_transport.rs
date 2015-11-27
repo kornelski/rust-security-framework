@@ -155,6 +155,8 @@ pub enum HandshakeError<S> {
     ClientCertRequested(MidHandshakeSslStream<S>),
     /// The underlying socket reported an error with the `WouldBlock` kind.
     WouldBlock(MidHandshakeSslStream<S>),
+    #[doc(hidden)]
+    __Extensible,
 }
 
 /// An SSL stream midway through the handshake process.
