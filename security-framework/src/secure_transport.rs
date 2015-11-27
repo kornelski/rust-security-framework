@@ -22,47 +22,68 @@ use cipher_suite::CipherSuite;
 use identity::SecIdentity;
 use trust::SecTrust;
 
+/// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone)]
 pub enum ProtocolSide {
+    /// The server side of the session.
     Server,
+    /// The client side of the session.
     Client,
 }
 
+/// Specifies the type of TLS session.
 #[derive(Debug, Copy, Clone)]
 pub enum ConnectionType {
+    /// A traditional TLS stream.
     Stream,
+    /// A DTLS session.
+    ///
+    /// Requires the `OSX_10_8` (or higher) feature.
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     Datagram,
 }
 
+/// An error or intermediate state after a TLS handshake attempt.
 #[derive(Debug)]
 pub enum HandshakeError<S> {
+    /// The handshake failed.
     Failure(Error),
+    /// The `break_on_server_auth` option was enabled and authentication has
+    /// completed.
     ServerAuthCompleted(MidHandshakeSslStream<S>),
+    /// The `break_on_client_auth` option was enabled and the server has
+    /// requested a certificate.
     ClientCertRequested(MidHandshakeSslStream<S>),
+    /// The underlying socket reported an error with the `WouldBlock` kind.
     WouldBlock(MidHandshakeSslStream<S>),
 }
 
+/// An SSL stream midway through the handshake process.
 #[derive(Debug)]
 pub struct MidHandshakeSslStream<S>(SslStream<S>);
 
 impl<S> MidHandshakeSslStream<S> {
+    /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
         self.0.get_ref()
     }
 
+    /// Returns a mutable reference to the inner stream.
     pub fn get_mut(&mut self) -> &mut S {
         self.0.get_mut()
     }
 
+    /// Returns a shared reference to the `SslContext` of the stream.
     pub fn context(&self) -> &SslContext {
         &self.0.ctx
     }
 
+    /// Returns a mutable reference to the `SslContext` of the stream.
     pub fn mut_context(&mut self) -> &mut SslContext {
         &mut self.0.ctx
     }
 
+    /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
         unsafe {
             match SSLHandshake(self.0.ctx.0) {
@@ -76,12 +97,18 @@ impl<S> MidHandshakeSslStream<S> {
     }
 }
 
+/// Specifies the state of a TLS session.
 #[derive(Debug)]
 pub enum SessionState {
+    /// The session has not yet started.
     Idle,
+    /// The session is in the handshake process.
     Handshake,
+    /// The session is connected.
     Connected,
+    /// The session has been terminated.
     Closed,
+    /// The session has been aborted due to an error.
     Aborted,
 }
 
@@ -98,23 +125,33 @@ impl SessionState {
     }
 }
 
+/// Specifies a server's requirement for client certificates.
 #[derive(Debug)]
 pub enum SslAuthenticate {
+    /// Do not request a client certificate.
     Never,
+    /// Require a client certificate.
     Always,
+    /// Request but do not require a client certificate.
     Try,
 }
 
+/// Specifies the state of client certificate processing.
 #[derive(Debug)]
 pub enum SslClientCertificateState {
+    /// A client certificate has not been requested or sent.
     None,
+    /// A client certificate has been requested but not recieved.
     Requested,
+    /// A client certificate has been received and successfully validated.
     Sent,
+    /// A client certificate has been received but has failed to validate.
     Rejected,
 }
 
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
+        /// Specifies protocol versions.
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
         }
@@ -169,6 +206,7 @@ ssl_protocol! {
     const All = kSSLProtocolAll,
 }
 
+/// A Secure Transport SSL/TLS context object.
 pub struct SslContext(SSLContextRef);
 
 impl Drop for SslContext {
@@ -229,6 +267,8 @@ macro_rules! impl_options {
 }
 
 impl SslContext {
+    /// Creates a new `SslContext` for the specified side and type of SSL
+    /// connection.
     pub fn new(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         SslContext::new_inner(side, type_)
     }
@@ -265,6 +305,14 @@ impl SslContext {
         }
     }
 
+    /// Sets the fully qualified domain name of the peer.
+    ///
+    /// This will be used on the client side of a session to validate the
+    /// common name field of the server's certificate. It has no effect if
+    /// called on a server-side `SslContext`.
+    ///
+    /// It is *highly* recommended to call this method before starting the
+    /// handshake process.
     pub fn set_peer_domain_name(&mut self, peer_name: &str) -> Result<()> {
         unsafe {
             // SSLSetPeerDomainName doesn't need a null terminated string
@@ -272,6 +320,7 @@ impl SslContext {
         }
     }
 
+    /// Returns the peer domain name set by `set_peer_domain_name`.
     pub fn peer_domain_name(&self) -> Result<String> {
         unsafe {
             let mut len = 0;
@@ -282,6 +331,13 @@ impl SslContext {
         }
     }
 
+    /// Sets the certificate to be used by this side of the SSL session.
+    ///
+    /// This must be called before the handshake for server-side connections,
+    /// and can be used on the client-side to specify a client certificate.
+    ///
+    /// The `identity` corresponds to the leaf certificate and private
+    /// key, and the `certs` correspond to extra certificates in the chain.
     pub fn set_certificate(&mut self,
                            identity: &SecIdentity,
                            certs: &[SecCertificate])
@@ -293,6 +349,17 @@ impl SslContext {
         unsafe { cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
     }
 
+    /// Sets the peer ID of this session.
+    ///
+    /// A peer ID is an opaque sequence of bytes that will be used by Secure
+    /// Transport to identify the peer of an SSL session. If the peer ID of
+    /// this session matches that of a previously terminated session, the
+    /// previous session can be resumed without requiring a full handshake.
+    pub fn set_peer_id(&mut self, peer_id: &[u8]) -> Result<()> {
+        unsafe { cvt(SSLSetPeerID(self.0, peer_id.as_ptr() as *const _, peer_id.len())) }
+    }
+
+    /// Returns the peer ID of this session.
     pub fn peer_id(&self) -> Result<Option<&[u8]>> {
         unsafe {
             let mut ptr = ptr::null();
@@ -306,10 +373,7 @@ impl SslContext {
         }
     }
 
-    pub fn set_peer_id(&mut self, peer_id: &[u8]) -> Result<()> {
-        unsafe { cvt(SSLSetPeerID(self.0, peer_id.as_ptr() as *const _, peer_id.len())) }
-    }
-
+    /// Returns the list of ciphers that are supported by Secure Transport.
     pub fn supported_ciphers(&self) -> Result<Vec<CipherSuite>> {
         unsafe {
             let mut num_ciphers = 0;
@@ -320,6 +384,8 @@ impl SslContext {
         }
     }
 
+    /// Returns the list of ciphers that are eligible to be used for
+    /// negotiation.
     pub fn enabled_ciphers(&self) -> Result<Vec<CipherSuite>> {
         unsafe {
             let mut num_ciphers = 0;
@@ -330,11 +396,13 @@ impl SslContext {
         }
     }
 
+    /// Sets the list of ciphers that are eligible to be used for negotiation.
     pub fn set_enabled_ciphers(&mut self, ciphers: &[CipherSuite]) -> Result<()> {
         let ciphers = ciphers.iter().map(|c| c.to_raw()).collect::<Vec<_>>();
         unsafe { cvt(SSLSetEnabledCiphers(self.0, ciphers.as_ptr(), ciphers.len())) }
     }
 
+    /// Returns the cipher being used by the session.
     pub fn negotiated_cipher(&self) -> Result<CipherSuite> {
         unsafe {
             let mut cipher = 0;
@@ -343,6 +411,9 @@ impl SslContext {
         }
     }
 
+    /// Sets the requirements for client certificates.
+    ///
+    /// Should only be called on server-side sessions.
     pub fn set_client_side_authenticate(&mut self, auth: SslAuthenticate) -> Result<()> {
         let auth = match auth {
             SslAuthenticate::Never => kNeverAuthenticate,
@@ -353,6 +424,7 @@ impl SslContext {
         unsafe { cvt(SSLSetClientSideAuthenticate(self.0, auth)) }
     }
 
+    /// Returns the state of client certificate processing.
     pub fn client_certificate_state(&self) -> Result<SslClientCertificateState> {
         let mut state = 0;
 
@@ -370,6 +442,10 @@ impl SslContext {
         Ok(state)
     }
 
+    /// Returns the `SecTrust` object corresponding to the peer.
+    ///
+    /// This can be used in conjunction with `set_break_on_server_auth` to
+    /// validate certificates which do not have roots in the default set.
     pub fn peer_trust(&self) -> Result<SecTrust> {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
@@ -384,6 +460,7 @@ impl SslContext {
         }
     }
 
+    /// Returns the state of the session.
     pub fn state(&self) -> Result<SessionState> {
         unsafe {
             let mut state = 0;
@@ -392,6 +469,7 @@ impl SslContext {
         }
     }
 
+    /// Returns the protocol version being used by the session.
     pub fn negotiated_protocol_version(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -400,6 +478,9 @@ impl SslContext {
         }
     }
 
+    /// Returns the maximum protocol version allowed by the session.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn protocol_version_max(&self) -> Result<SslProtocol> {
         unsafe {
@@ -409,11 +490,17 @@ impl SslContext {
         }
     }
 
+    /// Sets the maximum protocol version allowed by the session.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw())) }
     }
 
+    /// Returns the minimum protocol version allowed by the session.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn protocol_version_min(&self) -> Result<SslProtocol> {
         unsafe {
@@ -423,11 +510,16 @@ impl SslContext {
         }
     }
 
+    /// Sets the minimum protocol version allowed by the session.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
     }
 
+    /// Returns the number of bytes which can be read without triggering a
+    /// `read` call in the underlying stream.
     pub fn buffered_read_size(&self) -> Result<usize> {
         unsafe {
             let mut size = 0;
@@ -447,6 +539,7 @@ impl SslContext {
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }
 
+    /// Performs the SSL/TLS handshake.
     pub fn handshake<S>(self, stream: S) -> result::Result<SslStream<S>, HandshakeError<S>>
         where S: Read + Write
     {
@@ -559,6 +652,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     ret
 }
 
+/// A type implementing SSL/TLS encryption over an underlying stream.
 pub struct SslStream<S> {
     ctx: SslContext,
     _m: PhantomData<S>,
@@ -587,16 +681,24 @@ impl<S> Drop for SslStream<S> {
 }
 
 impl<S> SslStream<S> {
+    /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
         &self.connection().stream
     }
 
+    /// Returns a mutable reference to the underlying stream.
     pub fn get_mut(&mut self) -> &mut S {
         &mut self.connection_mut().stream
     }
 
+    /// Returns a shared reference to the `SslContext` of the stream.
     pub fn context(&self) -> &SslContext {
         &self.ctx
+    }
+
+    /// Returns a mutable reference to the `SslContext` of the stream.
+    pub fn context_mut(&mut self) -> &SslContext {
+        &mut self.ctx
     }
 
     fn connection(&self) -> &Connection<S> {
