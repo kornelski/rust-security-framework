@@ -46,9 +46,11 @@
 //! let stream = TcpStream::connect("my_server.com:443").unwrap();
 //! // Perform the initial stages of the SSL/TLS handshake.
 //! let stream = match ctx.handshake(stream) {
-//!     Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+//!     Err(HandshakeError::Interrupted(stream)) => stream,
 //!     _ => panic!("unexpected handshake response"),
 //! };
+//!
+//! assert!(stream.server_auth_completed());
 //!
 //! // Get the trust object we can use to validate the certificate.
 //! let mut trust = stream.context().peer_trust().unwrap();
@@ -114,7 +116,7 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
+use {cvt, ErrorNew, CipherSuiteInternals, MidHandshakeSslStreamInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
@@ -147,54 +149,79 @@ pub enum ConnectionType {
 pub enum HandshakeError<S> {
     /// The handshake failed.
     Failure(Error),
-    /// The `break_on_server_auth` option was enabled and authentication has
-    /// completed.
-    ServerAuthCompleted(MidHandshakeSslStream<S>),
-    /// The `break_on_client_auth` option was enabled and the server has
-    /// requested a certificate.
-    ClientCertRequested(MidHandshakeSslStream<S>),
-    /// The underlying socket reported an error with the `WouldBlock` kind.
-    WouldBlock(MidHandshakeSslStream<S>),
-    #[doc(hidden)]
-    __Extensible,
+    /// The handshake was interrupted midway through.
+    Interrupted(MidHandshakeSslStream<S>),
 }
 
 /// An SSL stream midway through the handshake process.
 #[derive(Debug)]
-pub struct MidHandshakeSslStream<S>(SslStream<S>);
+pub struct MidHandshakeSslStream<S> {
+    stream: SslStream<S>,
+    reason: OSStatus
+}
 
 impl<S> MidHandshakeSslStream<S> {
     /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
-        self.0.get_ref()
+        self.stream.get_ref()
     }
 
     /// Returns a mutable reference to the inner stream.
     pub fn get_mut(&mut self) -> &mut S {
-        self.0.get_mut()
+        self.stream.get_mut()
     }
 
     /// Returns a shared reference to the `SslContext` of the stream.
     pub fn context(&self) -> &SslContext {
-        &self.0.ctx
+        self.stream.context()
     }
 
     /// Returns a mutable reference to the `SslContext` of the stream.
     pub fn context_mut(&mut self) -> &mut SslContext {
-        &mut self.0.ctx
+        self.stream.context_mut()
+    }
+
+    /// Returns `true` iff `break_on_server_auth` was set and the handshake has
+    /// progressed to that point.
+    pub fn server_auth_completed(&self) -> bool {
+        self.reason == errSSLPeerAuthCompleted
+    }
+
+    /// Returns `true` iff `break_on_cert_requested` was set and the handshake
+    /// has progressed to that point.
+    pub fn client_cert_requested(&self) -> bool {
+        self.reason == errSSLClientCertRequested
+    }
+
+    /// Returns `true` iff the underlying stream returned an error with the
+    /// `WouldBlock` kind.
+    pub fn would_block(&self) -> bool {
+        self.reason == errSSLWouldBlock
     }
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
         unsafe {
-            match SSLHandshake(self.0.ctx.0) {
-                errSecSuccess => Ok(self.0),
-                errSSLPeerAuthCompleted => Err(HandshakeError::ServerAuthCompleted(self)),
-                errSSLClientCertRequested => Err(HandshakeError::ClientCertRequested(self)),
-                errSSLWouldBlock => Err(HandshakeError::WouldBlock(self)),
+            match SSLHandshake(self.stream.ctx.0) {
+                errSecSuccess => Ok(self.stream),
+                reason @ errSSLPeerAuthCompleted |
+                reason @ errSSLClientCertRequested |
+                reason @ errSSLWouldBlock |
+                reason @ errSSLClientHelloReceived => {
+                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
+                        stream: self.stream,
+                        reason: reason,
+                    }))
+                }
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }
+    }
+}
+
+impl<S> MidHandshakeSslStreamInternals for MidHandshakeSslStream<S> {
+    fn reason(&self) -> OSStatus {
+        self.reason
     }
 }
 
@@ -688,13 +715,15 @@ impl SslContext {
 
             match SSLHandshake(stream.ctx.0) {
                 errSecSuccess => Ok(stream),
-                errSSLPeerAuthCompleted => {
-                    Err(HandshakeError::ServerAuthCompleted(MidHandshakeSslStream(stream)))
+                reason @ errSSLPeerAuthCompleted |
+                reason @ errSSLClientCertRequested |
+                reason @ errSSLWouldBlock |
+                reason @ errSSLClientHelloReceived => {
+                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
+                        stream: stream,
+                        reason: reason,
+                    }))
                 }
-                errSSLClientCertRequested => {
-                    Err(HandshakeError::ClientCertRequested(MidHandshakeSslStream(stream)))
-                }
-                errSSLWouldBlock => Err(HandshakeError::WouldBlock(MidHandshakeSslStream(stream))),
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }
@@ -818,7 +847,7 @@ impl<S> SslStream<S> {
     }
 
     /// Returns a mutable reference to the `SslContext` of the stream.
-    pub fn context_mut(&mut self) -> &SslContext {
+    pub fn context_mut(&mut self) -> &mut SslContext {
         &mut self.ctx
     }
 

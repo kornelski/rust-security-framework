@@ -79,6 +79,7 @@ pub const errSSLClosedAbort: OSStatus = -9806;
 pub const errSSLClosedNoNotify: OSStatus = -9816;
 pub const errSSLPeerAuthCompleted: OSStatus = -9841;
 pub const errSSLClientCertRequested: OSStatus = -9842;
+pub const errSSLClientHelloReceived: OSStatus = -9851;
 
 pub type SSLAuthenticate = c_int;
 pub const kNeverAuthenticate: SSLAuthenticate = 0;

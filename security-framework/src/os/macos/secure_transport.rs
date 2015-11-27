@@ -1,7 +1,6 @@
 //! OSX specific extensions to Secure Transport functionality.
 
 use security_framework_sys::secure_transport::*;
-use secure_transport::SslContext;
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
 use std::ptr;
@@ -9,7 +8,8 @@ use std::slice;
 
 use base::Result;
 use certificate::SecCertificate;
-use {cvt, AsInner};
+use {cvt, AsInner, MidHandshakeSslStreamInternals};
+use secure_transport::{SslContext, MidHandshakeSslStream};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
 /// type.
@@ -172,6 +172,24 @@ impl SslContextExt for SslContext {
     }
 }
 
+/// An extension trait adding OSX specific functionality to the
+/// `MidHandshakeSslStream` type.
+pub trait MidHandshakeSslStreamExt {
+    /// Returns `true` iff `break_on_client_hello` was set and the handshake
+    /// has progressed to that point.
+    ///
+    /// Requires the `OSX_10_11` (or greater) feature.
+    #[cfg(feature = "OSX_10_11")]
+    fn client_hello_received(&self) -> bool;
+}
+
+impl<S> MidHandshakeSslStreamExt for MidHandshakeSslStream<S> {
+    #[cfg(feature = "OSX_10_11")]
+    fn client_hello_received(&self) -> bool {
+        self.reason() == errSSLClientHelloReceived
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::io::prelude::*;
@@ -211,10 +229,11 @@ mod test {
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Interrupted(stream)) => stream,
             Err(err) => panic!("unexpected error {:?}", err),
         };
 
+        assert!(stream.server_auth_completed());
         let mut peer_trust = p!(stream.context().peer_trust());
         p!(peer_trust.set_anchor_certificates(&[certificate()]));
         let result = p!(peer_trust.evaluate());
@@ -256,7 +275,7 @@ mod test {
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Interrupted(stream)) => stream,
             Err(err) => panic!("unexpected error {:?}", err),
         };
 
@@ -303,7 +322,7 @@ mod test {
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Interrupted(stream)) => stream,
             Err(err) => panic!("unexpected error {:?}", err),
         };
 
@@ -341,7 +360,7 @@ mod test {
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Interrupted(stream)) => stream,
             Err(err) => panic!("unexpected error {:?}", err),
         };
 
@@ -385,7 +404,7 @@ mod test {
 
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
-            Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+            Err(HandshakeError::Interrupted(stream)) => stream,
             Err(err) => panic!("unexpected error {:?}", err),
         };
 

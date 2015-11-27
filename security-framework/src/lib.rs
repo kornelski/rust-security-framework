@@ -84,6 +84,10 @@ trait AsInner {
     fn as_inner(&self) -> Self::Inner;
 }
 
+trait MidHandshakeSslStreamInternals {
+    fn reason(&self) -> OSStatus;
+}
+
 fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),
