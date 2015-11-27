@@ -50,6 +50,7 @@
 //!     _ => panic!("unexpected handshake response"),
 //! };
 //!
+//! // Check that we're here because we hit the server auth step.
 //! assert!(stream.server_auth_completed());
 //!
 //! // Get the trust object we can use to validate the certificate.
