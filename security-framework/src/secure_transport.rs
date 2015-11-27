@@ -280,7 +280,6 @@ pub enum SslClientCertificateState {
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
         /// Specifies protocol versions.
-        #[allow(missing_docs)] // FIXME
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
         }
@@ -320,18 +319,37 @@ macro_rules! ssl_protocol {
 }
 
 ssl_protocol! {
+    /// No protocol has been or should be negotiated or specified; use the
+    /// default.
     const Unknown = kSSLProtocolUnknown,
+    /// The SSL 3.0 protocol is preferred, though SSL 2.0 may be used if the
+    /// peer does not support SSL 3.0.
     const Ssl3 = kSSLProtocol3,
+    /// The TLS 1.0 protocol is preferred, though lower versions may be used
+    /// if the peer does not support TLS 1.0.
     const Tls1 = kTLSProtocol1,
+    /// The TLS 1.1 protocol is preferred, though lower versions may be used
+    /// if the peer does not support TLS 1.1.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
     const Tls11 = kTLSProtocol11,
+    /// The TLS 1.2 protocol is preferred, though lower versions may be used
+    /// if the peer does not support TLS 1.2.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
     const Tls12 = kTLSProtocol12,
+    /// Only the SSL 2.0 protocol is accepted.
+    const Ssl2 = kSSLProtocol2,
+    /// The DTLSv1 protocol is preferred.
     #[cfg(feature = "OSX_10_8")]
     const Dtls1 = kDTLSProtocol1,
-    const Ssl2 = kSSLProtocol2,
+    /// Only the SSL 3.0 protocol is accepted.
     const Ssl3Only = kSSLProtocol3Only,
+    /// Only the TLS 1.0 protocol is accepted.
     const Tls1Only = kTLSProtocol1Only,
+    /// All supported TLS/SSL versions are accepted.
     const All = kSSLProtocolAll,
 }
 
