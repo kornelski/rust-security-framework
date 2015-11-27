@@ -1,0 +1,14 @@
+var ALIASES = {};
+ALIASES['MacTypes_sys'] = {};
+ALIASES['MacTypes_sys'] = {};
+ALIASES['core_foundation'] = {};
+ALIASES['core_foundation'] = {};
+ALIASES['core_foundation_sys'] = {};
+ALIASES['core_foundation_sys'] = {};
+ALIASES['libc'] = {};
+ALIASES['libc'] = {};
+ALIASES['security_framework'] = {};
+ALIASES['security_framework'] = {};
+ALIASES['security_framework_sys'] = {};
+ALIASES['security_framework_sys'] = {};
+ALIASES['systest'] = {};

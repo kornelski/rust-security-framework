@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Reference","An enum including all objects which can be found by `ItemSearchOptions`."]],"struct":[["ItemClass","Specifies the type of items to search for."],["ItemSearchOptions","A builder type to search for items in keychains."],["SearchResult","An individual search result."]]});
