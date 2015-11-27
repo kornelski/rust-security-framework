@@ -76,14 +76,14 @@ pub trait SslContextExt {
     /// If enabled, the handshake process will pause and return when the client
     /// hello is recieved to support server name identification.
     ///
-    /// Requires the `OSX_10_11` feature.
+    /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
     fn break_on_client_hello(&self) -> Result<bool>;
 
     /// If enabled, the handshake process will pause and return when the client
     /// hello is recieved to support server name identification.
     ///
-    /// Requires the `OSX_10_11` feature.
+    /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
     fn set_break_on_client_hello(&mut self, value: bool) -> Result<()>;
 }
