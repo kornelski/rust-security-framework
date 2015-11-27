@@ -1,4 +1,101 @@
 //! SSL/TLS encryption support using Secure Transport.
+//!
+//! # Examples
+//!
+//! To connect as a client to a server with a certificate trusted by the system:
+//!
+//! ```rust
+//! use std::net::TcpStream;
+//! use security_framework::secure_transport::{SslContext, ProtocolSide, ConnectionType};
+//!
+//! // Create a new context configured to operate on the client side of a
+//! // traditional SSL/TLS session.
+//! let mut ctx = SslContext::new(ProtocolSide::Client, ConnectionType::Stream)
+//!                   .unwrap();
+//! // Pass the fully qualified domain name of the server we're connecting to
+//! // so that the certificate's common name can be validated.
+//! ctx.set_peer_domain_name("google.com").unwrap();
+//!
+//! // Open up a socket to the server.
+//! let stream = TcpStream::connect("google.com:443").unwrap();
+//! // Perform the SSL/TLS handshake and get our stream.
+//! let mut stream = ctx.handshake(stream).unwrap();
+//! ```
+//!
+//! Connecting as a client to a server with a certificate *not* trusted by the
+//! system is a bit more complicated:
+//!
+//! ```rust,no_run
+//! use std::net::TcpStream;
+//! use security_framework::secure_transport::{SslContext,
+//!                                            ProtocolSide,
+//!                                            ConnectionType,
+//!                                            HandshakeError};
+//!
+//! // Create a new context configured to operate on the client side of a
+//! // traditional SSL/TLS session.
+//! let mut ctx = SslContext::new(ProtocolSide::Client, ConnectionType::Stream)
+//!                   .unwrap();
+//! // Pass the fully qualified domain name of the server we're connecting to
+//! // so that the certificate's common name can be validated.
+//! ctx.set_peer_domain_name("my_server.com").unwrap();
+//! // Configure the context to allow us to validate the server's certificate.
+//! ctx.set_break_on_server_auth(true).unwrap();
+//!
+//! // Open up a socket to the server.
+//! let stream = TcpStream::connect("my_server.com:443").unwrap();
+//! // Perform the initial stages of the SSL/TLS handshake.
+//! let stream = match ctx.handshake(stream) {
+//!     Err(HandshakeError::ServerAuthCompleted(stream)) => stream,
+//!     _ => panic!("unexpected handshake response"),
+//! };
+//!
+//! // Get the trust object we can use to validate the certificate.
+//! let mut trust = stream.context().peer_trust().unwrap();
+//!
+//! // Add the root certificate used by the server to the trust object.
+//! # let root_cert = unsafe { std::mem::zeroed() };
+//! trust.set_anchor_certificates(&[root_cert]).unwrap();
+//!
+//! // Now validate the certificate
+//! if !trust.evaluate().unwrap().success() {
+//!     panic!("server certificate not trusted");
+//! }
+//!
+//! // Finally complete the handshake and get our stream;
+//! let mut stream = stream.handshake().unwrap();
+//! ```
+//!
+//! To run a server:
+//!
+//! ```rust,no_run
+//! use std::net::TcpListener;
+//! use std::thread;
+//! use security_framework::secure_transport::{SslContext, ProtocolSide, ConnectionType};
+//!
+//! // Create a TCP listener and start accepting on it.
+//! let mut listener = TcpListener::bind("0.0.0.0:443").unwrap();
+//!
+//! for stream in listener.incoming() {
+//!     let stream = stream.unwrap();
+//!     thread::spawn(move || {
+//!         // Create a new context configured to operate on the server side of
+//!         // a traditional SSL/TLS session.
+//!         let mut ctx = SslContext::new(ProtocolSide::Server, ConnectionType::Stream)
+//!                           .unwrap();
+//!
+//!         // Install the certificate chain that we will be using.
+//!         # let identity = unsafe { std::mem::zeroed() };
+//!         # let intermediate_cert = unsafe { std::mem::zeroed() };
+//!         # let root_cert = unsafe { std::mem::zeroed() };
+//!         ctx.set_certificate(identity, &[intermediate_cert, root_cert]).unwrap();
+//!
+//!         // Perform the SSL/TLS handshake and get our stream.
+//!         let mut stream = ctx.handshake(stream).unwrap();
+//!     });
+//! }
+//!
+//! ```
 
 use libc::{size_t, c_void};
 use core_foundation::array::CFArray;
