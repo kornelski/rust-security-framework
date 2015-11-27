@@ -1,3 +1,4 @@
+//! Wrappers around the OSX Security Framework.
 #![allow(non_upper_case_globals)]
 
 extern crate security_framework_sys;

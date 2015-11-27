@@ -1,3 +1,5 @@
+//! Certificate support.
+
 use core_foundation_sys::base::kCFAllocatorDefault;
 use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
@@ -21,6 +23,7 @@ impl fmt::Debug for SecCertificate {
 }
 
 impl SecCertificate {
+    /// Creates a `SecCertificate` from DER encoded certificate data.
     pub fn from_der(der_data: &[u8]) -> Result<SecCertificate> {
         let der_data = CFData::from_buffer(der_data);
         unsafe {
@@ -34,6 +37,7 @@ impl SecCertificate {
         }
     }
 
+    /// Returns DER encoded data describing this certificate.
     pub fn to_der(&self) -> Vec<u8> {
         unsafe {
             let der_data = SecCertificateCopyData(self.0);
@@ -41,6 +45,7 @@ impl SecCertificate {
         }
     }
 
+    /// Returns a human readable summary of this certificate.
     pub fn subject_summary(&self) -> String {
         unsafe {
             let summary = SecCertificateCopySubjectSummary(self.0);

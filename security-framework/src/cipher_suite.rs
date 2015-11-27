@@ -1,8 +1,11 @@
+//! Cipher Suites supported by Secure Transport
+
 use security_framework_sys::cipher_suite::*;
 use CipherSuiteInternals;
 
 macro_rules! make_suites {
     ($($suite:ident),+) => {
+        /// Specifies cipher suites
         #[allow(non_camel_case_types)]
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum CipherSuite {

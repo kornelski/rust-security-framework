@@ -1,3 +1,7 @@
+//! Identity support.
+//!
+//! Identities are a certificate paired with the corresponding private key.
+
 use core_foundation::base::TCFType;
 use security_framework_sys::base::SecIdentityRef;
 use security_framework_sys::identity::*;
@@ -26,6 +30,7 @@ impl fmt::Debug for SecIdentity {
 }
 
 impl SecIdentity {
+    /// Returns the certificate corresponding to this identity.
     pub fn certificate(&self) -> Result<SecCertificate> {
         unsafe {
             let mut certificate = ptr::null_mut();
@@ -34,6 +39,7 @@ impl SecIdentity {
         }
     }
 
+    /// Returns the private key corresponding to this identity.
     pub fn private_key(&self) -> Result<SecKey> {
         unsafe {
             let mut key = ptr::null_mut();

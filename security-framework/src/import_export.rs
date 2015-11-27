@@ -1,3 +1,5 @@
+//! Security Framework type import/export support.
+
 use security_framework_sys::import_export::*;
 use core_foundation::string::CFString;
 use core_foundation::base::TCFType;
@@ -14,15 +16,22 @@ use identity::SecIdentity;
 use base::Result;
 use cvt;
 
+/// Information about an imported identity.
 pub struct ImportedIdentity {
+    /// The label of the identity.
     pub label: String,
+    /// The ID of the identity. Typically the SHA-1 hash of the public key.
     pub key_id: Vec<u8>,
+    /// A `SecTrust` object set up to validate this identity.
     pub trust: SecTrust,
+    /// A certificate chain validating this identity.
     pub cert_chain: Vec<SecCertificate>,
+    /// The identity itself.
     pub identity: SecIdentity,
     _p: (),
 }
 
+/// A builder type to import an identity from PKCS#12 formatted data.
 #[derive(Default)]
 pub struct Pkcs12ImportOptions {
     passphrase: Option<CFString>,
@@ -31,25 +40,34 @@ pub struct Pkcs12ImportOptions {
 }
 
 impl Pkcs12ImportOptions {
+    /// Creates a new builder with default options.
     pub fn new() -> Pkcs12ImportOptions {
         Self::default()
     }
 
+    /// Specifies the passphrase to be used to decrypt the data.
+    ///
+    /// This must be specified, as unencrypted PKCS#12 data is not supported.
     pub fn passphrase(&mut self, passphrase: &str) -> &mut Self {
         self.passphrase = Some(CFString::new(passphrase));
         self
     }
 
+    /// Specifies the keychain in which to import the identity.
+    ///
+    /// If this is not called, the default keychain will be used.
     pub fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
         self
     }
 
+    /// Specifies the access control to be associated with the identity.
     pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self
     }
 
+    /// Imports an identity from PKCS#12 encoded data.
     pub fn import(&self, pkcs12_data: &[u8]) -> Result<Vec<ImportedIdentity>> {
         unsafe {
             let pkcs12_data = CFData::from_buffer(pkcs12_data);

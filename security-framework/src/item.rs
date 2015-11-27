@@ -1,3 +1,5 @@
+//! Support to search for items in a keychain.
+
 use core_foundation::array::CFArray;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::boolean::CFBoolean;
@@ -17,12 +19,18 @@ use key::SecKey;
 use keychain::SecKeychain;
 use keychain_item::SecKeychainItem;
 
+/// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
 pub enum ItemClass {
+    /// Look for `SecKeychainItem`s corresponding to generic passwords.
     GenericPassword,
+    /// Look for `SecKeychainItem`s corresponding to internet passwords.
     InternetPassword,
+    /// Look for `SecCertificate`s.
     Certificate,
+    /// Look for `SecKey`s.
     Key,
+    /// Look for `SecIdentity`s.
     Identity,
 }
 
@@ -39,6 +47,7 @@ impl ItemClass {
     }
 }
 
+/// A builder type to search for items in keychains.
 #[derive(Default)]
 pub struct ItemSearchOptions {
     keychains: Option<CFArray>,
@@ -48,30 +57,41 @@ pub struct ItemSearchOptions {
 }
 
 impl ItemSearchOptions {
+    /// Creates a new builder with default options.
     pub fn new() -> ItemSearchOptions {
         ItemSearchOptions::default()
     }
 
+    /// Search only for items of the specified class.
     pub fn class(&mut self, class: ItemClass) -> &mut ItemSearchOptions {
         self.class = Some(class);
         self
     }
 
+    /// Search within the specified keychains.
+    ///
+    /// If this is not called, the default keychain will be searched.
     pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
 
+    /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
+    /// the results.
     pub fn load_refs(&mut self, load_refs: bool) -> &mut ItemSearchOptions {
         self.load_refs = load_refs;
         self
     }
 
+    /// Limit the number of search results.
+    ///
+    /// If this is not called, the default limit is 1.
     pub fn limit(&mut self, limit: i64) -> &mut ItemSearchOptions {
         self.limit = Some(limit);
         self
     }
 
+    /// Search for objects.
     pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
             let mut params = vec![];
@@ -141,15 +161,22 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     }
 }
 
+/// An enum including all objects which can be found by `ItemSearchOptions`.
 #[derive(Debug)]
 pub enum Reference {
+    /// A `SecIdentity`.
     Identity(SecIdentity),
+    /// A `SecCertificate`.
     Certificate(SecCertificate),
+    /// A `SecKey`.
     Key(SecKey),
+    /// A `SecKeychainItem`.
     KeychainItem(SecKeychainItem),
 }
 
+/// An individual search result.
 pub struct SearchResult {
+    /// A reference to the Security Framework object, if asked for.
     pub reference: Option<Reference>,
     _p: (),
 }
