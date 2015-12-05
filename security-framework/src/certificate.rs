@@ -17,6 +17,8 @@ make_wrapper! {
     struct SecCertificate, SecCertificateRef, SecCertificateGetTypeID
 }
 
+unsafe impl Sync for SecCertificate {}
+
 impl fmt::Debug for SecCertificate {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SecCertificate")
