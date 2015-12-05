@@ -1,6 +1,6 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.0")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.1")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 
@@ -84,10 +84,6 @@ trait CipherSuiteInternals {
 trait AsInner {
     type Inner;
     fn as_inner(&self) -> Self::Inner;
-}
-
-trait MidHandshakeSslStreamInternals {
-    fn reason(&self) -> OSStatus;
 }
 
 fn cvt(err: OSStatus) -> Result<()> {

@@ -30,6 +30,9 @@ pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;
+pub const errSecAuthFailed: OSStatus = -25293;
+pub const errSecTrustSettingDeny: OSStatus = -67654;
+pub const errSecNotTrusted: OSStatus = -67843;
 
 extern {
     #[cfg(target_os = "macos")]

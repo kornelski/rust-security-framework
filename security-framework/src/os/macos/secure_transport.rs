@@ -8,7 +8,7 @@ use std::slice;
 
 use base::Result;
 use certificate::SecCertificate;
-use {cvt, AsInner, MidHandshakeSslStreamInternals};
+use {cvt, AsInner};
 use secure_transport::{SslContext, MidHandshakeSslStream};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
@@ -240,6 +240,60 @@ mod test {
         assert!(result.success());
 
         let mut stream = p!(stream.handshake());
+        p!(stream.write_all(b"hello world!"));
+
+        handle.join().unwrap();
+    }
+
+    #[test]
+    fn client_bad_cert() {
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("client_bad_cert"));
+
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let identity = identity(dir.path());
+            p!(ctx.set_certificate(&identity, &[]));
+
+            let stream = p!(listener.accept()).0;
+            let _ = ctx.handshake(stream);
+        });
+
+        let stream = p!(TcpStream::connect(("localhost", port)));
+        assert!(ClientBuilder::new()
+                    .anchor_certificates(&[])
+                    .handshake("foobar.com", stream)
+                    .is_err());
+
+        handle.join().unwrap();
+    }
+
+    #[test]
+    fn client() {
+        let port = next_port();
+        let listener = p!(TcpListener::bind(("localhost", port)));
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("client_bad_cert"));
+
+            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let identity = identity(dir.path());
+            p!(ctx.set_certificate(&identity, &[]));
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(ctx.handshake(stream));
+
+            let mut buf = [0; 12];
+            p!(stream.read(&mut buf));
+            assert_eq!(&buf[..], b"hello world!");
+        });
+
+        let stream = p!(TcpStream::connect(("localhost", port)));
+        let mut stream = p!(ClientBuilder::new()
+                                .anchor_certificates(&[certificate()])
+                                .handshake("foobar.com", stream));
         p!(stream.write_all(b"hello world!"));
 
         handle.join().unwrap();
