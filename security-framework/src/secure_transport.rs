@@ -5,69 +5,42 @@
 //! To connect as a client to a server with a certificate trusted by the system:
 //!
 //! ```rust
+//! use std::io::prelude::*;
 //! use std::net::TcpStream;
-//! use security_framework::secure_transport::{SslContext, ProtocolSide, ConnectionType};
+//! use security_framework::secure_transport::ClientBuilder;
 //!
-//! // Create a new context configured to operate on the client side of a
-//! // traditional SSL/TLS session.
-//! let mut ctx = SslContext::new(ProtocolSide::Client, ConnectionType::Stream)
-//!                   .unwrap();
-//! // Pass the fully qualified domain name of the server we're connecting to
-//! // so that the certificate's common name can be validated.
-//! ctx.set_peer_domain_name("google.com").unwrap();
-//!
-//! // Open up a socket to the server.
 //! let stream = TcpStream::connect("google.com:443").unwrap();
-//! // Perform the SSL/TLS handshake and get our stream.
-//! let mut stream = ctx.handshake(stream).unwrap();
+//! let mut stream = ClientBuilder::new().handshake("google.com", stream).unwrap();
+//!
+//! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
+//! let mut page = String::new();
+//! stream.read_to_string(&mut page).unwrap();
+//! println!("{}", page);
 //! ```
 //!
-//! Connecting as a client to a server with a certificate *not* trusted by the
-//! system is a bit more complicated:
+//! To connect to a server with a certificate that's *not* trusted by the
+//! system, specify the root certificates for the server's chain to the
+//! `ClientBuilder`:
 //!
 //! ```rust,no_run
+//! use std::io::prelude::*;
 //! use std::net::TcpStream;
-//! use security_framework::secure_transport::{SslContext,
-//!                                            ProtocolSide,
-//!                                            ConnectionType,
-//!                                            HandshakeError};
+//! use security_framework::secure_transport::ClientBuilder;
 //!
-//! // Create a new context configured to operate on the client side of a
-//! // traditional SSL/TLS session.
-//! let mut ctx = SslContext::new(ProtocolSide::Client, ConnectionType::Stream)
-//!                   .unwrap();
-//! // Pass the fully qualified domain name of the server we're connecting to
-//! // so that the certificate's common name can be validated.
-//! ctx.set_peer_domain_name("my_server.com").unwrap();
-//! // Configure the context to allow us to validate the server's certificate.
-//! ctx.set_break_on_server_auth(true).unwrap();
-//!
-//! // Open up a socket to the server.
-//! let stream = TcpStream::connect("my_server.com:443").unwrap();
-//! // Perform the initial stages of the SSL/TLS handshake.
-//! let stream = match ctx.handshake(stream) {
-//!     Err(HandshakeError::Interrupted(stream)) => stream,
-//!     _ => panic!("unexpected handshake response"),
-//! };
-//!
-//! // Check that we're here because we hit the server auth step.
-//! assert!(stream.server_auth_completed());
-//!
-//! // Get the trust object we can use to validate the certificate.
-//! let mut trust = stream.context().peer_trust().unwrap();
-//!
-//! // Add the root certificate used by the server to the trust object.
 //! # let root_cert = unsafe { std::mem::zeroed() };
-//! trust.set_anchor_certificates(&[root_cert]).unwrap();
+//! let stream = TcpStream::connect("my_server.com:443").unwrap();
+//! let mut stream = ClientBuilder::new()
+//!                      .anchor_certificates(&[root_cert])
+//!                      .handshake("my_server.com", stream)
+//!                      .unwrap();
 //!
-//! // Now validate the certificate
-//! if !trust.evaluate().unwrap().success() {
-//!     panic!("server certificate not trusted");
-//! }
-//!
-//! // Finally complete the handshake and get our stream;
-//! let mut stream = stream.handshake().unwrap();
+//! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
+//! let mut page = String::new();
+//! stream.read_to_string(&mut page).unwrap();
+//! println!("{}", page);
 //! ```
+//!
+//! For more advanced configuration, the `SslContext` type can be used directly.
 //!
 //! To run a server:
 //!
