@@ -106,7 +106,8 @@ use core_foundation::base::{TCFType, Boolean};
 use core_foundation_sys::base::OSStatus;
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
-use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq};
+use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSecTrustSettingDeny,
+                                   errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
 use std::io;
 use std::io::prelude::*;
@@ -117,12 +118,12 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals, MidHandshakeSslStreamInternals, AsInner};
+use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
 use identity::SecIdentity;
-use trust::SecTrust;
+use trust::{SecTrust, TrustResult};
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone)]
@@ -158,7 +159,7 @@ pub enum HandshakeError<S> {
 #[derive(Debug)]
 pub struct MidHandshakeSslStream<S> {
     stream: SslStream<S>,
-    reason: OSStatus
+    reason: OSStatus,
 }
 
 impl<S> MidHandshakeSslStream<S> {
@@ -200,6 +201,11 @@ impl<S> MidHandshakeSslStream<S> {
         self.reason == errSSLWouldBlock
     }
 
+    /// Returns the raw error code which caused the handshake interruption.
+    pub fn reason(&self) -> OSStatus {
+        self.reason
+    }
+
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
         unsafe {
@@ -217,12 +223,6 @@ impl<S> MidHandshakeSslStream<S> {
                 err => Err(HandshakeError::Failure(Error::new(err))),
             }
         }
-    }
-}
-
-impl<S> MidHandshakeSslStreamInternals for MidHandshakeSslStream<S> {
-    fn reason(&self) -> OSStatus {
-        self.reason
     }
 }
 
@@ -680,28 +680,28 @@ impl SslContext {
     }
 
     impl_options! {
-        /// If enabled, the handshake process will pause and return instead of
-        /// automatically validating a server's certificate.
+    /// If enabled, the handshake process will pause and return instead of
+    /// automatically validating a server's certificate.
         const kSSLSessionOptionBreakOnServerAuth: break_on_server_auth & set_break_on_server_auth,
-        /// If enabled, the handshake process will pause and return after
-        /// the server requests a certificate from the client.
+    /// If enabled, the handshake process will pause and return after
+    /// the server requests a certificate from the client.
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
-        /// If enabled, the handshake process will pause and return instead of
-        /// automatically validating a client's certificate.
-        ///
-        /// Requires the `OSX_10_8` (or greater) feature.
+    /// If enabled, the handshake process will pause and return instead of
+    /// automatically validating a client's certificate.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
         #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
-        /// If enabled, TLS false start will be performed if an appropriate
-        /// cipher suite is negotiated.
-        ///
-        /// Requires the `OSX_10_9` (or greater) feature.
+    /// If enabled, TLS false start will be performed if an appropriate
+    /// cipher suite is negotiated.
+    ///
+    /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionFalseStart: false_start & set_false_start,
-        /// If enabled, 1/n-1 record splitting will be enabled for TLS 1.0
-        /// connections using block ciphers to mitigate the BEAST attack.
-        ///
-        /// Requires the `OSX_10_9` (or greater) feature.
+    /// If enabled, 1/n-1 record splitting will be enabled for TLS 1.0
+    /// connections using block ciphers to mitigate the BEAST attack.
+    ///
+    /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }
@@ -940,6 +940,71 @@ impl<S: Read + Write> Write for SslStream<S> {
     }
 }
 
+/// A builder type to simplify the creation of client side `SslStream`s.
+pub struct ClientBuilder {
+    certs: Option<Vec<SecCertificate>>,
+}
+
+impl ClientBuilder {
+    /// Creates a new builder with default options.
+    pub fn new() -> Self {
+        ClientBuilder { certs: None }
+    }
+
+    /// Specifies the set of additional root certificates to trust when
+    /// verifying the server's certificate.
+    pub fn anchor_certificates(&mut self, certs: &[SecCertificate]) -> &mut Self {
+        self.certs = Some(certs.to_owned());
+        self
+    }
+
+    /// Initiates a new SSL/TLS session over a stream connected to the specified
+    /// domain.
+    pub fn handshake<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
+        where S: Read + Write
+    {
+        let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        try!(ctx.set_peer_domain_name(domain));
+
+        if self.certs.is_some() {
+            try!(ctx.set_break_on_server_auth(true));
+        }
+
+        let mut result = ctx.handshake(stream);
+        loop {
+            match result {
+                Ok(stream) => return Ok(stream),
+                Err(HandshakeError::Interrupted(stream)) => {
+                    if stream.server_auth_completed() {
+                        if let Some(ref certs) = self.certs {
+                            let mut trust = try!(stream.context().peer_trust());
+                            try!(trust.set_anchor_certificates(certs));
+                            let trusted = try!(trust.evaluate());
+                            match trusted {
+                                TrustResult::Invalid |
+                                TrustResult::OtherError => return Err(Error::new(errSecBadReq)),
+                                TrustResult::Proceed | TrustResult::Unspecified => {}
+                                TrustResult::Deny => return Err(Error::new(errSecTrustSettingDeny)),
+                                TrustResult::RecoverableTrustFailure |
+                                TrustResult::FatalTrustFailure => {
+                                    return Err(Error::new(errSecNotTrusted));
+                                }
+                            }
+                        } else {
+                            return Err(Error::new(stream.reason()));
+                        }
+                    } else {
+                        return Err(Error::new(stream.reason()));
+                    }
+
+                    result = stream.handshake();
+                }
+                Err(HandshakeError::Failure(err)) => return Err(err),
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::io::prelude::*;
@@ -972,6 +1037,24 @@ mod test {
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ctx.handshake(stream));
+        p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
+        p!(stream.flush());
+        let mut buf = String::new();
+        p!(stream.read_to_string(&mut buf));
+        assert!(buf.starts_with("HTTP/1.0 200 OK"));
+        assert!(buf.ends_with("</html>"));
+    }
+
+    #[test]
+    fn client_bad_domain() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+        assert!(ClientBuilder::new().handshake("foobar.com", stream).is_err());
+    }
+
+    #[test]
+    fn load_page_client() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let mut stream = p!(ClientBuilder::new().handshake("google.com", stream));
         p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
         p!(stream.flush());
         let mut buf = String::new();
