@@ -18,6 +18,7 @@ make_wrapper! {
 }
 
 unsafe impl Sync for SecCertificate {}
+unsafe impl Send for SecCertificate {}
 
 impl fmt::Debug for SecCertificate {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

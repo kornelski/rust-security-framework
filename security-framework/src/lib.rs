@@ -44,8 +44,6 @@ macro_rules! make_wrapper {
             }
         }
 
-        unsafe impl Send for $name {}
-
         impl_TCFType!($name, $raw, $ty_fn);
     }
 }
