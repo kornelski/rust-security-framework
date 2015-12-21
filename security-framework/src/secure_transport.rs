@@ -914,6 +914,7 @@ impl<S: Read + Write> Write for SslStream<S> {
 }
 
 /// A builder type to simplify the creation of client side `SslStream`s.
+#[derive(Debug)]
 pub struct ClientBuilder {
     certs: Option<Vec<SecCertificate>>,
 }
