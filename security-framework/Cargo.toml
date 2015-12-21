@@ -1,17 +1,17 @@
 [package]
 name = "security-framework"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 license = "MIT"
 description = "Security Framework bindings"
 repository = "https://github.com/sfackler/rust-security-framework"
-documentation = "https://sfackler.github.io/rust-security-framework/doc/v0.1.1/security_framework"
+documentation = "https://sfackler.github.io/rust-security-framework/doc/v0.1.2/security_framework"
 readme = "../README.md"
 keywords = ["OSX", "iOS", "TLS", "SSL", "crypto"]
 exclude = ["test/*"]
 
 [dependencies]
-security-framework-sys = { version = "0.1.1", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.1.2", path = "../security-framework-sys" }
 core-foundation = "0.2"
 core-foundation-sys = "0.2"
 libc = "0.2"
