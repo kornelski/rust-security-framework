@@ -13,9 +13,9 @@
 //! let mut stream = ClientBuilder::new().handshake("google.com", stream).unwrap();
 //!
 //! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
-//! let mut page = String::new();
-//! stream.read_to_string(&mut page).unwrap();
-//! println!("{}", page);
+//! let mut page = vec![];
+//! stream.read_to_end(&mut page).unwrap();
+//! println!("{}", String::from_utf8_lossy(&page));
 //! ```
 //!
 //! To connect to a server with a certificate that's *not* trusted by the
@@ -35,9 +35,9 @@
 //!                      .unwrap();
 //!
 //! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
-//! let mut page = String::new();
-//! stream.read_to_string(&mut page).unwrap();
-//! println!("{}", page);
+//! let mut page = vec![];
+//! stream.read_to_end(&mut page).unwrap();
+//! println!("{}", String::from_utf8_lossy(&page));
 //! ```
 //!
 //! For more advanced configuration, the `SslContext` type can be used directly.
