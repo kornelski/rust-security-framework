@@ -13,9 +13,9 @@
 //! let mut stream = ClientBuilder::new().handshake("google.com", stream).unwrap();
 //!
 //! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
-//! let mut page = String::new();
-//! stream.read_to_string(&mut page).unwrap();
-//! println!("{}", page);
+//! let mut page = vec![];
+//! stream.read_to_end(&mut page).unwrap();
+//! println!("{}", String::from_utf8_lossy(&page));
 //! ```
 //!
 //! To connect to a server with a certificate that's *not* trusted by the
@@ -35,9 +35,9 @@
 //!                      .unwrap();
 //!
 //! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
-//! let mut page = String::new();
-//! stream.read_to_string(&mut page).unwrap();
-//! println!("{}", page);
+//! let mut page = vec![];
+//! stream.read_to_end(&mut page).unwrap();
+//! println!("{}", String::from_utf8_lossy(&page));
 //! ```
 //!
 //! For more advanced configuration, the `SslContext` type can be used directly.
@@ -914,6 +914,7 @@ impl<S: Read + Write> Write for SslStream<S> {
 }
 
 /// A builder type to simplify the creation of client side `SslStream`s.
+#[derive(Debug)]
 pub struct ClientBuilder {
     certs: Option<Vec<SecCertificate>>,
 }
@@ -1012,10 +1013,10 @@ mod test {
         let mut stream = p!(ctx.handshake(stream));
         p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
         p!(stream.flush());
-        let mut buf = String::new();
-        p!(stream.read_to_string(&mut buf));
-        assert!(buf.starts_with("HTTP/1.0 200 OK"));
-        assert!(buf.ends_with("</html>"));
+        let mut buf = vec![];
+        p!(stream.read_to_end(&mut buf));
+        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
+        assert!(buf.ends_with(b"</html>"));
     }
 
     #[test]
@@ -1030,10 +1031,10 @@ mod test {
         let mut stream = p!(ClientBuilder::new().handshake("google.com", stream));
         p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
         p!(stream.flush());
-        let mut buf = String::new();
-        p!(stream.read_to_string(&mut buf));
-        assert!(buf.starts_with("HTTP/1.0 200 OK"));
-        assert!(buf.ends_with("</html>"));
+        let mut buf = vec![];
+        p!(stream.read_to_end(&mut buf));
+        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
+        assert!(buf.ends_with(b"</html>"));
     }
 
     #[test]
