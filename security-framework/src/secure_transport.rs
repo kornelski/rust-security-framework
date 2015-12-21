@@ -1013,10 +1013,10 @@ mod test {
         let mut stream = p!(ctx.handshake(stream));
         p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
         p!(stream.flush());
-        let mut buf = String::new();
-        p!(stream.read_to_string(&mut buf));
-        assert!(buf.starts_with("HTTP/1.0 200 OK"));
-        assert!(buf.ends_with("</html>"));
+        let mut buf = vec![];
+        p!(stream.read_to_end(&mut buf));
+        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
+        assert!(buf.ends_with(b"</html>"));
     }
 
     #[test]
@@ -1031,10 +1031,10 @@ mod test {
         let mut stream = p!(ClientBuilder::new().handshake("google.com", stream));
         p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
         p!(stream.flush());
-        let mut buf = String::new();
-        p!(stream.read_to_string(&mut buf));
-        assert!(buf.starts_with("HTTP/1.0 200 OK"));
-        assert!(buf.ends_with("</html>"));
+        let mut buf = vec![];
+        p!(stream.read_to_end(&mut buf));
+        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
+        assert!(buf.ends_with(b"</html>"));
     }
 
     #[test]
