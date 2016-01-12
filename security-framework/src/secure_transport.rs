@@ -181,25 +181,8 @@ impl<S> MidHandshakeSslStream<S> {
     }
 
     /// Restarts the handshake process.
-    pub fn handshake(mut self) -> result::Result<SslStream<S>, HandshakeError<S>> {
-        unsafe {
-            match SSLHandshake(self.stream.ctx.0) {
-                errSecSuccess => Ok(self.stream),
-                reason @ errSSLPeerAuthCompleted |
-                reason @ errSSLClientCertRequested |
-                reason @ errSSLWouldBlock |
-                reason @ errSSLClientHelloReceived => {
-                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
-                        stream: self.stream,
-                        reason: reason,
-                    }))
-                }
-                err => {
-                    self.stream.check_panic();
-                    Err(HandshakeError::Failure(Error::new(err)))
-                }
-            }
-        }
+    pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
+        self.stream.handshake()
     }
 }
 
@@ -705,27 +688,11 @@ impl SslContext {
                 return Err(HandshakeError::Failure(Error::new(ret)));
             }
 
-            let mut stream = SslStream {
+            let stream = SslStream {
                 ctx: self,
                 _m: PhantomData,
             };
-
-            match SSLHandshake(stream.ctx.0) {
-                errSecSuccess => Ok(stream),
-                reason @ errSSLPeerAuthCompleted |
-                reason @ errSSLClientCertRequested |
-                reason @ errSSLWouldBlock |
-                reason @ errSSLClientHelloReceived => {
-                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
-                        stream: stream,
-                        reason: reason,
-                    }))
-                }
-                err => {
-                    stream.check_panic();
-                    Err(HandshakeError::Failure(Error::new(err)))
-                }
-            }
+            stream.handshake()
         }
     }
 }
@@ -896,6 +863,25 @@ impl<S> Drop for SslStream<S> {
 }
 
 impl<S> SslStream<S> {
+    fn handshake(mut self) -> result::Result<SslStream<S>, HandshakeError<S>> {
+        match unsafe { SSLHandshake(self.ctx.0) } {
+            errSecSuccess => Ok(self),
+            reason @ errSSLPeerAuthCompleted |
+            reason @ errSSLClientCertRequested |
+            reason @ errSSLWouldBlock |
+            reason @ errSSLClientHelloReceived => {
+                Err(HandshakeError::Interrupted(MidHandshakeSslStream {
+                    stream: self,
+                    reason: reason,
+                }))
+            }
+            err => {
+                self.check_panic();
+                Err(HandshakeError::Failure(Error::new(err)))
+            }
+        }
+    }
+
     /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
         &self.connection().stream
@@ -1062,6 +1048,7 @@ impl ClientBuilder {
 
 #[cfg(test)]
 mod test {
+    #[cfg(feature = "nightly")]
     use std::io;
     use std::io::prelude::*;
     use std::net::TcpStream;
