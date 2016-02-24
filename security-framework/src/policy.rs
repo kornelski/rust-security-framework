@@ -9,6 +9,7 @@ use std::fmt;
 
 use ErrorNew;
 use base::{Error, Result};
+use secure_transport::ProtocolSide;
 
 make_wrapper! {
     /// A type representing a certificate validation policy.
@@ -27,10 +28,14 @@ impl fmt::Debug for SecPolicy {
 
 impl SecPolicy {
     /// Creates a `SecPolicy` suitable for validating certificates for SSL.
-    pub fn for_ssl(server: bool, hostname: &str) -> Result<SecPolicy> {
+    pub fn for_ssl(protocol_side: ProtocolSide, hostname: &str) -> Result<SecPolicy> {
         let hostname_cf = CFString::new(hostname);
+        let client_side = match protocol_side {
+            ProtocolSide::Server => 0,
+            ProtocolSide::Client => 1,
+        };
         unsafe {
-            let policy = SecPolicyCreateSSL(server as u8, hostname_cf.as_concrete_TypeRef());
+            let policy = SecPolicyCreateSSL(client_side as u8, hostname_cf.as_concrete_TypeRef());
             if policy.is_null() {
                 Err(Error::new(errSecParam))
             } else {
@@ -43,10 +48,11 @@ impl SecPolicy {
 #[cfg(test)]
 mod test {
     use ::policy::SecPolicy;
+    use ::secure_transport::ProtocolSide;
 
     #[test]
     fn for_ssl() {
-        let policy = SecPolicy::for_ssl(true, "certifi.org");
+        let policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.org");
         assert_eq!(policy.is_ok(), true);
     }
 }
