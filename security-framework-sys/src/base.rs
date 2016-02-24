@@ -26,6 +26,10 @@ pub type SecKeyRef = *mut OpaqueSecKeyRef;
 pub struct OpaqueSecIdentityRef(c_void);
 pub type SecIdentityRef = *mut OpaqueSecIdentityRef;
 
+#[repr(C)]
+pub struct OpaqueSecPolicyRef(c_void);
+pub type SecPolicyRef = *mut OpaqueSecPolicyRef;
+
 pub const errSecSuccess: OSStatus = 0;
 pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;

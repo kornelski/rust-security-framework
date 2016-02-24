@@ -70,6 +70,7 @@ pub mod key;
 pub mod keychain;
 pub mod keychain_item;
 pub mod os;
+pub mod policy;
 pub mod secure_transport;
 pub mod trust;
 
