@@ -1,5 +1,5 @@
 use libc::c_void;
-use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID};
+use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID, CFTypeRef};
 use core_foundation_sys::array::CFArrayRef;
 
 pub type SecTrustResultType = u32;
@@ -26,4 +26,7 @@ extern {
                                              anchorCertificatesOnly: Boolean)
                                              -> OSStatus;
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
+    pub fn SecTrustCreateWithCertificates(certificates: CFTypeRef,
+                                          policies: CFTypeRef,
+                                          trust: *mut SecTrustRef) -> OSStatus;
 }
