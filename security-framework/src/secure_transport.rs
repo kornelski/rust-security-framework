@@ -82,6 +82,7 @@ use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
 use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSecTrustSettingDeny,
                                    errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
+use std::any::Any;
 use std::io;
 use std::io::prelude::*;
 use std::fmt;
@@ -181,21 +182,7 @@ impl<S> MidHandshakeSslStream<S> {
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, HandshakeError<S>> {
-        unsafe {
-            match SSLHandshake(self.stream.ctx.0) {
-                errSecSuccess => Ok(self.stream),
-                reason @ errSSLPeerAuthCompleted |
-                reason @ errSSLClientCertRequested |
-                reason @ errSSLWouldBlock |
-                reason @ errSSLClientHelloReceived => {
-                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
-                        stream: self.stream,
-                        reason: reason,
-                    }))
-                }
-                err => Err(HandshakeError::Failure(Error::new(err))),
-            }
-        }
+        self.stream.handshake()
     }
 }
 
@@ -692,6 +679,7 @@ impl SslContext {
             let stream = Connection {
                 stream: stream,
                 err: None,
+                panic: None,
             };
             let stream = Box::into_raw(Box::new(stream));
             let ret = SSLSetConnection(self.0, stream as *mut _);
@@ -704,20 +692,7 @@ impl SslContext {
                 ctx: self,
                 _m: PhantomData,
             };
-
-            match SSLHandshake(stream.ctx.0) {
-                errSecSuccess => Ok(stream),
-                reason @ errSSLPeerAuthCompleted |
-                reason @ errSSLClientCertRequested |
-                reason @ errSSLWouldBlock |
-                reason @ errSSLClientHelloReceived => {
-                    Err(HandshakeError::Interrupted(MidHandshakeSslStream {
-                        stream: stream,
-                        reason: reason,
-                    }))
-                }
-                err => Err(HandshakeError::Failure(Error::new(err))),
-            }
+            stream.handshake()
         }
     }
 }
@@ -725,6 +700,46 @@ impl SslContext {
 struct Connection<S> {
     stream: S,
     err: Option<io::Error>,
+    panic: Option<Box<Any + Send>>,
+}
+
+#[cfg(feature = "nightly")]
+fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T + ::std::panic::RecoverSafe {
+    ::std::panic::recover(f)
+}
+
+#[cfg(not(feature = "nightly"))]
+fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
+    Ok(f())
+}
+
+#[cfg(feature = "nightly")]
+use std::panic::AssertRecoverSafe;
+
+#[cfg(not(feature = "nightly"))]
+struct AssertRecoverSafe<T>(T);
+
+#[cfg(not(feature = "nightly"))]
+impl<T> AssertRecoverSafe<T> {
+    fn new(t: T) -> Self {
+        AssertRecoverSafe(t)
+    }
+}
+
+#[cfg(not(feature = "nightly"))]
+impl<T> ::std::ops::Deref for AssertRecoverSafe<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
+
+#[cfg(not(feature = "nightly"))]
+impl<T> ::std::ops::DerefMut for AssertRecoverSafe<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
 }
 
 // the logic here is based off of libcurl's
@@ -748,15 +763,25 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match conn.stream.read(&mut data[start..]) {
-            Ok(0) => {
+        let result = {
+            let mut conn = AssertRecoverSafe::new(&mut *conn);
+            let mut data = AssertRecoverSafe::new(&mut *data);
+            recover(move || conn.stream.read(&mut data[start..]))
+        };
+        match result {
+            Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
             }
-            Ok(len) => start += len,
-            Err(e) => {
+            Ok(Ok(len)) => start += len,
+            Ok(Err(e)) => {
                 ret = translate_err(&e);
                 conn.err = Some(e);
+                break;
+            }
+            Err(e) => {
+                ret = errSecIO;
+                conn.panic = Some(e);
                 break;
             }
         }
@@ -776,15 +801,24 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match conn.stream.write(&data[start..]) {
-            Ok(0) => {
+        let result = {
+            let mut conn = AssertRecoverSafe::new(&mut *conn);
+            recover(move || conn.stream.write(&data[start..]))
+        };
+        match result {
+            Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
             }
-            Ok(len) => start += len,
-            Err(e) => {
+            Ok(Ok(len)) => start += len,
+            Ok(Err(e)) => {
                 ret = translate_err(&e);
                 conn.err = Some(e);
+                break;
+            }
+            Err(e) => {
+                ret = errSecIO;
+                conn.panic = Some(e);
                 break;
             }
         }
@@ -793,6 +827,12 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     *data_length = start;
     ret
 }
+
+#[cfg(feature = "nightly")]
+use std::panic::propagate;
+
+#[cfg(not(feature = "nightly"))]
+use std::mem::drop as propagate;
 
 /// A type implementing SSL/TLS encryption over an underlying stream.
 pub struct SslStream<S> {
@@ -823,6 +863,25 @@ impl<S> Drop for SslStream<S> {
 }
 
 impl<S> SslStream<S> {
+    fn handshake(mut self) -> result::Result<SslStream<S>, HandshakeError<S>> {
+        match unsafe { SSLHandshake(self.ctx.0) } {
+            errSecSuccess => Ok(self),
+            reason @ errSSLPeerAuthCompleted |
+            reason @ errSSLClientCertRequested |
+            reason @ errSSLWouldBlock |
+            reason @ errSSLClientHelloReceived => {
+                Err(HandshakeError::Interrupted(MidHandshakeSslStream {
+                    stream: self,
+                    reason: reason,
+                }))
+            }
+            err => {
+                self.check_panic();
+                Err(HandshakeError::Failure(Error::new(err)))
+            }
+        }
+    }
+
     /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
         &self.connection().stream
@@ -863,9 +922,17 @@ impl<S> SslStream<S> {
         }
     }
 
-    fn get_error(&mut self, ret: OSStatus) -> io::Error {
+    fn check_panic(&mut self) {
         let conn = self.connection_mut();
-        if let Some(err) = conn.err.take() {
+        if let Some(err) = conn.panic.take() {
+            propagate(err);
+        }
+    }
+
+    fn get_error(&mut self, ret: OSStatus) -> io::Error {
+        self.check_panic();
+
+        if let Some(err) = self.connection_mut().err.take() {
             err
         } else {
             io::Error::new(io::ErrorKind::Other, Error::new(ret))
@@ -981,6 +1048,8 @@ impl ClientBuilder {
 
 #[cfg(test)]
 mod test {
+    #[cfg(feature = "nightly")]
+    use std::io;
     use std::io::prelude::*;
     use std::net::TcpStream;
 
@@ -1075,5 +1144,61 @@ mod test {
         assert_eq!("", p!(ctx.peer_domain_name()));
         p!(ctx.set_peer_domain_name("foobar.com"));
         assert_eq!("foobar.com", p!(ctx.peer_domain_name()));
+    }
+
+    #[test]
+    #[should_panic(expected = "blammo")]
+    #[cfg(feature = "nightly")]
+    fn write_panic() {
+        struct ExplodingStream(TcpStream);
+
+        impl Read for ExplodingStream {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                self.0.read(buf)
+            }
+        }
+
+        impl Write for ExplodingStream {
+            fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+                panic!("blammo");
+            }
+
+            fn flush(&mut self) -> io::Result<()> {
+                self.0.flush()
+            }
+        }
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_peer_domain_name("google.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let _ = ctx.handshake(ExplodingStream(stream));
+    }
+
+    #[test]
+    #[should_panic(expected = "blammo")]
+    #[cfg(feature = "nightly")]
+    fn read_panic() {
+        struct ExplodingStream(TcpStream);
+
+        impl Read for ExplodingStream {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                panic!("blammo");
+            }
+        }
+
+        impl Write for ExplodingStream {
+            fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+                self.0.write(buf)
+            }
+
+            fn flush(&mut self) -> io::Result<()> {
+                self.0.flush()
+            }
+        }
+
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_peer_domain_name("google.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let _ = ctx.handshake(ExplodingStream(stream));
     }
 }

@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.2")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.3")]
 #![allow(non_upper_case_globals)]
 
 extern crate core_foundation_sys;
@@ -15,5 +15,6 @@ pub mod item;
 pub mod key;
 pub mod keychain;
 pub mod keychain_item;
+pub mod policy;
 pub mod secure_transport;
 pub mod trust;

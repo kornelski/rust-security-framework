@@ -5,10 +5,12 @@ use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 use security_framework_sys::trust::*;
 use std::mem;
+use std::ptr;
 
 use cvt;
 use base::Result;
 use certificate::SecCertificate;
+use policy::SecPolicy;
 
 /// The result of trust evaluation.
 pub enum TrustResult {
@@ -79,5 +81,39 @@ impl SecTrust {
             try!(cvt(SecTrustEvaluate(self.0, &mut result)));
             Ok(TrustResult::from_raw(result))
         }
+    }
+
+    /// Creates a SecTrustRef that is configured with a certificate chain, for validating
+    /// that chain against a collection of policies.
+    pub fn create_with_certificates(certs: &[SecCertificate], policies: &[SecPolicy]) -> Result<SecTrust> {
+        let cert_array = CFArray::from_CFTypes(&certs);
+        let policy_array = CFArray::from_CFTypes(&policies);
+        let mut trust = ptr::null_mut();
+        unsafe {
+            let result = cvt(SecTrustCreateWithCertificates(cert_array.as_CFTypeRef(),
+                                                            policy_array.as_CFTypeRef(),
+                                                            &mut trust));
+            match result {
+                Err(e) => Err(e),
+                Ok(_) => Ok(SecTrust(trust)),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use test::certificate;
+    use trust::SecTrust;
+    use policy::SecPolicy;
+    use secure_transport::ProtocolSide;
+
+    #[test]
+    fn create_with_certificates() {
+        let cert = certificate();
+        let ssl_policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.io").unwrap();
+        let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]);
+        assert_eq!(trust.is_ok(), true);
+        assert_eq!(trust.unwrap().evaluate().unwrap().success(), false)
     }
 }

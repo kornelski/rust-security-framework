@@ -1,8 +1,9 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.2")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.3")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
+#![cfg_attr(feature = "nightly", feature(recover, panic_propagate))]
 
 extern crate security_framework_sys;
 #[macro_use]
@@ -69,6 +70,7 @@ pub mod key;
 pub mod keychain;
 pub mod keychain_item;
 pub mod os;
+pub mod policy;
 pub mod secure_transport;
 pub mod trust;
 
