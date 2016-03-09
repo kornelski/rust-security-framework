@@ -51,3 +51,22 @@ impl SecIdentity {
         }
     }
 }
+
+unsafe impl Send for SecIdentity {}
+
+
+#[cfg(test)]
+mod test {
+    use std::ptr;
+
+    use super::SecIdentity;
+
+    #[test]
+    fn identity_has_send_bound() {
+        // We use a pointer so we can get a null pointer to the unconstructable SecIdentity type.
+        fn assert_send<T: Send>(_: *const T) {}
+
+        let ptr: *const SecIdentity = ptr::null();
+        assert_send(ptr);
+    }
+}
