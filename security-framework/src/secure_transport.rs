@@ -704,42 +704,13 @@ struct Connection<S> {
 }
 
 #[cfg(feature = "nightly")]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T + ::std::panic::RecoverSafe {
-    ::std::panic::recover(f)
+fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
+    ::std::panic::recover(::std::panic::AssertRecoverSafe::new(f))
 }
 
 #[cfg(not(feature = "nightly"))]
 fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
     Ok(f())
-}
-
-#[cfg(feature = "nightly")]
-use std::panic::AssertRecoverSafe;
-
-#[cfg(not(feature = "nightly"))]
-struct AssertRecoverSafe<T>(T);
-
-#[cfg(not(feature = "nightly"))]
-impl<T> AssertRecoverSafe<T> {
-    fn new(t: T) -> Self {
-        AssertRecoverSafe(t)
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<T> ::std::ops::Deref for AssertRecoverSafe<T> {
-    type Target = T;
-
-    fn deref(&self) -> &T {
-        &self.0
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<T> ::std::ops::DerefMut for AssertRecoverSafe<T> {
-    fn deref_mut(&mut self) -> &mut T {
-        &mut self.0
-    }
 }
 
 // the logic here is based off of libcurl's
@@ -758,17 +729,12 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
                                         data_length: *mut size_t)
                                         -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
-    let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
+    let data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        let result = {
-            let mut conn = AssertRecoverSafe::new(&mut *conn);
-            let mut data = AssertRecoverSafe::new(&mut *data);
-            recover(move || conn.stream.read(&mut data[start..]))
-        };
-        match result {
+        match recover(|| conn.stream.read(&mut data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -801,11 +767,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        let result = {
-            let mut conn = AssertRecoverSafe::new(&mut *conn);
-            recover(move || conn.stream.write(&data[start..]))
-        };
-        match result {
+        match recover(|| conn.stream.write(&data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
