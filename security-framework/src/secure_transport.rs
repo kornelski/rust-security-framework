@@ -1008,6 +1008,35 @@ impl ClientBuilder {
     }
 }
 
+/// A builder type to simplify the creation of server-side `SslStream`s.
+#[derive(Debug)]
+pub struct ServerBuilder {
+    identity: SecIdentity,
+    certs: Vec<SecCertificate>,
+}
+
+impl ServerBuilder {
+    /// Creates a new `ServerBuilder` which will use the specified identity
+    /// and certificate chain for handshakes.
+    pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> ServerBuilder {
+        ServerBuilder {
+            identity: identity.clone(),
+            certs: certs.to_owned(),
+        }
+    }
+
+    /// Initiates a new SSL/TLS session over a stream.
+    pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>> where S: Read + Write {
+        let mut ctx = try!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        try!(ctx.set_certificate(&self.identity, &self.certs));
+        match ctx.handshake(stream) {
+            Ok(stream) => Ok(stream),
+            Err(HandshakeError::Interrupted(stream)) => Err(Error::new(stream.reason())),
+            Err(HandshakeError::Failure(err)) => Err(err),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     #[cfg(feature = "nightly")]
