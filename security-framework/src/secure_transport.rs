@@ -948,6 +948,12 @@ pub struct ClientBuilder {
     certs: Option<Vec<SecCertificate>>,
 }
 
+impl Default for ClientBuilder {
+    fn default() -> ClientBuilder {
+        ClientBuilder::new()
+    }
+}
+
 impl ClientBuilder {
     /// Creates a new builder with default options.
     pub fn new() -> Self {
