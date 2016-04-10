@@ -47,8 +47,8 @@ impl SecPolicy {
 
 #[cfg(test)]
 mod test {
-    use ::policy::SecPolicy;
-    use ::secure_transport::ProtocolSide;
+    use policy::SecPolicy;
+    use secure_transport::ProtocolSide;
 
     #[test]
     fn for_ssl() {

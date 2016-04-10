@@ -3,7 +3,7 @@ use libc::{c_char, c_void};
 
 use base::{SecAccessRef, SecKeychainRef};
 
-extern {
+extern "C" {
     pub fn SecKeychainGetTypeID() -> CFTypeID;
     #[cfg(target_os = "macos")]
     pub fn SecKeychainCopyDefault(keychain: *mut SecKeychainRef) -> OSStatus;

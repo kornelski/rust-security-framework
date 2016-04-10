@@ -85,7 +85,9 @@ impl SecTrust {
 
     /// Creates a SecTrustRef that is configured with a certificate chain, for validating
     /// that chain against a collection of policies.
-    pub fn create_with_certificates(certs: &[SecCertificate], policies: &[SecPolicy]) -> Result<SecTrust> {
+    pub fn create_with_certificates(certs: &[SecCertificate],
+                                    policies: &[SecPolicy])
+                                    -> Result<SecTrust> {
         let cert_array = CFArray::from_CFTypes(&certs);
         let policy_array = CFArray::from_CFTypes(&policies);
         let mut trust = ptr::null_mut();

@@ -17,7 +17,7 @@ pub struct __SecTrust(c_void);
 
 pub type SecTrustRef = *mut __SecTrust;
 
-extern {
+extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
     pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef,
                                          anchorCertificates: CFArrayRef)
@@ -28,5 +28,6 @@ extern {
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
     pub fn SecTrustCreateWithCertificates(certificates: CFTypeRef,
                                           policies: CFTypeRef,
-                                          trust: *mut SecTrustRef) -> OSStatus;
+                                          trust: *mut SecTrustRef)
+                                          -> OSStatus;
 }

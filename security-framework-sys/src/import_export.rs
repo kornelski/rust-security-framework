@@ -30,7 +30,7 @@ pub struct SecItemImportExportKeyParameters {
     pub key_attributes: CFArrayRef,
 }
 
-extern {
+extern "C" {
     pub fn SecItemImport(importedData: CFDataRef,
                          fileNameOrExtension: CFStringRef,
                          inputFormat: *mut SecExternalFormat,

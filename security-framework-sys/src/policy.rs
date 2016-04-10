@@ -3,7 +3,7 @@ use core_foundation_sys::string::CFStringRef;
 
 use base::SecPolicyRef;
 
-extern {
+extern "C" {
     pub fn SecPolicyCreateSSL(server: Boolean, hostname: CFStringRef) -> SecPolicyRef;
     pub fn SecPolicyGetTypeID() -> CFTypeID;
 }

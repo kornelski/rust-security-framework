@@ -704,12 +704,16 @@ struct Connection<S> {
 }
 
 #[cfg(feature = "nightly")]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
+fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+    where F: FnOnce() -> T
+{
     ::std::panic::recover(::std::panic::AssertRecoverSafe::new(f))
 }
 
 #[cfg(not(feature = "nightly"))]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
+fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+    where F: FnOnce() -> T
+{
     Ok(f())
 }
 
@@ -1032,7 +1036,9 @@ impl ServerBuilder {
     }
 
     /// Initiates a new SSL/TLS session over a stream.
-    pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>> where S: Read + Write {
+    pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>>
+        where S: Read + Write
+    {
         let mut ctx = try!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         try!(ctx.set_certificate(&self.identity, &self.certs));
         match ctx.handshake(stream) {

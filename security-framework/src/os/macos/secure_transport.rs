@@ -266,8 +266,8 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         let mut stream = p!(ClientBuilder::new()
-            .anchor_certificates(&[certificate()])
-            .handshake("foobar.com", stream));
+                                .anchor_certificates(&[certificate()])
+                                .handshake("foobar.com", stream));
 
         p!(stream.write_all(b"hello world!"));
 

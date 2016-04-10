@@ -2,7 +2,7 @@ use core_foundation_sys::base::{OSStatus, CFTypeID};
 
 use base::{SecCertificateRef, SecKeyRef, SecIdentityRef};
 
-extern {
+extern "C" {
     pub fn SecIdentityGetTypeID() -> CFTypeID;
     pub fn SecIdentityCopyCertificate(identity: SecIdentityRef,
                                       certificate_ref: *mut SecCertificateRef)
