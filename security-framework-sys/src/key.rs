@@ -1,5 +1,5 @@
 use core_foundation_sys::base::CFTypeID;
 
-extern {
+extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;
 }

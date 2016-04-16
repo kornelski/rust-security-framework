@@ -2,7 +2,7 @@ use core_foundation_sys::base::{OSStatus, CFTypeRef};
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 
-extern {
+extern "C" {
     pub static kSecClass: CFStringRef;
     pub static kSecClassInternetPassword: CFStringRef;
     pub static kSecClassGenericPassword: CFStringRef;

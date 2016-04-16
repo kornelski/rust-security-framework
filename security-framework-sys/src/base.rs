@@ -38,7 +38,7 @@ pub const errSecAuthFailed: OSStatus = -25293;
 pub const errSecTrustSettingDeny: OSStatus = -67654;
 pub const errSecNotTrusted: OSStatus = -67843;
 
-extern {
+extern "C" {
     #[cfg(target_os = "macos")]
     pub fn SecCopyErrorMessageString(status: OSStatus, reserved: *mut c_void) -> CFStringRef;
 }

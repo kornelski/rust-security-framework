@@ -208,7 +208,6 @@ pub const TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384: SSLCipherSuite = 0xC032;
 
 // RFC 5746 - Secure Renegotiation
 pub const TLS_EMPTY_RENEGOTIATION_INFO_SCSV: SSLCipherSuite = 0x00FF;
-//
 // Tags for SSL 2 cipher kinds which are not specified
 // for SSL 3.
 //

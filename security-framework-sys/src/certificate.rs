@@ -4,7 +4,7 @@ use core_foundation_sys::string::CFStringRef;
 
 use base::{SecCertificateRef, SecKeyRef};
 
-extern {
+extern "C" {
     pub fn SecCertificateGetTypeID() -> CFTypeID;
     pub fn SecCertificateCreateWithData(allocator: CFAllocatorRef,
                                         data: CFDataRef)

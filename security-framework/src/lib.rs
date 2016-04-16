@@ -1,9 +1,8 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.3")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.4")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
-#![cfg_attr(feature = "nightly", feature(recover, panic_propagate))]
 
 extern crate security_framework_sys;
 #[macro_use]

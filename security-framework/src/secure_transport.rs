@@ -704,42 +704,17 @@ struct Connection<S> {
 }
 
 #[cfg(feature = "nightly")]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T + ::std::panic::RecoverSafe {
-    ::std::panic::recover(f)
+fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+    where F: FnOnce() -> T
+{
+    ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(f))
 }
 
 #[cfg(not(feature = "nightly"))]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>> where F: FnOnce() -> T {
+fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+    where F: FnOnce() -> T
+{
     Ok(f())
-}
-
-#[cfg(feature = "nightly")]
-use std::panic::AssertRecoverSafe;
-
-#[cfg(not(feature = "nightly"))]
-struct AssertRecoverSafe<T>(T);
-
-#[cfg(not(feature = "nightly"))]
-impl<T> AssertRecoverSafe<T> {
-    fn new(t: T) -> Self {
-        AssertRecoverSafe(t)
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<T> ::std::ops::Deref for AssertRecoverSafe<T> {
-    type Target = T;
-
-    fn deref(&self) -> &T {
-        &self.0
-    }
-}
-
-#[cfg(not(feature = "nightly"))]
-impl<T> ::std::ops::DerefMut for AssertRecoverSafe<T> {
-    fn deref_mut(&mut self) -> &mut T {
-        &mut self.0
-    }
 }
 
 // the logic here is based off of libcurl's
@@ -758,17 +733,12 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
                                         data_length: *mut size_t)
                                         -> OSStatus {
     let mut conn: &mut Connection<S> = mem::transmute(connection);
-    let mut data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
+    let data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        let result = {
-            let mut conn = AssertRecoverSafe::new(&mut *conn);
-            let mut data = AssertRecoverSafe::new(&mut *data);
-            recover(move || conn.stream.read(&mut data[start..]))
-        };
-        match result {
+        match catch_unwind(|| conn.stream.read(&mut data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -801,11 +771,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        let result = {
-            let mut conn = AssertRecoverSafe::new(&mut *conn);
-            recover(move || conn.stream.write(&data[start..]))
-        };
-        match result {
+        match catch_unwind(|| conn.stream.write(&data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -829,10 +795,10 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
 }
 
 #[cfg(feature = "nightly")]
-use std::panic::propagate;
+use std::panic::resume_unwind;
 
 #[cfg(not(feature = "nightly"))]
-use std::mem::drop as propagate;
+use std::mem::drop as resume_unwind;
 
 /// A type implementing SSL/TLS encryption over an underlying stream.
 pub struct SslStream<S> {
@@ -925,7 +891,7 @@ impl<S> SslStream<S> {
     fn check_panic(&mut self) {
         let conn = self.connection_mut();
         if let Some(err) = conn.panic.take() {
-            propagate(err);
+            resume_unwind(err);
         }
     }
 
@@ -986,6 +952,12 @@ pub struct ClientBuilder {
     certs: Option<Vec<SecCertificate>>,
 }
 
+impl Default for ClientBuilder {
+    fn default() -> ClientBuilder {
+        ClientBuilder::new()
+    }
+}
+
 impl ClientBuilder {
     /// Creates a new builder with default options.
     pub fn new() -> Self {
@@ -1042,6 +1014,37 @@ impl ClientBuilder {
                 }
                 Err(HandshakeError::Failure(err)) => return Err(err),
             }
+        }
+    }
+}
+
+/// A builder type to simplify the creation of server-side `SslStream`s.
+#[derive(Debug)]
+pub struct ServerBuilder {
+    identity: SecIdentity,
+    certs: Vec<SecCertificate>,
+}
+
+impl ServerBuilder {
+    /// Creates a new `ServerBuilder` which will use the specified identity
+    /// and certificate chain for handshakes.
+    pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> ServerBuilder {
+        ServerBuilder {
+            identity: identity.clone(),
+            certs: certs.to_owned(),
+        }
+    }
+
+    /// Initiates a new SSL/TLS session over a stream.
+    pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>>
+        where S: Read + Write
+    {
+        let mut ctx = try!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        try!(ctx.set_certificate(&self.identity, &self.certs));
+        match ctx.handshake(stream) {
+            Ok(stream) => Ok(stream),
+            Err(HandshakeError::Interrupted(stream)) => Err(Error::new(stream.reason())),
+            Err(HandshakeError::Failure(err)) => Err(err),
         }
     }
 }

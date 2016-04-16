@@ -50,13 +50,15 @@ pub const kSSLConnected: SSLSessionState = 2;
 pub const kSSLClosed: SSLSessionState = 3;
 pub const kSSLAborted: SSLSessionState = 4;
 
-pub type SSLReadFunc = unsafe extern fn(connection: SSLConnectionRef,
-                                        data: *mut c_void,
-                                        dataLength: *mut size_t) -> OSStatus;
+pub type SSLReadFunc = unsafe extern "C" fn(connection: SSLConnectionRef,
+                                            data: *mut c_void,
+                                            dataLength: *mut size_t)
+                                            -> OSStatus;
 
-pub type SSLWriteFunc = unsafe extern fn(connection: SSLConnectionRef,
-                                         data: *const c_void,
-                                         dataLength: *mut size_t) -> OSStatus;
+pub type SSLWriteFunc = unsafe extern "C" fn(connection: SSLConnectionRef,
+                                             data: *const c_void,
+                                             dataLength: *mut size_t)
+                                             -> OSStatus;
 
 #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub type SSLProtocolSide = c_int;
@@ -92,7 +94,7 @@ pub const kSSLClientCertRequested: SSLClientCertificateState = 1;
 pub const kSSLClientCertSent: SSLClientCertificateState = 2;
 pub const kSSLClientCertRejected: SSLClientCertificateState = 3;
 
-extern {
+extern "C" {
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLContextGetTypeID() -> ::core_foundation_sys::base::CFTypeID;
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
@@ -126,7 +128,9 @@ extern {
                                 peerName: *const c_char,
                                 peerNameLen: size_t)
                                 -> OSStatus;
-    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut size_t) -> OSStatus;
+    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef,
+                                      peerNameLen: *mut size_t)
+                                      -> OSStatus;
     pub fn SSLGetPeerDomainName(context: SSLContextRef,
                                 peerName: *mut c_char,
                                 peerNameLen: *mut size_t)
