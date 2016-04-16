@@ -704,14 +704,14 @@ struct Connection<S> {
 }
 
 #[cfg(feature = "nightly")]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
     where F: FnOnce() -> T
 {
-    ::std::panic::recover(::std::panic::AssertRecoverSafe::new(f))
+    ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(f))
 }
 
 #[cfg(not(feature = "nightly"))]
-fn recover<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
+fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
     where F: FnOnce() -> T
 {
     Ok(f())
@@ -738,7 +738,7 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match recover(|| conn.stream.read(&mut data[start..])) {
+        match catch_unwind(|| conn.stream.read(&mut data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -771,7 +771,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match recover(|| conn.stream.write(&data[start..])) {
+        match catch_unwind(|| conn.stream.write(&data[start..])) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -795,10 +795,10 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
 }
 
 #[cfg(feature = "nightly")]
-use std::panic::propagate;
+use std::panic::resume_unwind;
 
 #[cfg(not(feature = "nightly"))]
-use std::mem::drop as propagate;
+use std::mem::drop as resume_unwind;
 
 /// A type implementing SSL/TLS encryption over an underlying stream.
 pub struct SslStream<S> {
@@ -891,7 +891,7 @@ impl<S> SslStream<S> {
     fn check_panic(&mut self) {
         let conn = self.connection_mut();
         if let Some(err) = conn.panic.take() {
-            propagate(err);
+            resume_unwind(err);
         }
     }
 
