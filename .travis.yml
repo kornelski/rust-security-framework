@@ -1,12 +1,27 @@
 language: rust
-rust:
-- nightly
-- beta
-- 1.4.0
-os:
-- osx
-env:
-- FEATURES="OSX_10_9"
-- FEATURES=""
+rust: 1.4.0
+os: osx
+matrix:
+    include:
+      # OS X 10.9
+      - osx_image: xcode6.2
+        env: FEATURES="OSX_10_9"
+
+      # OS X 10.10
+      - osx_image: xcode7.1
+        env: FEATURES="OSX_10_10"
+
+      # OS X 10.11
+      - osx_image: xcode7.3
+        env: FEATURES="OSX_10_11"
+      - osx_image: xcode7.3
+        env: FEATURES="OSX_10_11"
+        rust: beta
+      - osx_image: xcode7.3
+        env: FEATURES="OSX_10_11"
+        rust: nightly
+    allow_failures:
+      # https://github.com/sfackler/rust-security-framework/issues/6
+      - osx_image: xcode7.1
 script:
 - cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES"
