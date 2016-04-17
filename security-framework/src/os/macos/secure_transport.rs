@@ -392,6 +392,8 @@ mod test {
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
             p!(ctx.set_client_side_authenticate(SslAuthenticate::Try));
+            let cert = certificate();
+            p!(ctx.add_certificate_authorities(&[cert]));
 
             let stream = p!(listener.accept()).0;
             let mut stream = p!(ctx.handshake(stream));
