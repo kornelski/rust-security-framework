@@ -1,11 +1,13 @@
 //! OSX specific extensions.
 
-pub mod certificate;
-pub mod import_export;
 mod identity;
 mod item;
-pub mod secure_transport;
+pub mod certificate;
+pub mod digest_transform;
+pub mod import_export;
 pub mod keychain;
+pub mod secure_transport;
+pub mod transform;
 
 #[cfg(test)]
 pub mod test {

@@ -200,7 +200,7 @@ pub struct SecItems {
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;
-    use rustc_serialize::hex::ToHex;
+    use hex::ToHex;
 
     use super::*;
     use os::macos::keychain;

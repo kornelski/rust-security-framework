@@ -13,7 +13,7 @@ extern crate libc;
 #[cfg(test)]
 extern crate tempdir;
 #[cfg(test)]
-extern crate rustc_serialize;
+extern crate hex;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;

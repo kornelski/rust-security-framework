@@ -8,6 +8,8 @@ pub mod access;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
+#[cfg(target_os = "macos")]
+pub mod digest_transform;
 pub mod identity;
 #[cfg(target_os = "macos")]
 pub mod import_export;
@@ -17,4 +19,8 @@ pub mod keychain;
 pub mod keychain_item;
 pub mod policy;
 pub mod secure_transport;
+#[cfg(target_os = "macos")]
+pub mod sign_verify_transform;
+#[cfg(target_os = "macos")]
+pub mod transform;
 pub mod trust;

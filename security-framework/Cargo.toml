@@ -18,7 +18,7 @@ libc = "0.2"
 
 [dev-dependencies]
 tempdir = "0.3"
-rustc-serialize = "0.3"
+hex = "0.2"
 
 [features]
 OSX_10_8 = ["security-framework-sys/OSX_10_8"]
