@@ -13,11 +13,19 @@ use os::macos::transform::SecTransform;
 use key::SecKey;
 
 #[derive(Debug, Copy, Clone)]
+/// The padding scheme to use for encryption.
 pub enum Padding {
+    /// Do not pad.
     None,
+    /// Use PKCS#1 padding.
     Pkcs1,
+    /// Use PKCS#5 padding.
     Pkcs5,
+    /// Use PKCS#7 padding.
     Pkcs7,
+    /// Use OAEP padding.
+    ///
+    /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
     Oaep,
 }
@@ -36,7 +44,11 @@ impl Padding {
     }
 }
 
+/// The cipher mode to use.
+///
+/// Only applies to AES encryption.
 #[derive(Debug, Copy, Clone)]
+#[allow(missing_docs)]
 pub enum Mode {
     None,
     Ecb,
@@ -58,6 +70,7 @@ impl Mode {
     }
 }
 
+/// A builder for encryption and decryption transform operations.
 #[derive(Default)]
 pub struct Builder {
     padding: Option<Padding>,
@@ -66,25 +79,36 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Creates a new `Builder` with a default configuration.
     pub fn new() -> Builder {
         Builder::default()
     }
 
+    /// Selects the padding scheme to use.
+    ///
+    /// If not set, an appropriate scheme will be selected for you.
     pub fn padding(&mut self, padding: Padding) -> &mut Builder {
         self.padding = Some(padding);
         self
     }
 
+    /// Selects the encryption mode to use.
+    ///
+    /// If not set, an appropriate mode will be selected for you.
     pub fn mode(&mut self, mode: Mode) -> &mut Builder {
         self.mode = Some(mode);
         self
     }
 
+    /// Sets the initialization vector to use.
+    ///
+    /// If not set, an appropriate value will be supplied for you.
     pub fn iv(&mut self, iv: CFData) -> &mut Builder {
         self.iv = Some(iv);
         self
     }
 
+    /// Encrypts data with a provided key.
     pub fn encrypt(&self, key: &SecKey, data: &CFData) -> Result<CFData, CFError> {
         unsafe {
             let mut error = ptr::null_mut();
@@ -98,6 +122,7 @@ impl Builder {
         }
     }
 
+    /// Decrypts data with a provided key.
     pub fn decrypt(&self, key: &SecKey, data: &CFData) -> Result<CFData, CFError> {
         unsafe {
             let mut error = ptr::null_mut();

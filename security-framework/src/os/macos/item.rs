@@ -1,9 +1,13 @@
+//! OSX specific functionality for items.
+
 use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use security_framework_sys::item::*;
 
 use os::macos::PrivKeyType;
 
+/// Types of `SecKey`s.
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone)]
 pub enum KeyType {
     Rsa,

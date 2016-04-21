@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{CFTypeRef, CFTypeID, CFIndex};
+use core_foundation_sys::base::CFTypeID;
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
@@ -14,12 +14,6 @@ extern "C" {
     pub static kSecModeECBKey: CFStringRef;
     pub static kSecModeNoneKey: CFStringRef;
     pub static kSecModeOFBKey: CFStringRef;
-    #[cfg(feature = "OSX_10_8")]
-    pub static kSecOAEPEncodingParametersAttributeName: CFStringRef;
-    #[cfg(feature = "OSX_10_8")]
-    pub static kSecOAEPMessageLengthAttributeName: CFStringRef;
-    #[cfg(feature = "OSX_10_8")]
-    pub static kSecOAEPMGF1DigestAlgorithmAttributeName: CFStringRef;
     pub static kSecPaddingKey: CFStringRef;
     pub static kSecPaddingNoneKey: CFStringRef;
     #[cfg(feature = "OSX_10_8")]

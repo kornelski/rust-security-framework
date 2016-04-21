@@ -12,7 +12,9 @@ use key::SecKey;
 use os::macos::PrivKeyType;
 use os::macos::item::KeyType;
 
+/// An extension trait adding OSX specific functionality to `SecKey`.
 pub trait SecKeyExt {
+    /// Creates a new `SecKey` from a buffer containing key data.
     fn from_data(key_type: KeyType, key_data: &CFData) -> Result<SecKey, CFError>;
 }
 

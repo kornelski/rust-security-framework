@@ -1,5 +1,4 @@
 //! OSX specific extensions.
-use core_foundation_sys::base::CFTypeRef;
 use core_foundation::string::CFString;
 
 mod identity;

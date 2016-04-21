@@ -6,7 +6,6 @@ use core_foundation::data::CFData;
 use core_foundation::string::CFString;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
-use std::mem;
 use std::fmt;
 
 use ErrorNew;
