@@ -12,8 +12,8 @@ exclude = ["test/*"]
 
 [dependencies]
 security-framework-sys = { version = "0.1.4", path = "../security-framework-sys" }
-core-foundation = "0.2"
-core-foundation-sys = "0.2"
+core-foundation = "0.2.1"
+core-foundation-sys = "0.2.1"
 libc = "0.2"
 
 [dev-dependencies]
