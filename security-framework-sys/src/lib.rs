@@ -22,7 +22,5 @@ pub mod keychain_item;
 pub mod policy;
 pub mod secure_transport;
 #[cfg(target_os = "macos")]
-pub mod sign_verify_transform;
-#[cfg(target_os = "macos")]
 pub mod transform;
 pub mod trust;
