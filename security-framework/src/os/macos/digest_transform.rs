@@ -147,6 +147,7 @@ mod test {
                        .hmac_key(key)
                        .execute(&data)
                        .unwrap();
-        assert_eq!(hash.bytes().to_hex(), "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9");
+        assert_eq!(hash.bytes().to_hex(),
+                   "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9");
     }
 }
