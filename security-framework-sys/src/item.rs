@@ -19,5 +19,26 @@ extern "C" {
 
     pub static kSecMatchSearchList: CFStringRef;
 
+    pub static kSecAttrKeyType: CFStringRef;
+
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeRSA: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeDSA: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeAES: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeDES: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyType3DES: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeRC4: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeRC2: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeyTypeCAST: CFStringRef;
+    #[cfg(feature = "OSX_10_9")]
+    pub static kSecAttrKeyTypeEC: CFStringRef;
+
     pub fn SecItemCopyMatching(query: CFDictionaryRef, result: *mut CFTypeRef) -> OSStatus;
 }
