@@ -13,6 +13,8 @@ use std::ptr;
 use os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
+#[allow(missing_docs)]
+/// A type of digest.
 pub enum DigestType {
     HmacMd5,
     HmacSha1,
@@ -40,6 +42,7 @@ impl DigestType {
     }
 }
 
+/// A builder for digest transform operations.
 pub struct Builder {
     digest_type: Option<DigestType>,
     digest_length: Option<CFIndex>,
@@ -53,6 +56,7 @@ impl Default for Builder {
 }
 
 impl Builder {
+    /// Returns a new builder with default settings.
     pub fn new() -> Builder {
         Builder {
             digest_type: None,
@@ -61,21 +65,32 @@ impl Builder {
         }
     }
 
+    /// Sets the type of digest to perform.
+    ///
+    /// If not set, an appropriate digest will be selected for you.
     pub fn type_(&mut self, digest_type: DigestType) -> &mut Builder {
         self.digest_type = Some(digest_type);
         self
     }
 
+    /// Sets the output length of the digest.
+    ///
+    /// If not set, an appropriate length will be selected for you. Some digest
+    /// types only support specific output lengths.
     pub fn length(&mut self, digest_length: CFIndex) -> &mut Builder {
         self.digest_length = Some(digest_length);
         self
     }
 
+    /// Sets the key used for HMAC digests.
+    ///
+    /// Only applies to `HmacMd5`, `HmacSha1`, and `HmacSha2` digests.
     pub fn hmac_key(&mut self, hmac_key: CFData) -> &mut Builder {
         self.hmac_key = Some(hmac_key);
         self
     }
 
+    /// Computes the digest of the data.
     pub fn execute(&self, data: &CFData) -> Result<CFData, CFError> {
         unsafe {
             let digest_type = match self.digest_type {

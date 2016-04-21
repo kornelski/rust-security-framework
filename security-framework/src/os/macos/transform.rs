@@ -12,6 +12,7 @@ make_wrapper! {
 }
 
 impl SecTransform {
+    /// Sets an attribute of the transform.
     pub fn set_attribute<T, U>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>
         where T: TCFType<U>
     {
@@ -29,6 +30,9 @@ impl SecTransform {
         }
     }
 
+    /// Executes the transform.
+    ///
+    /// The return type depends on the type of transform.
     pub fn execute(&mut self) -> Result<CFType, CFError> {
         unsafe {
             let mut error = ptr::null_mut();

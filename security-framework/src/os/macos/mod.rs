@@ -4,6 +4,7 @@ mod identity;
 mod item;
 pub mod certificate;
 pub mod digest_transform;
+pub mod encrypt_transform;
 pub mod import_export;
 pub mod keychain;
 pub mod secure_transport;
