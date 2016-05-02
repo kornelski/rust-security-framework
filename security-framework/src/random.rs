@@ -13,7 +13,7 @@ impl Default for SecRandom {
 }
 
 impl SecRandom {
-    /// Fills the buffer with cryptographicaly secure random bytes.
+    /// Fills the buffer with cryptographically secure random bytes.
     pub fn copy_bytes(&self, buf: &mut [u8]) -> io::Result<()> {
         if unsafe { SecRandomCopyBytes(self.0, buf.len(), buf.as_mut_ptr()) } == 0 {
             Ok(())
