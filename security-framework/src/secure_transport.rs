@@ -83,6 +83,7 @@ use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSec
                                    errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
+use std::convert;
 use std::io;
 use std::io::prelude::*;
 use std::fmt;
@@ -92,12 +93,132 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
+use {cvt, cvt_new, ErrorNew, CipherSuiteInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
 use identity::SecIdentity;
 use trust::{SecTrust, TrustResult};
+
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[repr(i32)]
+pub enum ErrorCode {
+    Protocol = errSSLProtocol,
+    Negotiation = errSSLNegotiation,
+    FatalAlert = errSSLFatalAlert,
+    WouldBlock = errSSLWouldBlock,
+    SessionNotFound = errSSLSessionNotFound,
+    ClosedGraceful = errSSLClosedGraceful,
+    ClosedAbort = errSSLClosedAbort,
+    XCertChainInvalid = errSSLXCertChainInvalid,
+    BadCert = errSSLBadCert,
+    Crypto = errSSLCrypto,
+    Internal = errSSLInternal,
+    ModuleAttach = errSSLModuleAttach,
+    UnknownRootCert = errSSLUnknownRootCert,
+    NoRootCert = errSSLNoRootCert,
+    CertExpired = errSSLCertExpired,
+    CertNotYetValid = errSSLCertNotYetValid,
+    ClosedNoNotify = errSSLClosedNoNotify,
+    BufferOverflow = errSSLBufferOverflow,
+    BadCipherSuite = errSSLBadCipherSuite,
+    PeerUnexpectedMsg = errSSLPeerUnexpectedMsg,
+    PeerBadRecordMac = errSSLPeerBadRecordMac,
+    PeerDecryptionFail = errSSLPeerDecryptionFail,
+    PeerRecordOverflow = errSSLPeerRecordOverflow,
+    PeerDecompressFail = errSSLPeerDecompressFail,
+    PeerHandshakeFail = errSSLPeerHandshakeFail,
+    PeerBadCert = errSSLPeerBadCert,
+    PeerUnsupportedCert = errSSLPeerUnsupportedCert,
+    PeerCertRevoked = errSSLPeerCertRevoked,
+    PeerCertExpired = errSSLPeerCertExpired,
+    PeerCertUnknown = errSSLPeerCertUnknown,
+    IllegalParam = errSSLIllegalParam,
+    PeerUnknownCA = errSSLPeerUnknownCA,
+    PeerAccessDenied = errSSLPeerAccessDenied,
+    PeerDecodeError = errSSLPeerDecodeError,
+    PeerDecryptError = errSSLPeerDecryptError,
+    PeerExportRestriction = errSSLPeerExportRestriction,
+    PeerProtocolVersion = errSSLPeerProtocolVersion,
+    PeerInsufficientSecurity = errSSLPeerInsufficientSecurity,
+    PeerInternalError = errSSLPeerInternalError,
+    PeerUserCancelled = errSSLPeerUserCancelled,
+    PeerNoRenegotiation = errSSLPeerNoRenegotiation,
+    PeerAuthCompleted = errSSLPeerAuthCompleted,
+    ClientCertRequested = errSSLClientCertRequested,
+    HostNameMismatch = errSSLHostNameMismatch,
+    ConnectionRefused = errSSLConnectionRefused,
+    DecryptionFail = errSSLDecryptionFail,
+    BadRecordMac = errSSLBadRecordMac,
+    RecordOverflow = errSSLRecordOverflow,
+    BadConfiguration = errSSLBadConfiguration,
+    ClientHelloReceived = errSSLClientHelloReceived,
+}
+
+impl ErrorCode {
+    pub fn from_i32(i: i32) -> Option<ErrorCode> {
+        Some(match i {
+            errSSLProtocol => ErrorCode::Protocol,
+            errSSLNegotiation => ErrorCode::Negotiation,
+            errSSLFatalAlert => ErrorCode::FatalAlert,
+            errSSLWouldBlock => ErrorCode::WouldBlock,
+            errSSLSessionNotFound => ErrorCode::SessionNotFound,
+            errSSLClosedGraceful => ErrorCode::ClosedGraceful,
+            errSSLClosedAbort => ErrorCode::ClosedAbort,
+            errSSLXCertChainInvalid => ErrorCode::XCertChainInvalid,
+            errSSLBadCert => ErrorCode::BadCert,
+            errSSLCrypto => ErrorCode::Crypto,
+            errSSLInternal => ErrorCode::Internal,
+            errSSLModuleAttach => ErrorCode::ModuleAttach,
+            errSSLUnknownRootCert => ErrorCode::UnknownRootCert,
+            errSSLNoRootCert => ErrorCode::NoRootCert,
+            errSSLCertExpired => ErrorCode::CertExpired,
+            errSSLCertNotYetValid => ErrorCode::CertNotYetValid,
+            errSSLClosedNoNotify => ErrorCode::ClosedNoNotify,
+            errSSLBufferOverflow => ErrorCode::BufferOverflow,
+            errSSLBadCipherSuite => ErrorCode::BadCipherSuite,
+            errSSLPeerUnexpectedMsg => ErrorCode::PeerUnexpectedMsg,
+            errSSLPeerBadRecordMac => ErrorCode::PeerBadRecordMac,
+            errSSLPeerDecryptionFail => ErrorCode::PeerDecryptionFail,
+            errSSLPeerRecordOverflow => ErrorCode::PeerRecordOverflow,
+            errSSLPeerDecompressFail => ErrorCode::PeerDecompressFail,
+            errSSLPeerHandshakeFail => ErrorCode::PeerHandshakeFail,
+            errSSLPeerBadCert => ErrorCode::PeerBadCert,
+            errSSLPeerUnsupportedCert => ErrorCode::PeerUnsupportedCert,
+            errSSLPeerCertRevoked => ErrorCode::PeerCertRevoked,
+            errSSLPeerCertExpired => ErrorCode::PeerCertExpired,
+            errSSLPeerCertUnknown => ErrorCode::PeerCertUnknown,
+            errSSLIllegalParam => ErrorCode::IllegalParam,
+            errSSLPeerUnknownCA => ErrorCode::PeerUnknownCA,
+            errSSLPeerAccessDenied => ErrorCode::PeerAccessDenied,
+            errSSLPeerDecodeError => ErrorCode::PeerDecodeError,
+            errSSLPeerDecryptError => ErrorCode::PeerDecryptError,
+            errSSLPeerExportRestriction => ErrorCode::PeerExportRestriction,
+            errSSLPeerProtocolVersion => ErrorCode::PeerProtocolVersion,
+            errSSLPeerInsufficientSecurity => ErrorCode::PeerInsufficientSecurity,
+            errSSLPeerInternalError => ErrorCode::PeerInternalError,
+            errSSLPeerUserCancelled => ErrorCode::PeerUserCancelled,
+            errSSLPeerNoRenegotiation => ErrorCode::PeerNoRenegotiation,
+            errSSLPeerAuthCompleted => ErrorCode::PeerAuthCompleted,
+            errSSLClientCertRequested => ErrorCode::ClientCertRequested,
+            errSSLHostNameMismatch => ErrorCode::HostNameMismatch,
+            errSSLConnectionRefused => ErrorCode::ConnectionRefused,
+            errSSLDecryptionFail => ErrorCode::DecryptionFail,
+            errSSLBadRecordMac => ErrorCode::BadRecordMac,
+            errSSLRecordOverflow => ErrorCode::RecordOverflow,
+            errSSLBadConfiguration => ErrorCode::BadConfiguration,
+            errSSLClientHelloReceived => ErrorCode::ClientHelloReceived,
+            _ => return None,
+        })
+    }
+}
+
+impl convert::From<ErrorCode> for Error {
+    fn from(e: ErrorCode) -> Error {
+        Error::new(e as OSStatus)
+    }
+}
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone)]
@@ -124,7 +245,7 @@ pub enum ConnectionType {
 #[derive(Debug)]
 pub enum HandshakeError<S> {
     /// The handshake failed.
-    Failure(Error),
+    Failure(ErrorCode),
     /// The handshake was interrupted midway through.
     Interrupted(MidHandshakeSslStream<S>),
 }
@@ -452,12 +573,12 @@ impl SslContext {
     pub fn set_certificate(&mut self,
                            identity: &SecIdentity,
                            certs: &[SecCertificate])
-                           -> Result<()> {
+                           -> result::Result<(), ErrorCode> {
         let mut arr = vec![identity.as_CFType()];
         arr.extend(certs.iter().map(|c| c.as_CFType()));
         let certs = CFArray::from_CFTypes(&arr);
 
-        unsafe { cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
+        unsafe { cvt_new(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
     }
 
     /// Sets the peer ID of this session.
@@ -673,7 +794,7 @@ impl SslContext {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
-                return Err(HandshakeError::Failure(Error::new(ret)));
+                return Err(HandshakeError::Failure(ErrorCode::from_i32(ret).unwrap()));
             }
 
             let stream = Connection {
@@ -685,7 +806,7 @@ impl SslContext {
             let ret = SSLSetConnection(self.0, stream as *mut _);
             if ret != errSecSuccess {
                 let _conn = Box::from_raw(stream);
-                return Err(HandshakeError::Failure(Error::new(ret)));
+                return Err(HandshakeError::Failure(ErrorCode::from_i32(ret).unwrap()));
             }
 
             let stream = SslStream {
@@ -843,7 +964,7 @@ impl<S> SslStream<S> {
             }
             err => {
                 self.check_panic();
-                Err(HandshakeError::Failure(Error::new(err)))
+                Err(HandshakeError::Failure(ErrorCode::from_i32(err).unwrap()))
             }
         }
     }
@@ -1012,7 +1133,7 @@ impl ClientBuilder {
 
                     result = stream.handshake();
                 }
-                Err(HandshakeError::Failure(err)) => return Err(err),
+                Err(HandshakeError::Failure(err)) => return Err(err.into()),
             }
         }
     }
@@ -1044,7 +1165,7 @@ impl ServerBuilder {
         match ctx.handshake(stream) {
             Ok(stream) => Ok(stream),
             Err(HandshakeError::Interrupted(stream)) => Err(Error::new(stream.reason())),
-            Err(HandshakeError::Failure(err)) => Err(err),
+            Err(HandshakeError::Failure(err)) => Err(err.into()),
         }
     }
 }
