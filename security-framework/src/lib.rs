@@ -20,6 +20,7 @@ use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
+use std::result;
 
 macro_rules! make_wrapper {
     ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
@@ -92,6 +93,13 @@ fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),
         err => Err(Error::new(err)),
+    }
+}
+
+fn cvt_new(err: OSStatus) -> result::Result<(), secure_transport::ErrorCode> {
+    match err {
+        errSecSuccess => Ok(()),
+        err => Err(secure_transport::ErrorCode::from_i32(err).unwrap()),
     }
 }
 

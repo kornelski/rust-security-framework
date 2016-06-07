@@ -83,6 +83,7 @@ use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSec
                                    errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
+use std::convert;
 use std::io;
 use std::io::prelude::*;
 use std::fmt;
@@ -92,7 +93,7 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
+use {cvt, cvt_new, ErrorNew, CipherSuiteInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
@@ -156,7 +157,7 @@ pub enum ErrorCode {
 }
 
 impl ErrorCode {
-    fn from_i32(i: i32) -> Option<ErrorCode> {
+    pub fn from_i32(i: i32) -> Option<ErrorCode> {
         Some(match i {
             errSSLProtocol => ErrorCode::Protocol,
             errSSLNegotiation => ErrorCode::Negotiation,
@@ -210,6 +211,12 @@ impl ErrorCode {
             errSSLClientHelloReceived => ErrorCode::ClientHelloReceived,
             _ => return None,
         })
+    }
+}
+
+impl convert::From<ErrorCode> for Error {
+    fn from(e: ErrorCode) -> Error {
+        Error::new(e as OSStatus)
     }
 }
 
@@ -566,12 +573,12 @@ impl SslContext {
     pub fn set_certificate(&mut self,
                            identity: &SecIdentity,
                            certs: &[SecCertificate])
-                           -> Result<()> {
+                           -> result::Result<(), ErrorCode> {
         let mut arr = vec![identity.as_CFType()];
         arr.extend(certs.iter().map(|c| c.as_CFType()));
         let certs = CFArray::from_CFTypes(&arr);
 
-        unsafe { cvt(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
+        unsafe { cvt_new(SSLSetCertificate(self.0, certs.as_concrete_TypeRef())) }
     }
 
     /// Sets the peer ID of this session.
