@@ -1133,7 +1133,7 @@ impl ClientBuilder {
 
                     result = stream.handshake();
                 }
-                Err(HandshakeError::Failure(err)) => return Err(Error::new(err as OSStatus)),
+                Err(HandshakeError::Failure(err)) => return Err(err.into()),
             }
         }
     }
@@ -1165,7 +1165,7 @@ impl ServerBuilder {
         match ctx.handshake(stream) {
             Ok(stream) => Ok(stream),
             Err(HandshakeError::Interrupted(stream)) => Err(Error::new(stream.reason())),
-            Err(HandshakeError::Failure(err)) => Err(Error::new(err as OSStatus)),
+            Err(HandshakeError::Failure(err)) => Err(err.into()),
         }
     }
 }
