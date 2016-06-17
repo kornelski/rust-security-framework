@@ -721,6 +721,7 @@ fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
 // the logic here is based off of libcurl's
 
 fn translate_err(e: &io::Error) -> OSStatus {
+    println!("{}", e);
     match e.kind() {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
         io::ErrorKind::ConnectionReset => errSSLClosedAbort,
@@ -915,8 +916,13 @@ impl<S: Read + Write> Read for SslStream<S> {
                               buf.as_mut_ptr() as *mut _,
                               buf.len(),
                               &mut nread);
+            // SSLRead can return an error at the same time it returns the last
+            // chunk of data (!)
+            if nread > 0 {
+                return Ok(nread as usize);
+            }
+
             match ret {
-                errSecSuccess => Ok(nread as usize),
                 errSSLClosedGraceful |
                 errSSLClosedAbort |
                 errSSLClosedNoNotify => Ok(0),
@@ -934,7 +940,9 @@ impl<S: Read + Write> Write for SslStream<S> {
                                buf.as_ptr() as *const _,
                                buf.len(),
                                &mut nwritten);
-            if ret == errSecSuccess {
+            // just to be safe, base success off of nwritten rather than ret
+            // for the same reason as in read
+            if nwritten > 0 {
                 Ok(nwritten as usize)
             } else {
                 Err(self.get_error(ret))
