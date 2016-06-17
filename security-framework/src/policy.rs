@@ -3,8 +3,6 @@ use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use security_framework_sys::base::{errSecParam, SecPolicyRef};
 use security_framework_sys::policy::*;
-
-use std::mem;
 use std::fmt;
 
 use ErrorNew;

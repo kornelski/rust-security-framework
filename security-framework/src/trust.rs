@@ -4,7 +4,6 @@ use core_foundation_sys::base::Boolean;
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 use security_framework_sys::trust::*;
-use std::mem;
 use std::ptr;
 
 use cvt;

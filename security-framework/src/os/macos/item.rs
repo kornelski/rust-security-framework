@@ -1,3 +1,43 @@
+//! OSX specific functionality for items.
+
+use core_foundation::base::TCFType;
+use core_foundation::string::CFString;
+use security_framework_sys::item::*;
+
+use os::macos::PrivKeyType;
+
+/// Types of `SecKey`s.
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone)]
+pub enum KeyType {
+    Rsa,
+    Dsa,
+    Aes,
+    Des,
+    TripleDes,
+    Rc4,
+    Cast,
+    #[cfg(feature = "OSX_10_9")]
+    Ec,
+}
+
+impl PrivKeyType for KeyType {
+    fn to_str(&self) -> CFString {
+        let raw = match *self {
+            KeyType::Rsa => kSecAttrKeyTypeRSA,
+            KeyType::Dsa => kSecAttrKeyTypeDSA,
+            KeyType::Aes => kSecAttrKeyTypeAES,
+            KeyType::Des => kSecAttrKeyTypeDES,
+            KeyType::TripleDes => kSecAttrKeyType3DES,
+            KeyType::Rc4 => kSecAttrKeyTypeRC4,
+            KeyType::Cast => kSecAttrKeyTypeCAST,
+            #[cfg(feature = "OSX_10_9")]
+            KeyType::Ec => kSecAttrKeyTypeEC,
+        };
+        unsafe { CFString::wrap_under_get_rule(raw) }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;

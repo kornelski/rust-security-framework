@@ -1,6 +1,6 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.4")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.5")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 
@@ -13,7 +13,7 @@ extern crate libc;
 #[cfg(test)]
 extern crate tempdir;
 #[cfg(test)]
-extern crate rustc_serialize;
+extern crate hex;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
@@ -70,6 +70,7 @@ pub mod keychain;
 pub mod keychain_item;
 pub mod os;
 pub mod policy;
+pub mod random;
 pub mod secure_transport;
 pub mod trust;
 
