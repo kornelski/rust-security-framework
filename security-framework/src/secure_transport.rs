@@ -349,6 +349,7 @@ impl fmt::Debug for SslContext {
     }
 }
 
+unsafe impl Sync for SslContext {}
 unsafe impl Send for SslContext {}
 
 impl AsInner for SslContext {
@@ -1087,6 +1088,7 @@ mod test {
         p!(stream.flush());
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
+        println!("{}", String::from_utf8_lossy(&buf));
         assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
         assert!(buf.ends_with(b"</html>"));
     }
@@ -1105,6 +1107,7 @@ mod test {
         p!(stream.flush());
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
+        println!("{}", String::from_utf8_lossy(&buf));
         assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
         assert!(buf.ends_with(b"</html>"));
     }
