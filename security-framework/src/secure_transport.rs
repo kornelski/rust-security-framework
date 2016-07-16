@@ -336,7 +336,7 @@ impl Drop for SslContext {
     }
 }
 
-#[cfg(feature = "OSX_10_8")]
+#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 impl fmt::Debug for SslContext {
@@ -408,6 +408,7 @@ impl SslContext {
 
         let type_ = match type_ {
             ConnectionType::Stream => kSSLStreamType,
+            #[cfg(feature = "OSX_10_8")]
             ConnectionType::Datagram => kSSLDatagramType,
         };
 
