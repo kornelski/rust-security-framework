@@ -9,6 +9,7 @@ pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
+pub mod keychain_item;
 pub mod secure_transport;
 pub mod transform;
 

@@ -17,6 +17,7 @@ pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
+#[cfg(target_os = "macos")]
 pub mod keychain_item;
 pub mod policy;
 pub mod random;

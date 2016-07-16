@@ -15,6 +15,10 @@ extern crate tempdir;
 #[cfg(test)]
 extern crate hex;
 
+// For back compat
+#[cfg(target_os = "macos")]
+pub use os::macos::keychain_item;
+
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
@@ -70,7 +74,6 @@ pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
-pub mod keychain_item;
 pub mod os;
 pub mod policy;
 pub mod random;
