@@ -35,6 +35,7 @@ matrix:
     allow_failures:
       # https://github.com/sfackler/rust-security-framework/issues/6
       - osx_image: xcode7.1
+install:
+  - curl -sSf https://static.rust-lang.org/rustup.sh | sh -s -- --prefix=$HOME/rust -y --disable-sudo --add-target=$TARGET
 script:
-  - (test "$TARGET" == "x86_64-apple-darwin" || curl -sSf https://static.rust-lang.org/rustup.sh | sh -s -- --prefix=$HOME/rust -y --disable-sudo --add-target=$TARGET)
   - cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES" --target=$TARGET
