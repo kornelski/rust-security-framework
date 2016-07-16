@@ -1,27 +1,44 @@
 language: rust
-rust: 1.4.0
+cache:
+  directories:
+    - $HOME/.cargo
+    - $TRAVIS_BUILD_DIR/security-framework/target
+rust: 1.9.0
 os: osx
+env:
+  - TARGET=x86_64-apple-darwin
 matrix:
     include:
+      # iOS
+      - osx_image: xcode7.3
+        env: TARGET=x86_64-apple-ios
+
       # OS X 10.9
       - osx_image: xcode6.2
-        env: FEATURES="OSX_10_9"
+        env:
+          - FEATURES="OSX_10_9"
+          - TARGET=x86_64-apple-darwin
 
       # OS X 10.10
       - osx_image: xcode7.1
-        env: FEATURES="OSX_10_10"
+        env: 
+          - FEATURES="OSX_10_10"
+          - TARGET=x86_64-apple-darwin
 
       # OS X 10.11
       - osx_image: xcode7.3
-        env: FEATURES="OSX_10_11"
+        env:
+          - FEATURES="OSX_10_11"
+          - TARGET=x86_64-apple-darwin
       - osx_image: xcode7.3
-        env: FEATURES="OSX_10_11"
-        rust: beta
-      - osx_image: xcode7.3
-        env: FEATURES="OSX_10_11"
+        env:
+          - FEATURES="OSX_10_11"
+          - TARGET=x86_64-apple-darwin
         rust: nightly
     allow_failures:
       # https://github.com/sfackler/rust-security-framework/issues/6
       - osx_image: xcode7.1
+install:
+  - curl -sSf https://static.rust-lang.org/rustup.sh | sh -s -- --prefix=$HOME/rust -y --disable-sudo --add-target=$TARGET
 script:
-- cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES"
+  - cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES" --target=$TARGET

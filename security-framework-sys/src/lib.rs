@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.5")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.6")]
 #![allow(non_upper_case_globals)]
 
 extern crate core_foundation_sys;
@@ -13,11 +13,11 @@ pub mod digest_transform;
 #[cfg(target_os = "macos")]
 pub mod encrypt_transform;
 pub mod identity;
-#[cfg(target_os = "macos")]
 pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod keychain;
+#[cfg(target_os = "macos")]
 pub mod keychain_item;
 pub mod policy;
 pub mod random;

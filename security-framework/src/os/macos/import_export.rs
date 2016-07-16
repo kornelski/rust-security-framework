@@ -10,12 +10,35 @@ use security_framework_sys::import_export::*;
 use std::ptr;
 use std::str::FromStr;
 
-use ErrorNew;
+use {ErrorNew, Pkcs12ImportOptionsInternals};
+use access::SecAccess;
 use base::{Error, Result};
 use certificate::SecCertificate;
 use identity::SecIdentity;
+use import_export::Pkcs12ImportOptions;
 use key::SecKey;
 use keychain::SecKeychain;
+
+/// An extension trait adding OSX specific functionality to `Pkcs12ImportOptions`.
+pub trait Pkcs12ImportOptionsExt {
+    /// Specifies the keychain in which to import the identity.
+    ///
+    /// If this is not called, the default keychain will be used.
+    fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;
+
+    /// Specifies the access control to be associated with the identity.
+    fn access(&mut self, access: SecAccess) -> &mut Self;
+}
+
+impl Pkcs12ImportOptionsExt for Pkcs12ImportOptions {
+    fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
+        Pkcs12ImportOptionsInternals::keychain(self, keychain)
+    }
+
+    fn access(&mut self, access: SecAccess) -> &mut Self {
+        Pkcs12ImportOptionsInternals::access(self, access)
+    }
+}
 
 /// A builder type to import Security Framework types from serialized formats.
 #[derive(Default)]

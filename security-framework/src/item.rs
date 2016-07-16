@@ -17,7 +17,6 @@ use cvt;
 use identity::SecIdentity;
 use key::SecKey;
 use keychain::SecKeychain;
-use keychain_item::SecKeychainItem;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
@@ -140,7 +139,10 @@ impl ItemSearchOptions {
     }
 }
 
+#[cfg(target_os = "macos")]
 unsafe fn get_item(item: CFTypeRef) -> SearchResult {
+    use os::macos::keychain_item::SecKeychainItem;
+
     let type_id = CFGetTypeID(item);
 
     let reference = if type_id == SecCertificate::type_id() {
@@ -161,6 +163,26 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
+unsafe fn get_item(item: CFTypeRef) -> SearchResult {
+    let type_id = CFGetTypeID(item);
+
+    let reference = if type_id == SecCertificate::type_id() {
+        Reference::Certificate(SecCertificate::wrap_under_get_rule(item as *mut _))
+    } else if type_id == SecKey::type_id() {
+        Reference::Key(SecKey::wrap_under_get_rule(item as *mut _))
+    } else if type_id == SecIdentity::type_id() {
+        Reference::Identity(SecIdentity::wrap_under_get_rule(item as *mut _))
+    } else {
+        panic!("Got bad type from SecItemCopyMatching: {}", type_id);
+    };
+
+    SearchResult {
+        reference: Some(reference),
+        _p: (),
+    }
+}
+
 /// An enum including all objects which can be found by `ItemSearchOptions`.
 #[derive(Debug)]
 pub enum Reference {
@@ -171,7 +193,10 @@ pub enum Reference {
     /// A `SecKey`.
     Key(SecKey),
     /// A `SecKeychainItem`.
-    KeychainItem(SecKeychainItem),
+    ///
+    /// Only defined on OSX
+    #[cfg(target_os = "macos")]
+    KeychainItem(::os::macos::keychain_item::SecKeychainItem),
 }
 
 /// An individual search result.
