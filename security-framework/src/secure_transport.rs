@@ -88,6 +88,7 @@ use std::io::prelude::*;
 use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
+use std::panic::{self, AssertUnwindSafe};
 use std::ptr;
 use std::slice;
 use std::result;
@@ -705,20 +706,6 @@ struct Connection<S> {
     panic: Option<Box<Any + Send>>,
 }
 
-#[cfg(feature = "nightly")]
-fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
-    where F: FnOnce() -> T
-{
-    ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(f))
-}
-
-#[cfg(not(feature = "nightly"))]
-fn catch_unwind<F, T>(f: F) -> ::std::result::Result<T, Box<Any + Send>>
-    where F: FnOnce() -> T
-{
-    Ok(f())
-}
-
 // the logic here is based off of libcurl's
 
 fn translate_err(e: &io::Error) -> OSStatus {
@@ -741,7 +728,7 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match catch_unwind(|| conn.stream.read(&mut data[start..])) {
+        match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.read(&mut data[start..]))) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -774,7 +761,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match catch_unwind(|| conn.stream.write(&data[start..])) {
+        match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.write(&data[start..]))) {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
@@ -796,12 +783,6 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
     *data_length = start;
     ret
 }
-
-#[cfg(feature = "nightly")]
-use std::panic::resume_unwind;
-
-#[cfg(not(feature = "nightly"))]
-use std::mem::drop as resume_unwind;
 
 /// A type implementing SSL/TLS encryption over an underlying stream.
 pub struct SslStream<S> {
@@ -894,7 +875,7 @@ impl<S> SslStream<S> {
     fn check_panic(&mut self) {
         let conn = self.connection_mut();
         if let Some(err) = conn.panic.take() {
-            resume_unwind(err);
+            panic::resume_unwind(err);
         }
     }
 
@@ -1061,7 +1042,6 @@ impl ServerBuilder {
 
 #[cfg(test)]
 mod test {
-    #[cfg(feature = "nightly")]
     use std::io;
     use std::io::prelude::*;
     use std::net::TcpStream;
@@ -1164,7 +1144,6 @@ mod test {
 
     #[test]
     #[should_panic(expected = "blammo")]
-    #[cfg(feature = "nightly")]
     fn write_panic() {
         struct ExplodingStream(TcpStream);
 
@@ -1192,7 +1171,6 @@ mod test {
 
     #[test]
     #[should_panic(expected = "blammo")]
-    #[cfg(feature = "nightly")]
     fn read_panic() {
         struct ExplodingStream(TcpStream);
 
