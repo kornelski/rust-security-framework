@@ -2,7 +2,7 @@
 
 use security_framework_sys::import_export::*;
 use core_foundation::string::CFString;
-use core_foundation::base::TCFType;
+use core_foundation::base::{TCFType, CFType};
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::array::CFArray;
@@ -79,15 +79,7 @@ impl Pkcs12ImportOptions {
                               passphrase.as_CFType()));
             }
 
-            if let Some(ref keychain) = self.keychain {
-                options.push((CFString::wrap_under_get_rule(kSecImportExportKeychain),
-                              keychain.as_CFType()));
-            }
-
-            if let Some(ref access) = self.access {
-                options.push((CFString::wrap_under_get_rule(kSecImportExportAccess),
-                              access.as_CFType()));
-            }
+            self.import_setup(&mut options);
 
             let options = CFDictionary::from_CFType_pairs(&options);
 
@@ -130,6 +122,24 @@ impl Pkcs12ImportOptions {
             Ok(items)
         }
     }
+
+    #[cfg(target_os = "macos")]
+    fn import_setup(&self, options: &mut Vec<(CFString, CFType)>) {
+        unsafe {
+            if let Some(ref keychain) = self.keychain {
+                options.push((CFString::wrap_under_get_rule(kSecImportExportKeychain),
+                              keychain.as_CFType()));
+            }
+
+            if let Some(ref access) = self.access {
+                options.push((CFString::wrap_under_get_rule(kSecImportExportAccess),
+                              access.as_CFType()));
+            }
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn import_setup(&self, _: &mut Vec<(CFString, CFType)>) {}
 }
 
 #[cfg(test)]
