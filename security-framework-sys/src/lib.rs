@@ -13,7 +13,6 @@ pub mod digest_transform;
 #[cfg(target_os = "macos")]
 pub mod encrypt_transform;
 pub mod identity;
-#[cfg(target_os = "macos")]
 pub mod import_export;
 pub mod item;
 pub mod key;
