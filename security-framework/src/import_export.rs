@@ -35,8 +35,23 @@ pub struct ImportedIdentity {
 #[derive(Default)]
 pub struct Pkcs12ImportOptions {
     passphrase: Option<CFString>,
+    #[cfg(target_os = "macos")]
     keychain: Option<SecKeychain>,
+    #[cfg(target_os = "macos")]
     access: Option<SecAccess>,
+}
+
+#[cfg(target_os = "macos")]
+impl ::Pkcs12ImportOptionsInternals for Pkcs12ImportOptions {
+    fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
+        self.keychain = Some(keychain);
+        self
+    }
+
+    fn access(&mut self, access: SecAccess) -> &mut Self {
+        self.access = Some(access);
+        self
+    }
 }
 
 impl Pkcs12ImportOptions {
@@ -53,15 +68,19 @@ impl Pkcs12ImportOptions {
         self
     }
 
-    /// Specifies the keychain in which to import the identity.
+    /// Deprecated
     ///
-    /// If this is not called, the default keychain will be used.
+    /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::keychain`.
+    #[cfg(target_os = "macos")]
     pub fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
         self
     }
 
-    /// Specifies the access control to be associated with the identity.
+    /// Deprecated
+    ///
+    /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::access`.
+    #[cfg(target_os = "macos")]
     pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self

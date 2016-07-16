@@ -18,8 +18,11 @@ extern crate hex;
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
+
+use access::SecAccess;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
+use keychain::SecKeychain;
 
 macro_rules! make_wrapper {
     ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
@@ -81,6 +84,12 @@ trait ErrorNew {
 trait CipherSuiteInternals {
     fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite>;
     fn to_raw(&self) -> SSLCipherSuite;
+}
+
+#[cfg(target_os = "macos")]
+trait Pkcs12ImportOptionsInternals {
+    fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;
+    fn access(&mut self, access: SecAccess) -> &mut Self;
 }
 
 trait AsInner {
