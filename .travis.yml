@@ -1,5 +1,8 @@
 language: rust
-cache: cargo
+cache:
+  directories:
+    - $HOME/.cargo
+    - $TRAVIS_BUILD_DIR/security-framework/target
 rust: 1.9.0
 os: osx
 env:
