@@ -8,7 +8,9 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::array::CFArray;
 use std::ptr;
 
+#[cfg(target_os = "macos")]
 use access::SecAccess;
+#[cfg(target_os = "macos")]
 use keychain::SecKeychain;
 use trust::SecTrust;
 use certificate::SecCertificate;
