@@ -4,7 +4,10 @@ use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use security_framework_sys::item::*;
 
+use ItemSearchOptionsInternals;
+use keychain::SecKeychain;
 use os::macos::PrivKeyType;
+use item::ItemSearchOptions;
 
 /// Types of `SecKey`s.
 #[allow(missing_docs)]
@@ -35,6 +38,20 @@ impl PrivKeyType for KeyType {
             KeyType::Ec => kSecAttrKeyTypeEC,
         };
         unsafe { CFString::wrap_under_get_rule(raw) }
+    }
+}
+
+/// An extension trait adding OSX specific functionality to `ItemSearchOptions`.
+pub trait ItemSearchOptionsExt {
+    /// Search within the specified keychains.
+    ///
+    /// If this is not called, the default keychain will be searched.
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
+}
+
+impl ItemSearchOptionsExt for ItemSearchOptions {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
+        ItemSearchOptionsInternals::keychains(self, keychains)
     }
 }
 

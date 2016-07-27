@@ -99,6 +99,11 @@ trait Pkcs12ImportOptionsInternals {
     fn access(&mut self, access: SecAccess) -> &mut Self;
 }
 
+#[cfg(target_os = "macos")]
+trait ItemSearchOptionsInternals {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
+}
+
 trait AsInner {
     type Inner;
     fn as_inner(&self) -> Self::Inner;
