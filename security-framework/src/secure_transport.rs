@@ -709,7 +709,6 @@ struct Connection<S> {
 // the logic here is based off of libcurl's
 
 fn translate_err(e: &io::Error) -> OSStatus {
-    println!("{}", e);
     match e.kind() {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
         io::ErrorKind::ConnectionReset => errSSLClosedAbort,
