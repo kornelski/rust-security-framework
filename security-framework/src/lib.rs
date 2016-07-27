@@ -18,20 +18,21 @@ extern crate hex;
 // For back compat
 #[cfg(target_os = "macos")]
 pub use os::macos::keychain_item;
-// For back compat
 #[cfg(target_os = "macos")]
 pub use os::macos::access;
+#[cfg(target_os = "macos")]
+pub use os::macos::keychain;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
 
-#[cfg(target_os = "macos")]
-use os::macos::access::SecAccess;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
 #[cfg(target_os = "macos")]
-use keychain::SecKeychain;
+use os::macos::access::SecAccess;
+#[cfg(target_os = "macos")]
+use os::macos::keychain::SecKeychain;
 
 macro_rules! make_wrapper {
     ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
@@ -77,8 +78,6 @@ pub mod identity;
 pub mod import_export;
 pub mod item;
 pub mod key;
-#[cfg(target_os = "macos")]
-pub mod keychain;
 pub mod os;
 pub mod policy;
 pub mod random;

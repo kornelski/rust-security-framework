@@ -1,6 +1,7 @@
-//! OSX specific functionality for keychains.
+//! Keychain support.
 
 use core_foundation::base::{Boolean, TCFType};
+use security_framework_sys::base::SecKeychainRef;
 use security_framework_sys::keychain::*;
 use std::path::Path;
 use std::ptr;
@@ -10,25 +11,42 @@ use std::os::unix::ffi::OsStrExt;
 
 use cvt;
 use base::Result;
-use keychain::SecKeychain;
-use access::SecAccess;
+use os::macos::access::SecAccess;
 
-/// An extension trait adding OSX specific functionality to `SecKeychain`.
+make_wrapper! {
+    /// A type representing a keychain.
+    struct SecKeychain, SecKeychainRef, SecKeychainGetTypeID
+}
+
+/// Deprecated.
 pub trait SecKeychainExt {
-    /// Creates a `SecKeychain` object corresponding to the user's default
-    /// keychain.
+    /// Deprecated.
     fn default() -> Result<SecKeychain>;
 
-    /// Opens a keychain from a file.
+    /// Deprecated.
     fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain>;
 
-    /// Unlocks the keychain.
-    ///
-    /// If a password is not specified, the user will be prompted to enter it.
+    /// Deprecated.
     fn unlock(&mut self, password: Option<&str>) -> Result<()>;
 }
 
 impl SecKeychainExt for SecKeychain {
+    fn default() -> Result<SecKeychain> {
+        SecKeychain::default()
+    }
+
+    fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
+        SecKeychain::open(path)
+    }
+
+    fn unlock(&mut self, password: Option<&str>) -> Result<()> {
+        SecKeychain::unlock(self, password)
+    }
+}
+
+impl SecKeychain {
+    /// Creates a `SecKeychain` object corresponding to the user's default
+    /// keychain.
     fn default() -> Result<SecKeychain> {
         unsafe {
             let mut keychain = ptr::null_mut();
@@ -37,6 +55,7 @@ impl SecKeychainExt for SecKeychain {
         }
     }
 
+    /// Opens a keychain from a file.
     fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
         let path_name = path.as_ref().as_os_str().as_bytes();
         // FIXME
@@ -49,6 +68,9 @@ impl SecKeychainExt for SecKeychain {
         }
     }
 
+    /// Unlocks the keychain.
+    ///
+    /// If a password is not specified, the user will be prompted to enter it.
     fn unlock(&mut self, password: Option<&str>) -> Result<()> {
         let (len, ptr, use_password) = match password {
             Some(password) => (password.len(), password.as_ptr() as *const _, true),
