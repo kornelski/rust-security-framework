@@ -16,6 +16,7 @@ use certificate::SecCertificate;
 use cvt;
 use identity::SecIdentity;
 use key::SecKey;
+#[cfg(target_os = "macos")]
 use keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
@@ -70,6 +71,7 @@ impl ItemSearchOptions {
     /// Search within the specified keychains.
     ///
     /// If this is not called, the default keychain will be searched.
+    #[cfg(target_os = "macos")]
     pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self

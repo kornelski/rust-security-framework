@@ -4,6 +4,7 @@
 extern crate core_foundation_sys;
 extern crate libc;
 
+#[cfg(target_os = "macos")]
 pub mod access;
 pub mod base;
 pub mod certificate;
@@ -16,6 +17,7 @@ pub mod identity;
 pub mod import_export;
 pub mod item;
 pub mod key;
+#[cfg(target_os = "macos")]
 pub mod keychain;
 #[cfg(target_os = "macos")]
 pub mod keychain_item;
