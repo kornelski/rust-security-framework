@@ -18,13 +18,16 @@ extern crate hex;
 // For back compat
 #[cfg(target_os = "macos")]
 pub use os::macos::keychain_item;
+// For back compat
+#[cfg(target_os = "macos")]
+pub use os::macos::access;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
 
 #[cfg(target_os = "macos")]
-use access::SecAccess;
+use os::macos::access::SecAccess;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
 #[cfg(target_os = "macos")]
@@ -67,8 +70,6 @@ macro_rules! p {
     }
 }
 
-#[cfg(target_os = "macos")]
-pub mod access;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
