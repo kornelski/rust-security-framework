@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.6")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.7")]
 #![allow(non_upper_case_globals)]
 
 extern crate core_foundation_sys;
