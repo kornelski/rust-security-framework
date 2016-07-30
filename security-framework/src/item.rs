@@ -16,6 +16,7 @@ use certificate::SecCertificate;
 use cvt;
 use identity::SecIdentity;
 use key::SecKey;
+#[cfg(target_os = "macos")]
 use keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
@@ -55,6 +56,14 @@ pub struct ItemSearchOptions {
     limit: Option<i64>,
 }
 
+#[cfg(target_os = "macos")]
+impl ::ItemSearchOptionsInternals for ItemSearchOptions {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
+        self.keychains = Some(CFArray::from_CFTypes(keychains));
+        self
+    }
+}
+
 impl ItemSearchOptions {
     /// Creates a new builder with default options.
     pub fn new() -> ItemSearchOptions {
@@ -67,9 +76,10 @@ impl ItemSearchOptions {
         self
     }
 
-    /// Search within the specified keychains.
+    /// Deprecated.
     ///
-    /// If this is not called, the default keychain will be searched.
+    /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
+    #[cfg(target_os = "macos")]
     pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self

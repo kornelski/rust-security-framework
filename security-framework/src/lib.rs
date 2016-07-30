@@ -1,6 +1,6 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.6")]
+#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.1.7")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 
@@ -18,15 +18,21 @@ extern crate hex;
 // For back compat
 #[cfg(target_os = "macos")]
 pub use os::macos::keychain_item;
+#[cfg(target_os = "macos")]
+pub use os::macos::access;
+#[cfg(target_os = "macos")]
+pub use os::macos::keychain;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::cipher_suite::SSLCipherSuite;
 
-use access::SecAccess;
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
-use keychain::SecKeychain;
+#[cfg(target_os = "macos")]
+use os::macos::access::SecAccess;
+#[cfg(target_os = "macos")]
+use os::macos::keychain::SecKeychain;
 
 macro_rules! make_wrapper {
     ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
@@ -65,7 +71,6 @@ macro_rules! p {
     }
 }
 
-pub mod access;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;
@@ -73,7 +78,6 @@ pub mod identity;
 pub mod import_export;
 pub mod item;
 pub mod key;
-pub mod keychain;
 pub mod os;
 pub mod policy;
 pub mod random;
@@ -93,6 +97,11 @@ trait CipherSuiteInternals {
 trait Pkcs12ImportOptionsInternals {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;
     fn access(&mut self, access: SecAccess) -> &mut Self;
+}
+
+#[cfg(target_os = "macos")]
+trait ItemSearchOptionsInternals {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
 }
 
 trait AsInner {

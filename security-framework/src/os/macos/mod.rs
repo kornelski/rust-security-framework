@@ -2,6 +2,7 @@
 use core_foundation::string::CFString;
 
 mod identity;
+pub mod access;
 pub mod certificate;
 pub mod digest_transform;
 pub mod encrypt_transform;
