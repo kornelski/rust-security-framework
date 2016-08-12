@@ -134,7 +134,7 @@ pub enum HandshakeError<S> {
 #[derive(Debug)]
 pub struct MidHandshakeSslStream<S> {
     stream: SslStream<S>,
-    reason: OSStatus,
+    error: Error,
 }
 
 impl<S> MidHandshakeSslStream<S> {
@@ -161,24 +161,29 @@ impl<S> MidHandshakeSslStream<S> {
     /// Returns `true` iff `break_on_server_auth` was set and the handshake has
     /// progressed to that point.
     pub fn server_auth_completed(&self) -> bool {
-        self.reason == errSSLPeerAuthCompleted
+        self.error.code() == errSSLPeerAuthCompleted
     }
 
     /// Returns `true` iff `break_on_cert_requested` was set and the handshake
     /// has progressed to that point.
     pub fn client_cert_requested(&self) -> bool {
-        self.reason == errSSLClientCertRequested
+        self.error.code() == errSSLClientCertRequested
     }
 
     /// Returns `true` iff the underlying stream returned an error with the
     /// `WouldBlock` kind.
     pub fn would_block(&self) -> bool {
-        self.reason == errSSLWouldBlock
+        self.error.code() == errSSLWouldBlock
     }
 
-    /// Returns the raw error code which caused the handshake interruption.
+    /// Deprecated
     pub fn reason(&self) -> OSStatus {
-        self.reason
+        self.error.code()
+    }
+
+    /// Returns the error which caused the handshake interruption.
+    pub fn error(&self) -> Error {
+        self.error
     }
 
     /// Restarts the handshake process.
@@ -821,7 +826,7 @@ impl<S> SslStream<S> {
             reason @ errSSLClientHelloReceived => {
                 Err(HandshakeError::Interrupted(MidHandshakeSslStream {
                     stream: self,
-                    reason: reason,
+                    error: Error::new(reason),
                 }))
             }
             err => {

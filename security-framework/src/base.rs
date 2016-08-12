@@ -12,6 +12,7 @@ use ErrorNew;
 pub type Result<T> = result::Result<T, Error>;
 
 /// A Security Framework error.
+#[derive(Copy, Clone)]
 pub struct Error(OSStatus);
 
 impl fmt::Debug for Error {
