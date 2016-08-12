@@ -9,9 +9,9 @@ use core_foundation::array::CFArray;
 use std::ptr;
 
 #[cfg(target_os = "macos")]
-use access::SecAccess;
+use os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 use trust::SecTrust;
 use certificate::SecCertificate;
 use identity::SecIdentity;
@@ -67,24 +67,6 @@ impl Pkcs12ImportOptions {
     /// This must be specified, as unencrypted PKCS#12 data is not supported.
     pub fn passphrase(&mut self, passphrase: &str) -> &mut Self {
         self.passphrase = Some(CFString::new(passphrase));
-        self
-    }
-
-    /// Deprecated
-    ///
-    /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::keychain`.
-    #[cfg(target_os = "macos")]
-    pub fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
-        self.keychain = Some(keychain);
-        self
-    }
-
-    /// Deprecated
-    ///
-    /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::access`.
-    #[cfg(target_os = "macos")]
-    pub fn access(&mut self, access: SecAccess) -> &mut Self {
-        self.access = Some(access);
         self
     }
 

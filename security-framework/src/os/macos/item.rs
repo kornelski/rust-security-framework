@@ -5,7 +5,7 @@ use core_foundation::string::CFString;
 use security_framework_sys::item::*;
 
 use ItemSearchOptionsInternals;
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 use os::macos::PrivKeyType;
 use item::ItemSearchOptions;
 
@@ -61,6 +61,7 @@ mod test {
 
     use item::*;
     use os::macos::certificate::SecCertificateExt;
+    use os::macos::item::ItemSearchOptionsExt;
     use os::macos::test::keychain;
 
     #[test]

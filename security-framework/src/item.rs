@@ -17,7 +17,7 @@ use cvt;
 use identity::SecIdentity;
 use key::SecKey;
 #[cfg(target_os = "macos")]
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
@@ -73,15 +73,6 @@ impl ItemSearchOptions {
     /// Search only for items of the specified class.
     pub fn class(&mut self, class: ItemClass) -> &mut ItemSearchOptions {
         self.class = Some(class);
-        self
-    }
-
-    /// Deprecated.
-    ///
-    /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
-    #[cfg(target_os = "macos")]
-    pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
-        self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
 
