@@ -182,8 +182,8 @@ impl<S> MidHandshakeSslStream<S> {
     }
 
     /// Returns the error which caused the handshake interruption.
-    pub fn error(&self) -> Error {
-        self.error
+    pub fn error(&self) -> &Error {
+        &self.error
     }
 
     /// Restarts the handshake process.
