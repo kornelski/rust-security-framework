@@ -62,6 +62,12 @@ impl Error {
     }
 }
 
+impl From<OSStatus> for Error {
+    fn from(code: OSStatus) -> Error {
+        Error::from_code(code)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         if let Some(message) = self.message() {
