@@ -114,14 +114,7 @@ fn cvt(err: OSStatus) -> Result<()> {
 
 #[cfg(test)]
 mod test {
-    use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
     use certificate::SecCertificate;
-
-    pub fn next_port() -> u16 {
-        static PORT_SHIFT: AtomicUsize = ATOMIC_USIZE_INIT;
-
-        15410 + PORT_SHIFT.fetch_add(1, Ordering::SeqCst) as u16
-    }
 
     pub fn certificate() -> SecCertificate {
         let certificate = include_bytes!("../test/server.der");

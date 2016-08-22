@@ -198,15 +198,15 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use test::{next_port, certificate};
+    use test::certificate;
     use os::macos::test::identity;
     use cipher_suite::CipherSuite;
     use secure_transport::*;
 
     #[test]
     fn server_client() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("server_client"));
@@ -247,8 +247,8 @@ mod test {
 
     #[test]
     fn server_client_builders() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("server_client_builders"));
@@ -276,8 +276,8 @@ mod test {
 
     #[test]
     fn client_bad_cert() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("client_bad_cert"));
@@ -301,8 +301,8 @@ mod test {
 
     #[test]
     fn client() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("client_bad_cert"));
@@ -330,8 +330,8 @@ mod test {
 
     #[test]
     fn negotiated_cipher() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -382,8 +382,8 @@ mod test {
 
     #[test]
     fn try_authenticate_no_cert() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -419,8 +419,8 @@ mod test {
 
     #[test]
     fn always_authenticate_no_cert() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
@@ -460,8 +460,8 @@ mod test {
 
     #[test]
     fn always_authenticate_with_cert() {
-        let port = next_port();
-        let listener = p!(TcpListener::bind(("localhost", port)));
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
 
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
