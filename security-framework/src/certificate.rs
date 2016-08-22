@@ -8,7 +8,6 @@ use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use std::fmt;
 
-use ErrorNew;
 use base::{Error, Result};
 
 make_wrapper! {
@@ -35,7 +34,7 @@ impl SecCertificate {
             let certificate = SecCertificateCreateWithData(kCFAllocatorDefault,
                                                            der_data.as_concrete_TypeRef());
             if certificate.is_null() {
-                Err(Error::new(errSecParam))
+                Err(Error::from_code(errSecParam))
             } else {
                 Ok(SecCertificate::wrap_under_create_rule(certificate))
             }

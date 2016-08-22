@@ -84,10 +84,6 @@ pub mod random;
 pub mod secure_transport;
 pub mod trust;
 
-trait ErrorNew {
-    fn new(status: OSStatus) -> Self;
-}
-
 trait CipherSuiteInternals {
     fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite>;
     fn to_raw(&self) -> SSLCipherSuite;
@@ -112,7 +108,7 @@ trait AsInner {
 fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),
-        err => Err(Error::new(err)),
+        err => Err(Error::from_code(err)),
     }
 }
 

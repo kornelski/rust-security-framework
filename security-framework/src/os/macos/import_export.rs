@@ -10,7 +10,7 @@ use security_framework_sys::import_export::*;
 use std::ptr;
 use std::str::FromStr;
 
-use {ErrorNew, Pkcs12ImportOptionsInternals};
+use Pkcs12ImportOptionsInternals;
 use access::SecAccess;
 use base::{Error, Result};
 use certificate::SecCertificate;
@@ -182,7 +182,7 @@ impl<'a> ImportOptions<'a> {
                                     keychain,
                                     items_ref);
             if ret != errSecSuccess {
-                return Err(Error::new(ret));
+                return Err(Error::from_code(ret));
             }
 
             if let Some(ref mut items) = self.items {

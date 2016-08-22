@@ -6,8 +6,6 @@ use std::error;
 use std::fmt;
 use std::result;
 
-use ErrorNew;
-
 /// A `Result` type commonly returned by functions.
 pub type Result<T> = result::Result<T, Error>;
 
@@ -26,13 +24,12 @@ impl fmt::Debug for Error {
     }
 }
 
-impl ErrorNew for Error {
-    fn new(status: OSStatus) -> Error {
-        Error(status)
-    }
-}
-
 impl Error {
+    /// Creates a new `Error` from a status code.
+    pub fn from_code(code: OSStatus) -> Error {
+        Error(code)
+    }
+
     /// Returns a string describing the current error, if available.
     pub fn message(&self) -> Option<String> {
         self.inner_message()

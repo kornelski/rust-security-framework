@@ -5,7 +5,6 @@ use security_framework_sys::base::{errSecParam, SecPolicyRef};
 use security_framework_sys::policy::*;
 use std::fmt;
 
-use ErrorNew;
 use base::{Error, Result};
 use secure_transport::ProtocolSide;
 
@@ -35,7 +34,7 @@ impl SecPolicy {
         unsafe {
             let policy = SecPolicyCreateSSL(client_side as u8, hostname_cf.as_concrete_TypeRef());
             if policy.is_null() {
-                Err(Error::new(errSecParam))
+                Err(Error::from_code(errSecParam))
             } else {
                 Ok(SecPolicy::wrap_under_create_rule(policy))
             }

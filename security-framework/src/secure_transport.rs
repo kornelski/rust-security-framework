@@ -93,7 +93,7 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, ErrorNew, CipherSuiteInternals, AsInner};
+use {cvt, CipherSuiteInternals, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
@@ -569,7 +569,7 @@ impl SslContext {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
         if let SessionState::Idle = try!(self.state()) {
-            return Err(Error::new(errSecBadReq));
+            return Err(Error::from_code(errSecBadReq));
         }
 
         unsafe {
@@ -681,7 +681,7 @@ impl SslContext {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
-                return Err(HandshakeError::Failure(Error::new(ret)));
+                return Err(HandshakeError::Failure(Error::from_code(ret)));
             }
 
             let stream = Connection {
@@ -693,7 +693,7 @@ impl SslContext {
             let ret = SSLSetConnection(self.0, stream as *mut _);
             if ret != errSecSuccess {
                 let _conn = Box::from_raw(stream);
-                return Err(HandshakeError::Failure(Error::new(ret)));
+                return Err(HandshakeError::Failure(Error::from_code(ret)));
             }
 
             let stream = SslStream {
@@ -826,12 +826,12 @@ impl<S> SslStream<S> {
             reason @ errSSLClientHelloReceived => {
                 Err(HandshakeError::Interrupted(MidHandshakeSslStream {
                     stream: self,
-                    error: Error::new(reason),
+                    error: Error::from_code(reason),
                 }))
             }
             err => {
                 self.check_panic();
-                Err(HandshakeError::Failure(Error::new(err)))
+                Err(HandshakeError::Failure(Error::from_code(err)))
             }
         }
     }
@@ -889,7 +889,7 @@ impl<S> SslStream<S> {
         if let Some(err) = self.connection_mut().err.take() {
             err
         } else {
-            io::Error::new(io::ErrorKind::Other, Error::new(ret))
+            io::Error::new(io::ErrorKind::Other, Error::from_code(ret))
         }
     }
 }
@@ -990,19 +990,23 @@ impl ClientBuilder {
                             let trusted = try!(trust.evaluate());
                             match trusted {
                                 TrustResult::Invalid |
-                                TrustResult::OtherError => return Err(Error::new(errSecBadReq)),
+                                TrustResult::OtherError => {
+                                    return Err(Error::from_code(errSecBadReq));
+                                }
                                 TrustResult::Proceed | TrustResult::Unspecified => {}
-                                TrustResult::Deny => return Err(Error::new(errSecTrustSettingDeny)),
+                                TrustResult::Deny => {
+                                    return Err(Error::from_code(errSecTrustSettingDeny));
+                                }
                                 TrustResult::RecoverableTrustFailure |
                                 TrustResult::FatalTrustFailure => {
-                                    return Err(Error::new(errSecNotTrusted));
+                                    return Err(Error::from_code(errSecNotTrusted));
                                 }
                             }
                         } else {
-                            return Err(Error::new(stream.reason()));
+                            return Err(Error::from_code(stream.reason()));
                         }
                     } else {
-                        return Err(Error::new(stream.reason()));
+                        return Err(Error::from_code(stream.reason()));
                     }
 
                     result = stream.handshake();
@@ -1038,7 +1042,7 @@ impl ServerBuilder {
         try!(ctx.set_certificate(&self.identity, &self.certs));
         match ctx.handshake(stream) {
             Ok(stream) => Ok(stream),
-            Err(HandshakeError::Interrupted(stream)) => Err(Error::new(stream.reason())),
+            Err(HandshakeError::Interrupted(stream)) => Err(Error::from_code(stream.reason())),
             Err(HandshakeError::Failure(err)) => Err(err),
         }
     }
