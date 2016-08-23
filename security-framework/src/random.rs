@@ -6,6 +6,9 @@ use std::io;
 /// A source of random data.
 pub struct SecRandom(SecRandomRef);
 
+unsafe impl Sync for SecRandom {}
+unsafe impl Send for SecRandom {}
+
 impl Default for SecRandom {
     fn default() -> SecRandom {
         SecRandom(kSecRandomDefault)

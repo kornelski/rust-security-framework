@@ -18,6 +18,9 @@ make_wrapper! {
     struct SecKeychain, SecKeychainRef, SecKeychainGetTypeID
 }
 
+unsafe impl Sync for SecKeychain {}
+unsafe impl Send for SecKeychain {}
+
 /// Deprecated.
 pub trait SecKeychainExt {
     /// Deprecated.

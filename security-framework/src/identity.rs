@@ -18,6 +18,9 @@ make_wrapper! {
     struct SecIdentity, SecIdentityRef, SecIdentityGetTypeID
 }
 
+unsafe impl Sync for SecIdentity {}
+unsafe impl Send for SecIdentity {}
+
 impl fmt::Debug for SecIdentity {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let mut builder = fmt.debug_struct("SecIdentity");
@@ -50,9 +53,6 @@ impl SecIdentity {
         }
     }
 }
-
-unsafe impl Send for SecIdentity {}
-
 
 #[cfg(test)]
 mod test {

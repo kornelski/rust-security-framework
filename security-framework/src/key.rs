@@ -9,6 +9,9 @@ make_wrapper! {
     struct SecKey, SecKeyRef, SecKeyGetTypeID
 }
 
+unsafe impl Sync for SecKey {}
+unsafe impl Send for SecKey {}
+
 // FIXME
 impl fmt::Debug for SecKey {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

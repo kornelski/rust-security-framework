@@ -11,6 +11,9 @@ make_wrapper! {
     struct SecTransform, SecTransformRef, SecTransformGetTypeID
 }
 
+unsafe impl Sync for SecTransform {}
+unsafe impl Send for SecTransform {}
+
 impl SecTransform {
     /// Sets an attribute of the transform.
     pub fn set_attribute<T, U>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>

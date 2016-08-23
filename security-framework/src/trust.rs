@@ -43,7 +43,7 @@ impl TrustResult {
         }
     }
 
-    /// Returns true if the result if "successful" - specifically `Proceed` or
+    /// Returns true if the result is "successful" - specifically `Proceed` or
     /// `Unspecified`.
     pub fn success(&self) -> bool {
         match *self {
@@ -58,7 +58,26 @@ make_wrapper! {
     struct SecTrust, SecTrustRef, SecTrustGetTypeID
 }
 
+unsafe impl Sync for SecTrust {}
+unsafe impl Send for SecTrust {}
+
 impl SecTrust {
+    /// Creates a SecTrustRef that is configured with a certificate chain, for validating
+    /// that chain against a collection of policies.
+    pub fn create_with_certificates(certs: &[SecCertificate],
+                                    policies: &[SecPolicy])
+                                    -> Result<SecTrust> {
+        let cert_array = CFArray::from_CFTypes(&certs);
+        let policy_array = CFArray::from_CFTypes(&policies);
+        let mut trust = ptr::null_mut();
+        unsafe {
+            try!(cvt(SecTrustCreateWithCertificates(cert_array.as_CFTypeRef(),
+                                                    policy_array.as_CFTypeRef(),
+                                                    &mut trust)));
+            Ok(SecTrust(trust))
+        }
+    }
+
     /// Sets additional anchor certificates used to validate trust.
     pub fn set_anchor_certificates(&mut self, certs: &[SecCertificate]) -> Result<()> {
         let certs = CFArray::from_CFTypes(&certs);
@@ -79,25 +98,6 @@ impl SecTrust {
             let mut result = kSecTrustResultInvalid;
             try!(cvt(SecTrustEvaluate(self.0, &mut result)));
             Ok(TrustResult::from_raw(result))
-        }
-    }
-
-    /// Creates a SecTrustRef that is configured with a certificate chain, for validating
-    /// that chain against a collection of policies.
-    pub fn create_with_certificates(certs: &[SecCertificate],
-                                    policies: &[SecPolicy])
-                                    -> Result<SecTrust> {
-        let cert_array = CFArray::from_CFTypes(&certs);
-        let policy_array = CFArray::from_CFTypes(&policies);
-        let mut trust = ptr::null_mut();
-        unsafe {
-            let result = cvt(SecTrustCreateWithCertificates(cert_array.as_CFTypeRef(),
-                                                            policy_array.as_CFTypeRef(),
-                                                            &mut trust));
-            match result {
-                Err(e) => Err(e),
-                Ok(_) => Ok(SecTrust(trust)),
-            }
         }
     }
 }
