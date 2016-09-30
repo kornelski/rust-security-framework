@@ -688,6 +688,7 @@ impl SslContext {
                 stream: stream,
                 err: None,
                 panic: None,
+                panicked: false,
             };
             let stream = Box::into_raw(Box::new(stream));
             let ret = SSLSetConnection(self.0, stream as *mut _);
@@ -709,6 +710,7 @@ struct Connection<S> {
     stream: S,
     err: Option<io::Error>,
     panic: Option<Box<Any + Send>>,
+    panicked: bool,
 }
 
 // the logic here is based off of libcurl's
@@ -746,6 +748,7 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
             Err(e) => {
                 ret = errSecIO;
                 conn.panic = Some(e);
+                conn.panicked = true;
                 break;
             }
         }
@@ -779,6 +782,7 @@ unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
             Err(e) => {
                 ret = errSecIO;
                 conn.panic = Some(e);
+                conn.panicked = true;
                 break;
             }
         }
@@ -806,7 +810,12 @@ impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
 impl<S> Drop for SslStream<S> {
     fn drop(&mut self) {
         unsafe {
-            SSLClose(self.ctx.0);
+            // if read/write previously panicked then it's likely that this
+            // destructor is being run as part of that propagation, and in that
+            // case let's avoid more I/O as part of `SSLClose`
+            if !self.connection().panicked {
+                SSLClose(self.ctx.0);
+            }
 
             let mut conn = ptr::null();
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
