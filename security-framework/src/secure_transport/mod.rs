@@ -81,7 +81,6 @@ use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::base::{kCFAllocatorDefault, CFRelease};
 use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSecTrustSettingDeny,
                                    errSecNotTrusted};
-use security_framework_sys::secure_transport::*;
 use std::any::Any;
 use std::io;
 use std::io::prelude::*;
@@ -99,6 +98,9 @@ use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
 use identity::SecIdentity;
 use trust::{SecTrust, TrustResult};
+
+mod ffi;
+use self::ffi::*;
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone)]
@@ -273,7 +275,6 @@ macro_rules! ssl_protocol {
                 }
             }
 
-            #[cfg(feature = "OSX_10_8")]
             fn to_raw(&self) -> SSLProtocol {
                 use self::SslProtocol::*;
 
@@ -631,8 +632,8 @@ impl SslContext {
 
     /// Sets the minimum protocol version allowed by the session.
     ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
+    /// Note that this function may fail if the `OSX_10_8` (or greater) feature
+    /// is not enabled and it's called on OSX 10.7 or before.
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
     }
