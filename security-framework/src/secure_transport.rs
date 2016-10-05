@@ -273,7 +273,6 @@ macro_rules! ssl_protocol {
                 }
             }
 
-            #[cfg(feature = "OSX_10_8")]
             fn to_raw(&self) -> SSLProtocol {
                 use self::SslProtocol::*;
 
@@ -635,6 +634,22 @@ impl SslContext {
     #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
+    }
+
+    /// Sets whether a protocol is enabled or not.
+    ///
+    /// Note that on OSX this is a deprecated API in favor of
+    /// `set_protocol_version_max` and `set_protocol_version_min`, although if
+    /// you're working with OSX 10.8 or before you may have to use this API
+    /// instead.
+    pub fn set_protocol_version_enabled(&mut self,
+                                        protocol: SslProtocol,
+                                        enabled: bool) -> Result<()> {
+        unsafe {
+            cvt(SSLSetProtocolVersionEnabled(self.0,
+                                             protocol.to_raw(),
+                                             enabled as Boolean))
+        }
     }
 
     /// Returns the number of bytes which can be read without triggering a
