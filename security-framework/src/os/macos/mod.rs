@@ -11,6 +11,7 @@ pub mod item;
 pub mod key;
 pub mod keychain;
 pub mod keychain_item;
+pub mod passwords;
 pub mod secure_transport;
 pub mod transform;
 
