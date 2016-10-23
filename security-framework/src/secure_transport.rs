@@ -663,28 +663,28 @@ impl SslContext {
     }
 
     impl_options! {
-    /// If enabled, the handshake process will pause and return instead of
-    /// automatically validating a server's certificate.
+        /// If enabled, the handshake process will pause and return instead of
+        /// automatically validating a server's certificate.
         const kSSLSessionOptionBreakOnServerAuth: break_on_server_auth & set_break_on_server_auth,
-    /// If enabled, the handshake process will pause and return after
-    /// the server requests a certificate from the client.
+        /// If enabled, the handshake process will pause and return after
+        /// the server requests a certificate from the client.
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
-    /// If enabled, the handshake process will pause and return instead of
-    /// automatically validating a client's certificate.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
+        /// If enabled, the handshake process will pause and return instead of
+        /// automatically validating a client's certificate.
+        ///
+        /// Requires the `OSX_10_8` (or greater) feature.
         #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
-    /// If enabled, TLS false start will be performed if an appropriate
-    /// cipher suite is negotiated.
-    ///
-    /// Requires the `OSX_10_9` (or greater) feature.
+        /// If enabled, TLS false start will be performed if an appropriate
+        /// cipher suite is negotiated.
+        ///
+        /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionFalseStart: false_start & set_false_start,
-    /// If enabled, 1/n-1 record splitting will be enabled for TLS 1.0
-    /// connections using block ciphers to mitigate the BEAST attack.
-    ///
-    /// Requires the `OSX_10_9` (or greater) feature.
+        /// If enabled, 1/n-1 record splitting will be enabled for TLS 1.0
+        /// connections using block ciphers to mitigate the BEAST attack.
+        ///
+        /// Requires the `OSX_10_9` (or greater) feature.
         #[cfg(feature = "OSX_10_9")]
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }
@@ -739,11 +739,13 @@ fn translate_err(e: &io::Error) -> OSStatus {
     }
 }
 
-unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
-                                        data: *mut c_void,
-                                        data_length: *mut size_t)
-                                        -> OSStatus {
-    let mut conn: &mut Connection<S> = mem::transmute(connection);
+unsafe extern fn read_func<S>(connection: SSLConnectionRef,
+                              data: *mut c_void,
+                              data_length: *mut size_t)
+                              -> OSStatus
+    where S: Read
+{
+    let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
@@ -773,11 +775,13 @@ unsafe extern "C" fn read_func<S: Read>(connection: SSLConnectionRef,
     ret
 }
 
-unsafe extern "C" fn write_func<S: Write>(connection: SSLConnectionRef,
-                                          data: *const c_void,
-                                          data_length: *mut size_t)
-                                          -> OSStatus {
-    let mut conn: &mut Connection<S> = mem::transmute(connection);
+unsafe extern fn write_func<S>(connection: SSLConnectionRef,
+                               data: *const c_void,
+                               data_length: *mut size_t)
+                               -> OSStatus
+    where S: Write
+{
+    let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
