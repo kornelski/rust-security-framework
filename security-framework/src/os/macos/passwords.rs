@@ -164,17 +164,17 @@ mod test {
     use super::*;
 
     fn temp_keychain_setup(name: &str) -> (TempDir, SecKeychain) {
-        let dir = TempDir::new("passwords").unwrap();
+        let dir = TempDir::new("passwords").expect("TempDir::new");
         let keychain = CreateOptions::new()
             .password("foobar")
             .create(dir.path().join(name.to_string() + ".keychain"))
-            .unwrap();
+            .expect("create keychain");
 
         (dir, keychain)
     }
 
     fn temp_keychain_teardown(dir: TempDir) -> () {
-        dir.close().unwrap();
+        dir.close().expect("temp dir close");
     }
 
     #[test]
@@ -212,12 +212,15 @@ mod test {
         let password = String::from("deadbeef").into_bytes();
 
         set_generic_password(Some(&keychains[0]),
-                             service, account, &password).unwrap();
+                             service, account, &password)
+            .expect("set_generic_password");
         let (found, _) = find_generic_password(Some(&keychains),
-                                               service, account).unwrap();
+                                               service, account)
+            .expect("find_generic_password");
         assert_eq!(found, password);
 
-        delete_generic_password(Some(&keychains), service, account).unwrap();
+        delete_generic_password(Some(&keychains), service, account)
+            .expect("delete_generic_password");
 
         temp_keychain_teardown(dir);
     }
@@ -229,11 +232,14 @@ mod test {
         let account = "this_is_the_test_account";
         let password = String::from("deadbeef").into_bytes();
 
-        set_generic_password(None, service, account, &password).unwrap();
-        let (found, _) = find_generic_password(None, service, account).unwrap();
+        set_generic_password(None, service, account, &password)
+            .expect("set_generic_password");
+        let (found, _) = find_generic_password(None, service, account)
+            .expect("find_generic_password");
         assert_eq!(found, password);
 
-        delete_generic_password(None, service, account).unwrap();
+        delete_generic_password(None, service, account)
+            .expect("delete_generic_password");
     }
 
     #[test]
@@ -247,10 +253,10 @@ mod test {
         let pw2 = String::from("password2").into_bytes();
 
         set_generic_password(Some(&keychains[0]), service, account, &pw1)
-            .expect("set_generic_password");
+            .expect("set_generic_password1");
         let (found, _) = find_generic_password(Some(&keychains),
                                                service, account)
-            .expect("find_generic_password");
+            .expect("find_generic_password1");
         assert_eq!(found, pw1);
 
         set_generic_password(Some(&keychains[0]), service, account, &pw2)
@@ -274,15 +280,20 @@ mod test {
         let pw1 = String::from("password1").into_bytes();
         let pw2 = String::from("password2").into_bytes();
 
-        set_generic_password(None, service, account, &pw1).unwrap();
-        let (found, _) = find_generic_password(None, service, account).unwrap();
+        set_generic_password(None, service, account, &pw1)
+            .expect("set_generic_password1");
+        let (found, _) = find_generic_password(None, service, account)
+            .expect("find_generic_password1");
         assert_eq!(found, pw1);
 
-        set_generic_password(None, service, account, &pw2).unwrap();
-        let (found, _) = find_generic_password(None, service, account).unwrap();
+        set_generic_password(None, service, account, &pw2)
+            .expect("set_generic_password2");
+        let (found, _) = find_generic_password(None, service, account)
+            .expect("find_generic_password2");
         assert_eq!(found, pw2);
 
-        delete_generic_password(None, service, account).unwrap();
+        delete_generic_password(None, service, account)
+            .expect("delete_generic_password");
     }
 
     #[test]
@@ -304,11 +315,13 @@ mod test {
 
         // Set a password in one keychain.
         set_generic_password(Some(&keychains1[0]),
-                             service, account, &password).unwrap();
+                             service, account, &password)
+            .expect("set_generic_password");
 
         // Make sure it's found in that keychain.
         let (found, _) = find_generic_password(Some(&keychains1),
-                                               service, account).unwrap();
+                                               service, account)
+            .expect("find_generic_password1");
         assert_eq!(found, password);
 
         // Make sure it's _not_ found in the other keychain.
@@ -317,7 +330,8 @@ mod test {
         assert!(found.is_err());
 
         // Cleanup.
-        delete_generic_password(Some(&keychains1), service, account).unwrap();
+        delete_generic_password(Some(&keychains1), service, account)
+            .expect("delete_generic_password");
 
         temp_keychain_teardown(dir1);
         temp_keychain_teardown(dir2);
