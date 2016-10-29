@@ -8,6 +8,7 @@ use core_foundation_sys::base::{CFTypeRef, CFRelease};
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
 use keychain::SecKeychain;
+use keychain_item::SecKeychainItem;
 use std::ptr;
 use std::ffi::CString;
 use libc::c_void;
@@ -20,7 +21,8 @@ use base::Result;
 /// The underlying system supports passwords with 0 values, so this
 /// returns a vector of bytes rather than a string.
 pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
-                             service: &str, account: &str) -> Result<Vec<u8>> {
+                             service: &str, account: &str)
+                             -> Result<(Vec<u8>, SecKeychainItem)> {
 
     let keychain_or_array = match keychains {
         None => ptr::null(),
@@ -37,6 +39,8 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
     let mut raw_len = 0;
     let mut raw = ptr::null_mut();
 
+    let mut item = ptr::null_mut();
+
     unsafe {
         try!(cvt(SecKeychainFindGenericPassword(keychain_or_array,
                                                 service_name_len,
@@ -45,7 +49,7 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
                                                 account_name.as_ptr(),
                                                 &mut raw_len,
                                                 &mut raw,
-                                                &mut ptr::null_mut())));
+                                                &mut item)));
 
         // Copy the returned password.
         // https://doc.rust-lang.org/std/ptr/fn.copy.html
@@ -58,7 +62,8 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
         try!(cvt(SecKeychainItemFreeContent(ptr::null(),
                                             raw as *const c_void)));
 
-        Ok(password)
+        // XXX Should this use the get or create rule?
+        Ok((password, SecKeychainItem::wrap_under_create_rule(item as *mut _)))
     }
 }
 
@@ -178,10 +183,10 @@ mod test {
 
         let service = "temp_this_service_does_not_exist";
         let account = "this_account_is_bogus";
-        let password = find_generic_password(Some(&keychains),
-                                             service, account);
+        let found = find_generic_password(Some(&keychains),
+                                          service, account);
 
-        assert!(password.is_err());
+        assert!(found.is_err());
 
         temp_keychain_teardown(dir);
     }
@@ -191,9 +196,9 @@ mod test {
     fn missing_password_default() {
         let service = "default_this_service_does_not_exist";
         let account = "this_account_is_bogus";
-        let password = find_generic_password(None, service, account);
+        let found = find_generic_password(None, service, account);
 
-        assert!(password.is_err());
+        assert!(found.is_err());
     }
 
     #[test]
@@ -207,8 +212,8 @@ mod test {
 
         set_generic_password(Some(&keychains[0]),
                              service, account, &password).unwrap();
-        let found = find_generic_password(Some(&keychains),
-                                          service, account).unwrap();
+        let (found, _) = find_generic_password(Some(&keychains),
+                                               service, account).unwrap();
         assert_eq!(found, password);
 
         delete_generic_password(Some(&keychains), service, account).unwrap();
@@ -224,7 +229,7 @@ mod test {
         let password = String::from("deadbeef").into_bytes();
 
         set_generic_password(None, service, account, &password).unwrap();
-        let found = find_generic_password(None, service, account).unwrap();
+        let (found, _) = find_generic_password(None, service, account).unwrap();
         assert_eq!(found, password);
 
         delete_generic_password(None, service, account).unwrap();
@@ -242,14 +247,14 @@ mod test {
 
         set_generic_password(Some(&keychains[0]), service, account, &pw1)
             .expect("set_generic_password");
-        let found = find_generic_password(Some(&keychains),
-                                          service, account)
+        let (found, _) = find_generic_password(Some(&keychains),
+                                               service, account)
             .expect("find_generic_password");
         assert_eq!(found, pw1);
 
         set_generic_password(Some(&keychains[0]), service, account, &pw2)
             .expect("set_generic_password2");
-        let found = find_generic_password(Some(&keychains),
+        let (found, _) = find_generic_password(Some(&keychains),
                                                service, account)
             .expect("find_generic_password2");
         assert_eq!(found, pw2);
@@ -269,11 +274,11 @@ mod test {
         let pw2 = String::from("password2").into_bytes();
 
         set_generic_password(None, service, account, &pw1).unwrap();
-        let found = find_generic_password(None, service, account).unwrap();
+        let (found, _) = find_generic_password(None, service, account).unwrap();
         assert_eq!(found, pw1);
 
         set_generic_password(None, service, account, &pw2).unwrap();
-        let found = find_generic_password(None, service, account).unwrap();
+        let (found, _) = find_generic_password(None, service, account).unwrap();
         assert_eq!(found, pw2);
 
         delete_generic_password(None, service, account).unwrap();
@@ -301,8 +306,8 @@ mod test {
                              service, account, &password).unwrap();
 
         // Make sure it's found in that keychain.
-        let found = find_generic_password(Some(&keychains1),
-                                          service, account).unwrap();
+        let (found, _) = find_generic_password(Some(&keychains1),
+                                               service, account).unwrap();
         assert_eq!(found, password);
 
         // Make sure it's _not_ found in the other keychain.
