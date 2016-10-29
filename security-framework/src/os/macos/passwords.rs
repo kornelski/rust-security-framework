@@ -100,6 +100,7 @@ pub fn set_generic_password(keychain_opt: Option<&SecKeychain>,
             errSecSuccess => {
                 try!(cvt(SecKeychainItemModifyAttributesAndData(
                     item, ptr::null(), password_len, password.as_ptr())));
+                CFRelease(item as CFTypeRef);
             },
             _ => {
                 try!(cvt(
