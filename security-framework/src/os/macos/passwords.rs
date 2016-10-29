@@ -187,6 +187,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "default_keychain_tests")]
     fn missing_password_default() {
         let service = "default_this_service_does_not_exist";
         let account = "this_account_is_bogus";
@@ -216,6 +217,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "default_keychain_tests")]
     fn round_trip_password_default() {
         let service = "test_round_trip_password_default";
         let account = "this_is_the_test_account";
@@ -259,6 +261,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "default_keychain_tests")]
     fn change_password_default() {
         let service = "test_change_password_default";
         let account = "this_is_the_test_account";

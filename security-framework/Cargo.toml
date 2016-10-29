@@ -27,3 +27,4 @@ OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]
 OSX_10_11 = ["OSX_10_10", "security-framework-sys/OSX_10_11"]
 
 nightly = []
+default_keychain_tests = []
