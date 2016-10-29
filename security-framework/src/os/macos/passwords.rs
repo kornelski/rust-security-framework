@@ -278,4 +278,42 @@ mod test {
 
         delete_generic_password(None, service, account).unwrap();
     }
+
+    #[test]
+    fn cross_keychain_corruption_temp() {
+        let (dir1, keychain1) = temp_keychain_setup("cross_corrupt1");
+        let (dir2, keychain2) = temp_keychain_setup("cross_corrupt2");
+        let keychains1 = vec![keychain1.clone()];
+        let keychains2 = vec![keychain2.clone()];
+        let both_keychains = vec![keychain1, keychain2];
+
+        let service = "temp_this_service_does_not_exist";
+        let account = "this_account_is_bogus";
+        let password = String::from("deadbeef").into_bytes();
+
+        // Make sure this password doesn't exist in either keychain.
+        let found = find_generic_password(Some(&both_keychains),
+                                          service, account);
+        assert!(found.is_err());
+
+        // Set a password in one keychain.
+        set_generic_password(Some(&keychains1[0]),
+                             service, account, &password).unwrap();
+
+        // Make sure it's found in that keychain.
+        let found = find_generic_password(Some(&keychains1),
+                                          service, account).unwrap();
+        assert_eq!(found, password);
+
+        // Make sure it's _not_ found in the other keychain.
+        let found = find_generic_password(Some(&keychains2),
+                                          service, account);
+        assert!(found.is_err());
+
+        // Cleanup.
+        delete_generic_password(Some(&keychains1), service, account).unwrap();
+
+        temp_keychain_teardown(dir1);
+        temp_keychain_teardown(dir2);
+    }
 }
