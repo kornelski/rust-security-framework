@@ -1,6 +1,6 @@
 //! Password support.
 
-use security_framework_sys::passwords::*;
+use security_framework_sys::keychain::*;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::keychain_item::{SecKeychainItemDelete,
                                             SecKeychainItemModifyAttributesAndData};

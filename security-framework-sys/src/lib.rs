@@ -21,8 +21,6 @@ pub mod key;
 pub mod keychain;
 #[cfg(target_os = "macos")]
 pub mod keychain_item;
-#[cfg(target_os = "macos")]
-pub mod passwords;
 pub mod policy;
 pub mod random;
 pub mod secure_transport;
