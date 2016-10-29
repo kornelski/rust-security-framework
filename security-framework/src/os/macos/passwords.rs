@@ -4,7 +4,7 @@ use security_framework_sys::passwords::*;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::keychain_item::{SecKeychainItemDelete,
                                             SecKeychainItemModifyAttributesAndData};
-use core_foundation_sys::base::CFRelease;
+use core_foundation_sys::base::{CFTypeRef, CFRelease};
 use std::ptr;
 use std::ffi::CString;
 use libc::c_void;
@@ -116,7 +116,7 @@ pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
                                                 &mut item)));
 
         SecKeychainItemDelete(item);
-        CFRelease(item);
+        CFRelease(item as CFTypeRef);
         Ok(())
     }
 }

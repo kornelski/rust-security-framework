@@ -8,10 +8,7 @@ pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 
 #[repr(C)]
 pub struct OpaqueSecKeychainItemRef(c_void);
-//pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
-// XXX Need to do this to allow converting from a SecKeyChainItemRef
-// XXX to CFTypeRef.
-pub type SecKeychainItemRef = *mut c_void;
+pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
 
 #[repr(C)]
 pub struct OpaqueSecCertificateRef(c_void);
