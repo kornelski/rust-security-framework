@@ -509,4 +509,32 @@ mod test {
         p!(ctx.set_certificate_authorities(&[certificate()]));
         assert_eq!(p!(ctx.certificate_authorities()).unwrap().len(), 1);
     }
+
+    #[test]
+    fn close() {
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("close"));
+
+            let identity = identity(dir.path());
+            let builder = ServerBuilder::new(&identity, &[]);
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(builder.handshake(stream));
+            p!(stream.close());
+        });
+
+        let stream = p!(TcpStream::connect(("localhost", port)));
+        let mut stream = p!(ClientBuilder::new()
+                                .anchor_certificates(&[certificate()])
+                                .handshake("foobar.com", stream));
+
+        let mut buf = [0; 1];
+        assert_eq!(p!(stream.read(&mut buf)), 0);
+        p!(stream.close());
+
+        p!(handle.join());
+    }
 }
