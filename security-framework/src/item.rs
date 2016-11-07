@@ -36,14 +36,16 @@ pub enum ItemClass {
 
 impl ItemClass {
     fn to_value(&self) -> CFType {
-        let raw = match *self {
-            ItemClass::GenericPassword => kSecClassGenericPassword,
-            ItemClass::InternetPassword => kSecClassInternetPassword,
-            ItemClass::Certificate => kSecClassCertificate,
-            ItemClass::Key => kSecClassKey,
-            ItemClass::Identity => kSecClassIdentity,
-        };
-        unsafe { CFType::wrap_under_get_rule(raw as *const _) }
+        unsafe {
+            let raw = match *self {
+                ItemClass::GenericPassword => kSecClassGenericPassword,
+                ItemClass::InternetPassword => kSecClassInternetPassword,
+                ItemClass::Certificate => kSecClassCertificate,
+                ItemClass::Key => kSecClassKey,
+                ItemClass::Identity => kSecClassIdentity,
+            };
+            CFType::wrap_under_get_rule(raw as *const _)
+        }
     }
 }
 

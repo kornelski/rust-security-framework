@@ -32,15 +32,17 @@ pub enum Padding {
 
 impl Padding {
     fn to_str(&self) -> CFString {
-        let raw = match *self {
-            Padding::None => kSecPaddingNoneKey,
-            Padding::Pkcs1 => kSecPaddingPKCS1Key,
-            Padding::Pkcs5 => kSecPaddingPKCS5Key,
-            Padding::Pkcs7 => kSecPaddingPKCS7Key,
-            #[cfg(feature = "OSX_10_8")]
-            Padding::Oaep => kSecPaddingOAEPKey,
-        };
-        unsafe { CFString::wrap_under_get_rule(raw) }
+        unsafe {
+            let raw = match *self {
+                Padding::None => kSecPaddingNoneKey,
+                Padding::Pkcs1 => kSecPaddingPKCS1Key,
+                Padding::Pkcs5 => kSecPaddingPKCS5Key,
+                Padding::Pkcs7 => kSecPaddingPKCS7Key,
+                #[cfg(feature = "OSX_10_8")]
+                Padding::Oaep => kSecPaddingOAEPKey,
+            };
+            CFString::wrap_under_get_rule(raw)
+        }
     }
 }
 
@@ -59,14 +61,16 @@ pub enum Mode {
 
 impl Mode {
     fn to_str(&self) -> CFString {
-        let raw = match *self {
-            Mode::None => kSecModeNoneKey,
-            Mode::Ecb => kSecModeECBKey,
-            Mode::Cbc => kSecModeCBCKey,
-            Mode::Cfb => kSecModeCFBKey,
-            Mode::Ofb => kSecModeOFBKey,
-        };
-        unsafe { CFString::wrap_under_get_rule(raw) }
+        unsafe {
+            let raw = match *self {
+                Mode::None => kSecModeNoneKey,
+                Mode::Ecb => kSecModeECBKey,
+                Mode::Cbc => kSecModeCBCKey,
+                Mode::Cfb => kSecModeCFBKey,
+                Mode::Ofb => kSecModeOFBKey,
+            };
+            CFString::wrap_under_get_rule(raw)
+        }
     }
 }
 
