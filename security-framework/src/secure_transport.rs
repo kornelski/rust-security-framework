@@ -247,6 +247,7 @@ pub enum SslClientCertificateState {
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
         /// Specifies protocol versions.
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
         }
