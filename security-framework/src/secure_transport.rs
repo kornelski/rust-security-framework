@@ -247,7 +247,7 @@ pub enum SslClientCertificateState {
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
         /// Specifies protocol versions.
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        #[derive(Copy, Clone, PartialEq, Eq)]
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
         }
@@ -752,7 +752,7 @@ unsafe extern fn read_func<S>(connection: SSLConnectionRef,
     while start < data.len() {
         match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.read(&mut data[start..]))) {
             Ok(Ok(0)) => {
-                ret = errSSLClosedNoNotify;
+                ret = errSSLClosedGraceful;
                 break;
             }
             Ok(Ok(len)) => start += len,
