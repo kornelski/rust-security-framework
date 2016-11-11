@@ -247,21 +247,9 @@ pub enum SslClientCertificateState {
 macro_rules! ssl_protocol {
     ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
         /// Specifies protocol versions.
-        #[derive(Copy, Clone, PartialEq, Eq)]
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum SslProtocol {
             $($(#[$a])* $variant,)+
-        }
-
-        // #[derive(Debug)] doesn't work with macro expanded cfg'd variants
-        impl fmt::Debug for SslProtocol {
-            fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-                use self::SslProtocol::*;
-
-                let s = match *self {
-                    $($(#[$a])* $variant => stringify!($variant),)+
-                };
-                fmt.write_str(s)
-            }
         }
 
         impl SslProtocol {
