@@ -740,7 +740,7 @@ unsafe extern fn read_func<S>(connection: SSLConnectionRef,
     while start < data.len() {
         match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.read(&mut data[start..]))) {
             Ok(Ok(0)) => {
-                ret = errSSLClosedGraceful;
+                ret = errSSLClosedNoNotify;
                 break;
             }
             Ok(Ok(len)) => start += len,
