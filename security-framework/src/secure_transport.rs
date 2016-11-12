@@ -757,6 +757,7 @@ unsafe extern fn read_func<S>(connection: SSLConnectionRef,
         }
     }
 
+    let _ = writeln!(::std::io::stdout(), "{:?} read {}, ret {}", ::std::thread::current().name(), start, ret);
     *data_length = start;
     ret
 }
@@ -792,6 +793,7 @@ unsafe extern fn write_func<S>(connection: SSLConnectionRef,
         }
     }
 
+    let _ = writeln!(::std::io::stdout(), "{:?} wrote {}, ret {}", ::std::thread::current().name(), start, ret);
     *data_length = start;
     ret
 }
