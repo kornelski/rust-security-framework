@@ -962,6 +962,7 @@ impl<S: Read + Write> Write for SslStream<S> {
 /// A builder type to simplify the creation of client side `SslStream`s.
 #[derive(Debug)]
 pub struct ClientBuilder {
+    identity: Option<SecIdentity>,
     certs: Option<Vec<SecCertificate>>,
 }
 
@@ -974,13 +975,19 @@ impl Default for ClientBuilder {
 impl ClientBuilder {
     /// Creates a new builder with default options.
     pub fn new() -> Self {
-        ClientBuilder { certs: None }
+        ClientBuilder { identity: None, certs: None }
     }
 
     /// Specifies the set of additional root certificates to trust when
     /// verifying the server's certificate.
     pub fn anchor_certificates(&mut self, certs: &[SecCertificate]) -> &mut Self {
         self.certs = Some(certs.to_owned());
+        self
+    }
+
+    /// Use the specified identity as a SSL/TLS client certificate.
+    pub fn identity(&mut self, identity: &SecIdentity) -> &mut Self {
+        self.identity = Some(identity.clone());
         self
     }
 
@@ -992,6 +999,9 @@ impl ClientBuilder {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         try!(ctx.set_peer_domain_name(domain));
 
+        if let Some(ref identity) = self.identity {
+            try!(ctx.set_certificate(identity, &[]));
+        }
         if self.certs.is_some() {
             try!(ctx.set_break_on_server_auth(true));
         }
