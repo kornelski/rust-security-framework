@@ -56,6 +56,7 @@ pub struct ItemSearchOptions {
     class: Option<ItemClass>,
     load_refs: bool,
     limit: Option<i64>,
+    label: Option<CFString>,
 }
 
 #[cfg(target_os = "macos")]
@@ -102,6 +103,12 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Search for an item with the given label.
+    pub fn label(&mut self, label: &str) -> &mut ItemSearchOptions {
+        self.label = Some(CFString::new(label));
+        self
+    }
+
     /// Search for objects.
     pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
@@ -124,6 +131,11 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((CFString::wrap_under_get_rule(kSecMatchLimit),
                              CFNumber::from_i64(limit).as_CFType()));
+            }
+
+            if let Some(ref label) = self.label {
+                params.push((CFString::wrap_under_get_rule(kSecAttrLabel),
+                             label.as_CFType()));
             }
 
             let params = CFDictionary::from_CFType_pairs(&params);
