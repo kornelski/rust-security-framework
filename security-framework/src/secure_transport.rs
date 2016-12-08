@@ -631,6 +631,7 @@ impl SslContext {
     /// `set_protocol_version_max` and `set_protocol_version_min`, although if
     /// you're working with OSX 10.8 or before you may have to use this API
     /// instead.
+    #[cfg(target_os = "macos")]
     pub fn set_protocol_version_enabled(&mut self,
                                         protocol: SslProtocol,
                                         enabled: bool) -> Result<()> {

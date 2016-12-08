@@ -252,6 +252,7 @@ extern "C" {
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLSetProtocolVersionMin(context: SSLContextRef, minVersion: SSLProtocol) -> OSStatus;
+    #[cfg(target_os = "macos")]
     pub fn SSLSetProtocolVersionEnabled(context: SSLContextRef,
                                         protocol: SSLProtocol,
                                         enable: Boolean) -> OSStatus;
