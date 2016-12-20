@@ -1,0 +1,2 @@
+[workspace]
+projects = ["security-framework-sys", "security-framework"]
