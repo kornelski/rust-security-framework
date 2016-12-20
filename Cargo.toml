@@ -1,2 +1,2 @@
 [workspace]
-projects = ["security-framework-sys", "security-framework"]
+members = ["security-framework-sys", "security-framework"]

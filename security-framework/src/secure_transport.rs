@@ -1112,8 +1112,8 @@ impl ClientBuilder {
 
     /// Configure the minimum protocol that this client will support.
     ///
-    /// Note that this configuration option is currently ignored unless this
-    /// crate is compiled with the `OSX_10_8` feature.
+    /// Requires the `OSX_10_8` (or greater) feature.
+    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_min(&mut self, min: SslProtocol) -> &mut Self {
         self.protocol_min = Some(min);
         self
@@ -1121,8 +1121,8 @@ impl ClientBuilder {
 
     /// Configure the minimum protocol that this client will support.
     ///
-    /// Note that this configuration option is currently ignored unless this
-    /// crate is compiled with the `OSX_10_8` feature.
+    /// Requires the `OSX_10_8` (or greater) feature.
+    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_max(&mut self, max: SslProtocol) -> &mut Self {
         self.protocol_max = Some(max);
         self
