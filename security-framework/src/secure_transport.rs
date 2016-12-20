@@ -130,6 +130,27 @@ pub enum HandshakeError<S> {
     Interrupted(MidHandshakeSslStream<S>),
 }
 
+impl<S> From<Error> for HandshakeError<S> {
+    fn from(err: Error) -> HandshakeError<S> {
+        HandshakeError::Failure(err)
+    }
+}
+
+/// An error or intermediate state after a TLS handshake attempt.
+#[derive(Debug)]
+pub enum ClientHandshakeError<S> {
+    /// The handshake failed.
+    Failure(Error),
+    /// The handshake was interrupted midway through.
+    Interrupted(MidHandshakeClientBuilder<S>),
+}
+
+impl<S> From<Error> for ClientHandshakeError<S> {
+    fn from(err: Error) -> ClientHandshakeError<S> {
+        ClientHandshakeError::Failure(err)
+    }
+}
+
 /// An SSL stream midway through the handshake process.
 #[derive(Debug)]
 pub struct MidHandshakeSslStream<S> {
@@ -191,6 +212,86 @@ impl<S> MidHandshakeSslStream<S> {
         self.stream.handshake()
     }
 }
+
+/// An SSL stream midway through the handshake process.
+#[derive(Debug)]
+pub struct MidHandshakeClientBuilder<S> {
+    stream: MidHandshakeSslStream<S>,
+    certs: Option<Vec<SecCertificate>>,
+}
+
+impl<S> MidHandshakeClientBuilder<S> {
+    /// Returns a shared reference to the inner stream.
+    pub fn get_ref(&self) -> &S {
+        self.stream.get_ref()
+    }
+
+    /// Returns a mutable reference to the inner stream.
+    pub fn get_mut(&mut self) -> &mut S {
+        self.stream.get_mut()
+    }
+
+    /// Returns the error which caused the handshake interruption.
+    pub fn error(&self) -> &Error {
+        self.stream.error()
+    }
+
+    /// Restarts the handshake process.
+    pub fn handshake(self) -> result::Result<SslStream<S>, ClientHandshakeError<S>> {
+        let MidHandshakeClientBuilder { stream, certs } = self;
+        let mut result = stream.handshake();
+        loop {
+            let stream = match result {
+                Ok(stream) => return Ok(stream),
+                Err(HandshakeError::Interrupted(stream)) => stream,
+                Err(HandshakeError::Failure(err)) => {
+                    return Err(ClientHandshakeError::Failure(err))
+                }
+            };
+
+            if stream.would_block() {
+                let ret = MidHandshakeClientBuilder {
+                    stream: stream,
+                    certs: certs,
+                };
+                return Err(ClientHandshakeError::Interrupted(ret))
+            }
+
+            if stream.server_auth_completed() {
+                if let Some(ref certs) = certs {
+                    let mut trust = try!(stream.context().peer_trust());
+                    try!(trust.set_anchor_certificates(certs));
+                    let trusted = try!(trust.evaluate());
+                    match trusted {
+                        TrustResult::Invalid |
+                        TrustResult::OtherError => {
+                            let err = Error::from_code(errSecBadReq);
+                            return Err(ClientHandshakeError::Failure(err))
+                        }
+                        TrustResult::Proceed |
+                        TrustResult::Unspecified => {
+                            result = stream.handshake();
+                            continue
+                        }
+                        TrustResult::Deny => {
+                            let err = Error::from_code(errSecTrustSettingDeny);
+                            return Err(ClientHandshakeError::Failure(err))
+                        }
+                        TrustResult::RecoverableTrustFailure |
+                        TrustResult::FatalTrustFailure => {
+                            let err = Error::from_code(errSecNotTrusted);
+                            return Err(ClientHandshakeError::Failure(err))
+                        }
+                    }
+                }
+            }
+
+            let err = Error::from_code(stream.reason());
+            return Err(ClientHandshakeError::Failure(err))
+        }
+    }
+}
+
 
 /// Specifies the state of a TLS session.
 #[derive(Debug)]
@@ -965,6 +1066,9 @@ impl<S: Read + Write> Write for SslStream<S> {
 pub struct ClientBuilder {
     identity: Option<SecIdentity>,
     certs: Option<Vec<SecCertificate>>,
+    chain: Vec<SecCertificate>,
+    protocol_min: Option<SslProtocol>,
+    protocol_max: Option<SslProtocol>,
 }
 
 impl Default for ClientBuilder {
@@ -976,7 +1080,13 @@ impl Default for ClientBuilder {
 impl ClientBuilder {
     /// Creates a new builder with default options.
     pub fn new() -> Self {
-        ClientBuilder { identity: None, certs: None }
+        ClientBuilder {
+            identity: None,
+            certs: None,
+            chain: Vec::new(),
+            protocol_min: None,
+            protocol_max: None,
+        }
     }
 
     /// Specifies the set of additional root certificates to trust when
@@ -992,21 +1102,47 @@ impl ClientBuilder {
         self
     }
 
+    /// Use the specified chain of certificates for extra certificates in the
+    /// chain if a custom `identity` is also specified through the `identity`
+    /// method.
+    pub fn certificate_chain(&mut self, chain: &[SecCertificate]) -> &mut Self {
+        self.chain = chain.to_owned();
+        self
+    }
+
+    /// Configure the minimum protocol that this client will support.
+    ///
+    /// Note that this configuration option is currently ignored unless this
+    /// crate is compiled with the `OSX_10_8` feature.
+    pub fn protocol_min(&mut self, min: SslProtocol) -> &mut Self {
+        self.protocol_min = Some(min);
+        self
+    }
+
+    /// Configure the minimum protocol that this client will support.
+    ///
+    /// Note that this configuration option is currently ignored unless this
+    /// crate is compiled with the `OSX_10_8` feature.
+    pub fn protocol_max(&mut self, max: SslProtocol) -> &mut Self {
+        self.protocol_max = Some(max);
+        self
+    }
+
     /// Initiates a new SSL/TLS session over a stream connected to the specified
     /// domain.
+    ///
+    /// Note that this method assumes that the stream `S` is in *blocking* mode,
+    /// and it will return an error if the stream is set to nonblocking mode.
+    /// If the stream `S` is in asynchronous operation (or may be) then you may
+    /// use `handshake2` instead.
+    ///
+    /// Note that this method will likely be removed in the next major release
+    /// in favor of `handshake2`.
     pub fn handshake<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
         where S: Read + Write
     {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        try!(ctx.set_peer_domain_name(domain));
-
-        if let Some(ref identity) = self.identity {
-            try!(ctx.set_certificate(identity, &[]));
-        }
-        if self.certs.is_some() {
-            try!(ctx.set_break_on_server_auth(true));
-        }
-
+        try!(self.configure(domain, &mut ctx));
         let mut result = ctx.handshake(stream);
         loop {
             match result {
@@ -1043,6 +1179,60 @@ impl ClientBuilder {
                 Err(HandshakeError::Failure(err)) => return Err(err),
             }
         }
+    }
+
+    /// Initiates a new SSL/TLS session over a stream connected to the specified
+    /// domain.
+    pub fn handshake2<S>(self, domain: &str, stream: S)
+                         -> result::Result<SslStream<S>, ClientHandshakeError<S>>
+        where S: Read + Write
+    {
+        let mut ctx = try!(SslContext::new(ProtocolSide::Client,
+                                           ConnectionType::Stream));
+        try!(self.configure(domain, &mut ctx));
+        let certs = self.certs;
+        ctx.handshake(stream).map_err(|e| {
+            match e {
+                HandshakeError::Interrupted(s) => {
+                    ClientHandshakeError::Interrupted(MidHandshakeClientBuilder {
+                        stream: s,
+                        certs: certs,
+                    })
+                }
+                HandshakeError::Failure(e) => {
+                    ClientHandshakeError::Failure(e)
+                }
+            }
+        })
+    }
+
+    fn configure(&self, domain: &str, ctx: &mut SslContext) -> Result<()> {
+        try!(ctx.set_peer_domain_name(domain));
+
+        if let Some(ref identity) = self.identity {
+            try!(ctx.set_certificate(identity, &self.chain));
+        }
+        if self.certs.is_some() {
+            try!(ctx.set_break_on_server_auth(true));
+        }
+        try!(self.configure_protocols(ctx));
+        Ok(())
+    }
+
+    #[cfg(feature = "OSX_10_8")]
+    fn configure_protocols(&self, ctx: &mut SslContext) -> Result<()> {
+        if let Some(min) = self.protocol_min {
+            try!(ctx.set_protocol_version_min(min));
+        }
+        if let Some(max) = self.protocol_max {
+            try!(ctx.set_protocol_version_max(max));
+        }
+        Ok(())
+    }
+
+    #[cfg(not(feature = "OSX_10_8"))]
+    fn configure_protocols(&self, _ctx: &mut SslContext) -> Result<()> {
+        Ok(())
     }
 }
 
