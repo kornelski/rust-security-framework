@@ -1097,15 +1097,8 @@ impl ClientBuilder {
     }
 
     /// Use the specified identity as a SSL/TLS client certificate.
-    pub fn identity(&mut self, identity: &SecIdentity) -> &mut Self {
+    pub fn identity(&mut self, identity: &SecIdentity, chain: &[SecCertificate]) -> &mut Self {
         self.identity = Some(identity.clone());
-        self
-    }
-
-    /// Use the specified chain of certificates for extra certificates in the
-    /// chain if a custom `identity` is also specified through the `identity`
-    /// method.
-    pub fn certificate_chain(&mut self, chain: &[SecCertificate]) -> &mut Self {
         self.chain = chain.to_owned();
         self
     }
