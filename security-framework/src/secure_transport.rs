@@ -1016,6 +1016,13 @@ impl<S> SslStream<S> {
 
 impl<S: Read + Write> Read for SslStream<S> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        // Below we base our return value off the amount of data read, so a
+        // zero-length buffer might cause us to erroneously interpret this
+        // request as an error. Instead short-circuit that logic and return
+        // `Ok(0)` instead.
+        if buf.len() == 0 {
+            return Ok(0)
+        }
         unsafe {
             let mut nread = 0;
             let ret = SSLRead(self.ctx.0,
@@ -1040,6 +1047,10 @@ impl<S: Read + Write> Read for SslStream<S> {
 
 impl<S: Read + Write> Write for SslStream<S> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        // Like above in read, short circuit a 0-length write
+        if buf.len() == 0 {
+            return Ok(0)
+        }
         unsafe {
             let mut nwritten = 0;
             let ret = SSLWrite(self.ctx.0,
@@ -1414,5 +1425,15 @@ mod test {
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let _ = ctx.handshake(ExplodingStream(stream));
+    }
+
+    #[test]
+    fn zero_length_buffers() {
+        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        p!(ctx.set_peer_domain_name("google.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let mut stream = ctx.handshake(stream).unwrap();
+        assert_eq!(stream.write(b"").unwrap(), 0);
+        assert_eq!(stream.read(&mut []).unwrap(), 0);
     }
 }
