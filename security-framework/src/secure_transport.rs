@@ -322,7 +322,7 @@ impl SessionState {
 }
 
 /// Specifies a server's requirement for client certificates.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum SslAuthenticate {
     /// Do not request a client certificate.
     Never,
