@@ -62,7 +62,6 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
         try!(cvt(SecKeychainItemFreeContent(ptr::null(),
                                             raw as *const c_void)));
 
-        // XXX Should this use the get or create rule?
         Ok((password, SecKeychainItem::wrap_under_create_rule(item as *mut _)))
     }
 }
