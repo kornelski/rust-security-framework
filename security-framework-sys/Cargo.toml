@@ -14,6 +14,7 @@ links = "Security.framework"
 [dependencies]
 libc = "0.2"
 core-foundation-sys = "0.2.1"
+MacTypes-sys = "1.1.0"
 
 [features]
 OSX_10_8 = []

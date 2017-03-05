@@ -1,5 +1,6 @@
 use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::string::CFStringRef;
+use MacTypes_sys::OSType;
 use libc::c_void;
 
 #[repr(C)]
@@ -9,11 +10,6 @@ pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 #[repr(C)]
 pub struct OpaqueSecKeychainItemRef(c_void);
 pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
-
-/* XXX This doesn't belong here. */
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct OSType(pub [u8; 4]);
 
 pub type SecKeychainAttrType = OSType;
 
