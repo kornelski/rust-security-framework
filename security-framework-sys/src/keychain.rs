@@ -1,7 +1,8 @@
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID, CFTypeRef};
 use libc::{c_char, c_void};
 
-use base::{SecAccessRef, SecKeychainRef, SecKeychainItemRef};
+use base::{SecAccessRef, SecKeychainRef, SecKeychainItemRef,
+           SecKeychainAttributeList};
 
 extern "C" {
     pub fn SecKeychainGetTypeID() -> CFTypeID;
@@ -44,8 +45,7 @@ extern "C" {
                                          itemRef: *mut SecKeychainItemRef)
                                          -> OSStatus;
     #[cfg(target_os = "macos")]
-    // XXX First arg should be a SecKeychainAttributeList.
-    pub fn SecKeychainItemFreeContent(attrList: *const c_void,
+    pub fn SecKeychainItemFreeContent(attrList: *const SecKeychainAttributeList,
                                       data: *const c_void)
                                       -> OSStatus;
 }

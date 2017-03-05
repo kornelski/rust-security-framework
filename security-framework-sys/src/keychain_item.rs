@@ -1,6 +1,5 @@
 use core_foundation_sys::base::{CFTypeID, OSStatus};
-use base::SecKeychainItemRef;
-use libc::c_void;
+use base::{SecKeychainItemRef, SecKeychainAttributeList};
 
 extern "C" {
     pub fn SecKeychainItemGetTypeID() -> CFTypeID;
@@ -9,8 +8,7 @@ extern "C" {
 
     pub fn SecKeychainItemModifyAttributesAndData(
         itemRef: SecKeychainItemRef,
-        // XXX Should be SecKeychainAttributeList
-        attrList: *const c_void,
+        attrList: *const SecKeychainAttributeList,
         length: u32,
         data: *const u8)
         -> OSStatus;

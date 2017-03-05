@@ -10,6 +10,28 @@ pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 pub struct OpaqueSecKeychainItemRef(c_void);
 pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
 
+/* XXX This doesn't belong here. */
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct OSType(pub [u8; 4]);
+
+pub type SecKeychainAttrType = OSType;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct SecKeychainAttribute {
+    pub tag: SecKeychainAttrType,
+    pub length: u32,
+    pub data: *mut c_void,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct SecKeychainAttributeList {
+    pub count: u32,
+    pub attr: *mut SecKeychainAttribute,
+}
+
 #[repr(C)]
 pub struct OpaqueSecCertificateRef(c_void);
 pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
