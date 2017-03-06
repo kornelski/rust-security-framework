@@ -17,10 +17,15 @@ use libc::c_void;
 use cvt;
 use base::Result;
 
-/// Find a generic password in the default list of keychains.
+/// Find a generic password.
 ///
 /// The underlying system supports passwords with 0 values, so this
 /// returns a vector of bytes rather than a string.
+///
+/// * `keychains` is an array of keychains to search or None to search
+///   the default keychain.
+/// * `service` is the name of the service to search for.
+/// * `account` is the name of the account to search for.
 pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
                              service: &str, account: &str)
                              -> Result<(Vec<u8>, SecKeychainItem)> {
@@ -67,7 +72,13 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
     }
 }
 
-/// Set a generic password in the default keychain.
+/// Set a generic password.
+///
+/// * `keychain_opt` is the keychain to use or None to use the default
+///   keychain.
+/// * `service` is the associated service name for the password.
+/// * `account` is the associated account name for the password.
+/// * `password` is the password itself.
 pub fn set_generic_password(keychain_opt: Option<&SecKeychain>,
                             service: &str, account: &str, password: &[u8])
                             -> Result<()> {
@@ -122,6 +133,11 @@ pub fn set_generic_password(keychain_opt: Option<&SecKeychain>,
 }
 
 /// Delete a generic password.
+///
+/// * `keychains` is an array of keychains to search or None to search
+///   the default keychain.
+/// * `service` is the associated service name for the password.
+/// * `account` is the associated account name for the password.
 pub fn delete_generic_password(keychains: Option<&[SecKeychain]>,
                                service: &str, account: &str) -> Result<()> {
 
