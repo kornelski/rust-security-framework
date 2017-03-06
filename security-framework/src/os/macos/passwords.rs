@@ -1,6 +1,7 @@
 //! Password support.
 
-use security_framework_sys::keychain::*;
+use security_framework_sys::keychain::{SecKeychainFindGenericPassword,
+                                       SecKeychainAddGenericPassword};
 use security_framework_sys::base::{SecKeychainRef, errSecSuccess};
 use security_framework_sys::keychain_item::{SecKeychainItemDelete,
                                             SecKeychainItemModifyAttributesAndData,
