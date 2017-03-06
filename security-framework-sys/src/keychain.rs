@@ -44,8 +44,4 @@ extern "C" {
                                          passwordData: *const u8,
                                          itemRef: *mut SecKeychainItemRef)
                                          -> OSStatus;
-    #[cfg(target_os = "macos")]
-    pub fn SecKeychainItemFreeContent(attrList: *const SecKeychainAttributeList,
-                                      data: *const c_void)
-                                      -> OSStatus;
 }

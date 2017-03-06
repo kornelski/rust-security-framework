@@ -3,7 +3,8 @@
 use security_framework_sys::keychain::*;
 use security_framework_sys::base::{SecKeychainRef, errSecSuccess};
 use security_framework_sys::keychain_item::{SecKeychainItemDelete,
-                                            SecKeychainItemModifyAttributesAndData};
+                                            SecKeychainItemModifyAttributesAndData,
+                                            SecKeychainItemFreeContent};
 use core_foundation_sys::base::{CFTypeRef, CFRelease};
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
