@@ -1,8 +1,7 @@
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID, CFTypeRef};
 use libc::{c_char, c_void};
 
-use base::{SecAccessRef, SecKeychainRef, SecKeychainItemRef,
-           SecKeychainAttributeList};
+use base::{SecAccessRef, SecKeychainRef, SecKeychainItemRef};
 
 extern "C" {
     pub fn SecKeychainGetTypeID() -> CFTypeID;
