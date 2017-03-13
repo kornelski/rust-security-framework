@@ -244,9 +244,7 @@ impl<S> MidHandshakeClientBuilder<S> {
             let stream = match result {
                 Ok(stream) => return Ok(stream),
                 Err(HandshakeError::Interrupted(stream)) => stream,
-                Err(HandshakeError::Failure(err)) => {
-                    return Err(ClientHandshakeError::Failure(err))
-                }
+                Err(HandshakeError::Failure(err)) => return Err(ClientHandshakeError::Failure(err)),
             };
 
             if stream.would_block() {
@@ -254,7 +252,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                     stream: stream,
                     certs: certs,
                 };
-                return Err(ClientHandshakeError::Interrupted(ret))
+                return Err(ClientHandshakeError::Interrupted(ret));
             }
 
             if stream.server_auth_completed() {
@@ -263,31 +261,29 @@ impl<S> MidHandshakeClientBuilder<S> {
                     try!(trust.set_anchor_certificates(certs));
                     let trusted = try!(trust.evaluate());
                     match trusted {
-                        TrustResult::Invalid |
-                        TrustResult::OtherError => {
+                        TrustResult::Invalid | TrustResult::OtherError => {
                             let err = Error::from_code(errSecBadReq);
-                            return Err(ClientHandshakeError::Failure(err))
+                            return Err(ClientHandshakeError::Failure(err));
                         }
-                        TrustResult::Proceed |
-                        TrustResult::Unspecified => {
+                        TrustResult::Proceed | TrustResult::Unspecified => {
                             result = stream.handshake();
-                            continue
+                            continue;
                         }
                         TrustResult::Deny => {
                             let err = Error::from_code(errSecTrustSettingDeny);
-                            return Err(ClientHandshakeError::Failure(err))
+                            return Err(ClientHandshakeError::Failure(err));
                         }
                         TrustResult::RecoverableTrustFailure |
                         TrustResult::FatalTrustFailure => {
                             let err = Error::from_code(errSecNotTrusted);
-                            return Err(ClientHandshakeError::Failure(err))
+                            return Err(ClientHandshakeError::Failure(err));
                         }
                     }
                 }
             }
 
             let err = Error::from_code(stream.reason());
-            return Err(ClientHandshakeError::Failure(err))
+            return Err(ClientHandshakeError::Failure(err));
         }
     }
 }
@@ -735,12 +731,9 @@ impl SslContext {
     #[cfg(target_os = "macos")]
     pub fn set_protocol_version_enabled(&mut self,
                                         protocol: SslProtocol,
-                                        enabled: bool) -> Result<()> {
-        unsafe {
-            cvt(SSLSetProtocolVersionEnabled(self.0,
-                                             protocol.to_raw(),
-                                             enabled as Boolean))
-        }
+                                        enabled: bool)
+                                        -> Result<()> {
+        unsafe { cvt(SSLSetProtocolVersionEnabled(self.0, protocol.to_raw(), enabled as Boolean)) }
     }
 
     /// Returns the number of bytes which can be read without triggering a
@@ -828,10 +821,10 @@ fn translate_err(e: &io::Error) -> OSStatus {
     }
 }
 
-unsafe extern fn read_func<S>(connection: SSLConnectionRef,
-                              data: *mut c_void,
-                              data_length: *mut size_t)
-                              -> OSStatus
+unsafe extern "C" fn read_func<S>(connection: SSLConnectionRef,
+                                  data: *mut c_void,
+                                  data_length: *mut size_t)
+                                  -> OSStatus
     where S: Read
 {
     let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
@@ -863,10 +856,10 @@ unsafe extern fn read_func<S>(connection: SSLConnectionRef,
     ret
 }
 
-unsafe extern fn write_func<S>(connection: SSLConnectionRef,
-                               data: *const c_void,
-                               data_length: *mut size_t)
-                               -> OSStatus
+unsafe extern "C" fn write_func<S>(connection: SSLConnectionRef,
+                                   data: *const c_void,
+                                   data_length: *mut size_t)
+                                   -> OSStatus
     where S: Write
 {
     let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
@@ -907,9 +900,9 @@ pub struct SslStream<S> {
 impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SslStream")
-           .field("context", &self.ctx)
-           .field("stream", self.get_ref())
-           .finish()
+            .field("context", &self.ctx)
+            .field("stream", self.get_ref())
+            .finish()
     }
 }
 
@@ -933,9 +926,9 @@ impl<S> SslStream<S> {
             reason @ errSSLWouldBlock |
             reason @ errSSLClientHelloReceived => {
                 Err(HandshakeError::Interrupted(MidHandshakeSslStream {
-                    stream: self,
-                    error: Error::from_code(reason),
-                }))
+                                                    stream: self,
+                                                    error: Error::from_code(reason),
+                                                }))
             }
             err => {
                 self.check_panic();
@@ -1021,7 +1014,7 @@ impl<S: Read + Write> Read for SslStream<S> {
         // request as an error. Instead short-circuit that logic and return
         // `Ok(0)` instead.
         if buf.len() == 0 {
-            return Ok(0)
+            return Ok(0);
         }
         unsafe {
             let mut nread = 0;
@@ -1036,9 +1029,7 @@ impl<S: Read + Write> Read for SslStream<S> {
             }
 
             match ret {
-                errSSLClosedGraceful |
-                errSSLClosedAbort |
-                errSSLClosedNoNotify => Ok(0),
+                errSSLClosedGraceful | errSSLClosedAbort | errSSLClosedNoNotify => Ok(0),
                 _ => Err(self.get_error(ret)),
             }
         }
@@ -1049,7 +1040,7 @@ impl<S: Read + Write> Write for SslStream<S> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // Like above in read, short circuit a 0-length write
         if buf.len() == 0 {
-            return Ok(0)
+            return Ok(0);
         }
         unsafe {
             let mut nwritten = 0;
@@ -1146,7 +1137,7 @@ impl ClientBuilder {
         where S: Read + Write
     {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        try!(self.configure(domain, &mut ctx));
+        try!(self.configure(Some(domain), &mut ctx));
         let mut result = ctx.handshake(stream);
         loop {
             match result {
@@ -1158,8 +1149,7 @@ impl ClientBuilder {
                             try!(trust.set_anchor_certificates(certs));
                             let trusted = try!(trust.evaluate());
                             match trusted {
-                                TrustResult::Invalid |
-                                TrustResult::OtherError => {
+                                TrustResult::Invalid | TrustResult::OtherError => {
                                     return Err(Error::from_code(errSecBadReq));
                                 }
                                 TrustResult::Proceed | TrustResult::Unspecified => {}
@@ -1187,31 +1177,57 @@ impl ClientBuilder {
 
     /// Initiates a new SSL/TLS session over a stream connected to the specified
     /// domain.
-    pub fn handshake2<S>(self, domain: &str, stream: S)
+    pub fn handshake2<S>(self,
+                         domain: &str,
+                         stream: S)
                          -> result::Result<SslStream<S>, ClientHandshakeError<S>>
         where S: Read + Write
     {
-        let mut ctx = try!(SslContext::new(ProtocolSide::Client,
-                                           ConnectionType::Stream));
+        self.handshake_inner(Some(domain), stream)
+    }
+
+    /// Initiates a new SSL/TLS session over a stream without providing a
+    /// domain.
+    ///
+    /// # Warning
+    ///
+    /// You should think very carefully before using this method. If hostname
+    /// verification is not used, *any* valid certificate for *any* site will be
+    /// trusted for use from any other. This introduces a significant
+    /// vulnerability to man-in-the-middle attacks.
+    pub fn danger_handshake_without_providing_domain_for_certificate_validation_and_server_name_indication<S>(self, stream: S)
+            -> result::Result<SslStream<S>, ClientHandshakeError<S>>
+        where S: Read + Write
+    {
+        self.handshake_inner(None, stream)
+    }
+
+    fn handshake_inner<S>(self,
+                          domain: Option<&str>,
+                          stream: S)
+                          -> result::Result<SslStream<S>, ClientHandshakeError<S>>
+        where S: Read + Write
+    {
+        let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         try!(self.configure(domain, &mut ctx));
         let certs = self.certs;
-        ctx.handshake(stream).map_err(|e| {
-            match e {
-                HandshakeError::Interrupted(s) => {
+        ctx.handshake(stream).map_err(|e| match e {
+                                          HandshakeError::Interrupted(s) => {
                     ClientHandshakeError::Interrupted(MidHandshakeClientBuilder {
                         stream: s,
                         certs: certs,
                     })
                 }
-                HandshakeError::Failure(e) => {
-                    ClientHandshakeError::Failure(e)
-                }
-            }
-        })
+                                          HandshakeError::Failure(e) => {
+                                              ClientHandshakeError::Failure(e)
+                                          }
+                                      })
     }
 
-    fn configure(&self, domain: &str, ctx: &mut SslContext) -> Result<()> {
-        try!(ctx.set_peer_domain_name(domain));
+    fn configure(&self, domain: Option<&str>, ctx: &mut SslContext) -> Result<()> {
+        if let Some(domain) = domain {
+            try!(ctx.set_peer_domain_name(domain));
+        }
 
         if let Some(ref identity) = self.identity {
             try!(ctx.set_certificate(identity, &self.chain));
@@ -1320,6 +1336,14 @@ mod test {
     }
 
     #[test]
+    fn client_no_domain() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+        ClientBuilder::new()
+            .danger_handshake_without_providing_domain_for_certificate_validation_and_server_name_indication(stream)
+            .unwrap();
+    }
+
+    #[test]
     fn load_page_client() {
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ClientBuilder::new().handshake("google.com", stream));
@@ -1338,15 +1362,9 @@ mod test {
         let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers.iter()
-                             .enumerate()
-                             .filter_map(|(i, c)| {
-                                 if i % 2 == 0 {
-                                     Some(*c)
-                                 } else {
-                                     None
-                                 }
-                             })
-                             .collect::<Vec<_>>();
+            .enumerate()
+            .filter_map(|(i, c)| if i % 2 == 0 { Some(*c) } else { None })
+            .collect::<Vec<_>>();
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
     }
