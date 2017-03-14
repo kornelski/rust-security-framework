@@ -1211,17 +1211,19 @@ impl ClientBuilder {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
         try!(self.configure(domain, &mut ctx));
         let certs = self.certs;
-        ctx.handshake(stream).map_err(|e| match e {
-                                          HandshakeError::Interrupted(s) => {
-                    ClientHandshakeError::Interrupted(MidHandshakeClientBuilder {
-                        stream: s,
-                        certs: certs,
-                    })
-                }
-                                          HandshakeError::Failure(e) => {
-                                              ClientHandshakeError::Failure(e)
-                                          }
-                                      })
+
+        // the logic for trust validation is in MidHandshakeClientBuilder::connect, so run that
+        // handshake after the raw one for cases where you have blocking IO but custom roots.
+        let mid_stream = match ctx.handshake(stream) {
+            Ok(stream) => return Ok(stream),
+            Err(HandshakeError::Interrupted(s)) => s,
+            Err(HandshakeError::Failure(e)) => return Err(ClientHandshakeError::Failure(e)),
+        };
+        let mid_stream = MidHandshakeClientBuilder {
+            stream: mid_stream,
+            certs: certs,
+        };
+        mid_stream.handshake()
     }
 
     fn configure(&self, domain: Option<&str>, ctx: &mut SslContext) -> Result<()> {
