@@ -292,7 +292,6 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         assert!(ClientBuilder::new()
-                    .anchor_certificates(&[])
                     .handshake("foobar.com", stream)
                     .is_err());
 

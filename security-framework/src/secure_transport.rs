@@ -98,6 +98,7 @@ use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
 use identity::SecIdentity;
+use policy::SecPolicy;
 use trust::{SecTrust, TrustResult};
 
 /// Specifies a side of a TLS session.
@@ -217,7 +218,8 @@ impl<S> MidHandshakeSslStream<S> {
 #[derive(Debug)]
 pub struct MidHandshakeClientBuilder<S> {
     stream: MidHandshakeSslStream<S>,
-    certs: Option<Vec<SecCertificate>>,
+    domain: Option<String>,
+    certs: Vec<SecCertificate>,
 }
 
 impl<S> MidHandshakeClientBuilder<S> {
@@ -238,7 +240,7 @@ impl<S> MidHandshakeClientBuilder<S> {
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, ClientHandshakeError<S>> {
-        let MidHandshakeClientBuilder { stream, certs } = self;
+        let MidHandshakeClientBuilder { stream, domain, certs } = self;
         let mut result = stream.handshake();
         loop {
             let stream = match result {
@@ -250,34 +252,36 @@ impl<S> MidHandshakeClientBuilder<S> {
             if stream.would_block() {
                 let ret = MidHandshakeClientBuilder {
                     stream: stream,
+                    domain: domain,
                     certs: certs,
                 };
                 return Err(ClientHandshakeError::Interrupted(ret));
             }
 
             if stream.server_auth_completed() {
-                if let Some(ref certs) = certs {
-                    let mut trust = try!(stream.context().peer_trust());
-                    try!(trust.set_anchor_certificates(certs));
-                    let trusted = try!(trust.evaluate());
-                    match trusted {
-                        TrustResult::Invalid | TrustResult::OtherError => {
-                            let err = Error::from_code(errSecBadReq);
-                            return Err(ClientHandshakeError::Failure(err));
-                        }
-                        TrustResult::Proceed | TrustResult::Unspecified => {
-                            result = stream.handshake();
-                            continue;
-                        }
-                        TrustResult::Deny => {
-                            let err = Error::from_code(errSecTrustSettingDeny);
-                            return Err(ClientHandshakeError::Failure(err));
-                        }
-                        TrustResult::RecoverableTrustFailure |
-                        TrustResult::FatalTrustFailure => {
-                            let err = Error::from_code(errSecNotTrusted);
-                            return Err(ClientHandshakeError::Failure(err));
-                        }
+                let mut trust = try!(stream.context().peer_trust());
+                try!(trust.set_anchor_certificates(&certs));
+                try!(trust.set_trust_anchor_certificates_only(false));
+                let policy = SecPolicy::create_ssl(ProtocolSide::Server, domain.as_ref().map(|s| &**s));
+                try!(trust.set_policy(&policy));
+                let trusted = try!(trust.evaluate());
+                match trusted {
+                    TrustResult::Invalid | TrustResult::OtherError => {
+                        let err = Error::from_code(errSecBadReq);
+                        return Err(ClientHandshakeError::Failure(err));
+                    }
+                    TrustResult::Proceed | TrustResult::Unspecified => {
+                        result = stream.handshake();
+                        continue;
+                    }
+                    TrustResult::Deny => {
+                        let err = Error::from_code(errSecTrustSettingDeny);
+                        return Err(ClientHandshakeError::Failure(err));
+                    }
+                    TrustResult::RecoverableTrustFailure |
+                    TrustResult::FatalTrustFailure => {
+                        let err = Error::from_code(errSecNotTrusted);
+                        return Err(ClientHandshakeError::Failure(err));
                     }
                 }
             }
@@ -287,7 +291,6 @@ impl<S> MidHandshakeClientBuilder<S> {
         }
     }
 }
-
 
 /// Specifies the state of a TLS session.
 #[derive(Debug)]
@@ -773,14 +776,13 @@ impl SslContext {
         const kSSLSessionOptionSendOneByteRecord: send_one_byte_record & set_send_one_byte_record,
     }
 
-    /// Performs the SSL/TLS handshake.
-    pub fn handshake<S>(self, stream: S) -> result::Result<SslStream<S>, HandshakeError<S>>
+    fn into_stream<S>(self, stream: S) -> Result<SslStream<S>>
         where S: Read + Write
     {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
-                return Err(HandshakeError::Failure(Error::from_code(ret)));
+                return Err(Error::from_code(ret));
             }
 
             let stream = Connection {
@@ -792,15 +794,21 @@ impl SslContext {
             let ret = SSLSetConnection(self.0, stream as *mut _);
             if ret != errSecSuccess {
                 let _conn = Box::from_raw(stream);
-                return Err(HandshakeError::Failure(Error::from_code(ret)));
+                return Err(Error::from_code(ret));
             }
 
-            let stream = SslStream {
+            Ok(SslStream {
                 ctx: self,
                 _m: PhantomData,
-            };
-            stream.handshake()
+            })
         }
+    }
+
+    /// Performs the SSL/TLS handshake.
+    pub fn handshake<S>(self, stream: S) -> result::Result<SslStream<S>, HandshakeError<S>>
+        where S: Read + Write
+    {
+        self.into_stream(stream).map_err(HandshakeError::Failure).and_then(SslStream::handshake)
     }
 }
 
@@ -1067,7 +1075,7 @@ impl<S: Read + Write> Write for SslStream<S> {
 #[derive(Debug)]
 pub struct ClientBuilder {
     identity: Option<SecIdentity>,
-    certs: Option<Vec<SecCertificate>>,
+    certs: Vec<SecCertificate>,
     chain: Vec<SecCertificate>,
     protocol_min: Option<SslProtocol>,
     protocol_max: Option<SslProtocol>,
@@ -1084,7 +1092,7 @@ impl ClientBuilder {
     pub fn new() -> Self {
         ClientBuilder {
             identity: None,
-            certs: None,
+            certs: Vec::new(),
             chain: Vec::new(),
             protocol_min: None,
             protocol_max: None,
@@ -1094,7 +1102,7 @@ impl ClientBuilder {
     /// Specifies the set of additional root certificates to trust when
     /// verifying the server's certificate.
     pub fn anchor_certificates(&mut self, certs: &[SecCertificate]) -> &mut Self {
-        self.certs = Some(certs.to_owned());
+        self.certs = certs.to_owned();
         self
     }
 
@@ -1136,42 +1144,10 @@ impl ClientBuilder {
     pub fn handshake<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
         where S: Read + Write
     {
-        let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        try!(self.configure(Some(domain), &mut ctx));
-        let mut result = ctx.handshake(stream);
-        loop {
-            match result {
-                Ok(stream) => return Ok(stream),
-                Err(HandshakeError::Interrupted(stream)) => {
-                    if stream.server_auth_completed() {
-                        if let Some(ref certs) = self.certs {
-                            let mut trust = try!(stream.context().peer_trust());
-                            try!(trust.set_anchor_certificates(certs));
-                            let trusted = try!(trust.evaluate());
-                            match trusted {
-                                TrustResult::Invalid | TrustResult::OtherError => {
-                                    return Err(Error::from_code(errSecBadReq));
-                                }
-                                TrustResult::Proceed | TrustResult::Unspecified => {}
-                                TrustResult::Deny => {
-                                    return Err(Error::from_code(errSecTrustSettingDeny));
-                                }
-                                TrustResult::RecoverableTrustFailure |
-                                TrustResult::FatalTrustFailure => {
-                                    return Err(Error::from_code(errSecNotTrusted));
-                                }
-                            }
-                        } else {
-                            return Err(Error::from_code(stream.reason()));
-                        }
-                    } else {
-                        return Err(Error::from_code(stream.reason()));
-                    }
-
-                    result = stream.handshake();
-                }
-                Err(HandshakeError::Failure(err)) => return Err(err),
-            }
+        match self.handshake_inner(Some(domain), stream) {
+            Ok(stream) => Ok(stream),
+            Err(ClientHandshakeError::Failure(e)) => Err(e),
+            Err(ClientHandshakeError::Interrupted(e)) => Err(e.error().clone()),
         }
     }
 
@@ -1202,43 +1178,37 @@ impl ClientBuilder {
         self.handshake_inner(None, stream)
     }
 
-    fn handshake_inner<S>(self,
+    fn handshake_inner<S>(&self,
                           domain: Option<&str>,
                           stream: S)
                           -> result::Result<SslStream<S>, ClientHandshakeError<S>>
         where S: Read + Write
     {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
-        try!(self.configure(domain, &mut ctx));
-        let certs = self.certs;
 
-        // the logic for trust validation is in MidHandshakeClientBuilder::connect, so run that
-        // handshake after the raw one for cases where you have blocking IO but custom roots.
-        let mid_stream = match ctx.handshake(stream) {
-            Ok(stream) => return Ok(stream),
-            Err(HandshakeError::Interrupted(s)) => s,
-            Err(HandshakeError::Failure(e)) => return Err(ClientHandshakeError::Failure(e)),
-        };
-        let mid_stream = MidHandshakeClientBuilder {
-            stream: mid_stream,
-            certs: certs,
-        };
-        mid_stream.handshake()
-    }
-
-    fn configure(&self, domain: Option<&str>, ctx: &mut SslContext) -> Result<()> {
         if let Some(domain) = domain {
             try!(ctx.set_peer_domain_name(domain));
         }
-
         if let Some(ref identity) = self.identity {
             try!(ctx.set_certificate(identity, &self.chain));
         }
-        if self.certs.is_some() {
-            try!(ctx.set_break_on_server_auth(true));
-        }
-        try!(self.configure_protocols(ctx));
-        Ok(())
+        try!(ctx.set_break_on_server_auth(true));
+        try!(self.configure_protocols(&mut ctx));
+
+        let certs = self.certs.clone();
+
+        // the logic for trust validation is in MidHandshakeClientBuilder::connect, so run all
+        // of the handshake logic through that.
+        let stream = MidHandshakeSslStream {
+            stream: try!(ctx.into_stream(stream)),
+            error: Error::from(errSecSuccess),
+        };
+        let stream = MidHandshakeClientBuilder {
+            stream: stream,
+            domain: domain.map(|s| s.to_string()),
+            certs: certs,
+        };
+        stream.handshake()
     }
 
     #[cfg(feature = "OSX_10_8")]

@@ -30,4 +30,5 @@ extern "C" {
                                           policies: CFTypeRef,
                                           trust: *mut SecTrustRef)
                                           -> OSStatus;
+    pub fn SecTrustSetPolicies(trust: SecTrustRef, policies: CFTypeRef) -> OSStatus;
 }
