@@ -31,10 +31,14 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
                              service: &str, account: &str)
                              -> Result<(Vec<u8>, SecKeychainItem)> {
 
-    let keychain_or_array = match keychains {
+    let keychains_or_none = match keychains {
+        None => None,
+        Some(ref refs) => Some(CFArray::from_CFTypes(refs)),
+    };
+
+    let keychains_or_null = match keychains_or_none {
         None => ptr::null(),
-        Some(refs) if refs.len() == 1 => refs[0].as_CFTypeRef(),
-        Some(refs) => CFArray::from_CFTypes(refs).as_CFTypeRef(),
+        Some(ref keychains) => keychains.as_CFTypeRef(),
     };
 
     let service_name_len = service.len() as u32;
@@ -49,7 +53,7 @@ pub fn find_generic_password(keychains: Option<&[SecKeychain]>,
     let mut item = ptr::null_mut();
 
     unsafe {
-        try!(cvt(SecKeychainFindGenericPassword(keychain_or_array,
+        try!(cvt(SecKeychainFindGenericPassword(keychains_or_null,
                                                 service_name_len,
                                                 service_name.as_ptr(),
                                                 account_name_len,
@@ -142,10 +146,14 @@ pub fn set_generic_password(keychain_opt: Option<&SecKeychain>,
 pub fn delete_generic_password(keychains: Option<&[SecKeychain]>,
                                service: &str, account: &str) -> Result<()> {
 
-    let keychain_or_array = match keychains {
+    let keychains_or_none = match keychains {
+        None => None,
+        Some(ref refs) => Some(CFArray::from_CFTypes(refs)),
+    };
+
+    let keychains_or_null = match keychains_or_none {
         None => ptr::null(),
-        Some(refs) if refs.len() == 1 => refs[0].as_CFTypeRef(),
-        Some(refs) => CFArray::from_CFTypes(refs).as_CFTypeRef(),
+        Some(ref keychains) => keychains.as_CFTypeRef(),
     };
 
     let service_name_len = service.len() as u32;
@@ -157,7 +165,7 @@ pub fn delete_generic_password(keychains: Option<&[SecKeychain]>,
     let mut item = ptr::null_mut();
 
     unsafe {
-         try!(cvt(SecKeychainFindGenericPassword(keychain_or_array,
+         try!(cvt(SecKeychainFindGenericPassword(keychains_or_null,
                                                 service_name_len,
                                                 service_name.as_ptr(),
                                                 account_name_len,
