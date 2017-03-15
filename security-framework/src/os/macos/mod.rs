@@ -25,7 +25,6 @@ pub mod test {
     use std::io::prelude::*;
 
     use item::{ItemSearchOptions, ItemClass, Reference};
-    use os::macos::keychain::SecKeychainExt;
     use identity::SecIdentity;
     use keychain::SecKeychain;
 
