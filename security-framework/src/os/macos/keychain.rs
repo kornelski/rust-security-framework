@@ -169,7 +169,7 @@ impl KeychainSettings {
             version: SEC_KEYCHAIN_SETTINGS_VERS1,
             lockOnSleep: 0,
             useLockInterval: 0,
-            lockInterval: u32::max_value(),
+            lockInterval: i32::max_value() as u32,
         })
     }
 
@@ -192,7 +192,7 @@ impl KeychainSettings {
             }
             None => {
                 self.0.useLockInterval = 0;
-                self.0.lockInterval = u32::max_value();
+                self.0.lockInterval = i32::max_value() as u32;
             }
         }
     }
@@ -213,9 +213,6 @@ mod test {
             .create(dir.path().join("test.keychain"))
             .unwrap();
 
-        let mut settings = KeychainSettings::new();
-        settings.set_lock_on_sleep(true);
-        settings.set_lock_interval(Some(3600));
-        keychain.set_settings(&settings).unwrap();
+        keychain.set_settings(&KeychainSettings::new()).unwrap();
     }
 }
