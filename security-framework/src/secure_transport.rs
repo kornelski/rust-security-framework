@@ -83,6 +83,7 @@ use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSec
                                    errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
+use std::cmp;
 use std::io;
 use std::io::prelude::*;
 use std::fmt;
@@ -1024,11 +1025,22 @@ impl<S: Read + Write> Read for SslStream<S> {
         if buf.len() == 0 {
             return Ok(0);
         }
+
+        // If some data was buffered but not enough to fill `buf`, SSLRead
+        // will try to read a new packet. This is bad because there may be
+        // no more data but the socket is remaining open (e.g HTTPS with
+        // Connection: keep-alive).
+        let buffered = self.context().buffered_read_size().unwrap_or(0);
+        let mut to_read = buf.len();
+        if buffered > 0 {
+            to_read = cmp::min(buffered, buf.len());
+        }
+
         unsafe {
             let mut nread = 0;
             let ret = SSLRead(self.ctx.0,
                               buf.as_mut_ptr() as *mut _,
-                              buf.len(),
+                              to_read,
                               &mut nread);
             // SSLRead can return an error at the same time it returns the last
             // chunk of data (!)
