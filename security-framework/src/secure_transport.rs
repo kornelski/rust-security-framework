@@ -83,6 +83,7 @@ use security_framework_sys::base::{errSecSuccess, errSecIO, errSecBadReq, errSec
                                    errSecNotTrusted};
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
+use std::cmp;
 use std::io;
 use std::io::prelude::*;
 use std::fmt;
@@ -1025,10 +1026,14 @@ impl<S: Read + Write> Read for SslStream<S> {
             return Ok(0);
         }
         unsafe {
+            let mut to_read = cmp::min(try!(self.buffered_read_size()), buf.len());
+            if to_read == 0 {
+                to_read = buf.len();
+            }
             let mut nread = 0;
             let ret = SSLRead(self.ctx.0,
                               buf.as_mut_ptr() as *mut _,
-                              buf.len(),
+                              to_read,
                               &mut nread);
             // SSLRead can return an error at the same time it returns the last
             // chunk of data (!)
@@ -1292,7 +1297,7 @@ mod test {
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ctx.handshake(stream));
-        p!(stream.write_all(b"GET / HTTP/1.0\r\n\r\n"));
+        p!(stream.write_all(b"GET / HTTP/1.1\r\nHost: google.com\r\n\r\n"));
         p!(stream.flush());
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
