@@ -117,7 +117,7 @@ mod test {
     #[test]
     fn create_with_certificates() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.io").unwrap();
+        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
     }
@@ -125,7 +125,7 @@ mod test {
     #[test]
     fn set_policy() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.io").unwrap();
+        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
         let mut trust = SecTrust::create_with_certificates(&[cert], &[]).unwrap();
         trust.set_policy(&ssl_policy).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
