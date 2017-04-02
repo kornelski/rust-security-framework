@@ -38,6 +38,7 @@ impl SecIdentityExt for SecIdentity {
 mod test {
     use tempdir::TempDir;
 
+    use identity::SecIdentity;
     use os::macos::test::identity;
     use os::macos::certificate::SecCertificateExt;
     use os::macos::keychain::CreateOptions;
