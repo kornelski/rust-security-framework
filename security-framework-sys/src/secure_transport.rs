@@ -16,11 +16,8 @@ pub type SSLProtocol = c_int;
 pub const kSSLProtocolUnknown: SSLProtocol = 0;
 pub const kSSLProtocol3: SSLProtocol = 2;
 pub const kTLSProtocol1: SSLProtocol = 4;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kTLSProtocol11: SSLProtocol = 7;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kTLSProtocol12: SSLProtocol = 8;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kDTLSProtocol1: SSLProtocol = 9;
 pub const kSSLProtocol2: SSLProtocol = 1;
 pub const kSSLProtocol3Only: SSLProtocol = 3;

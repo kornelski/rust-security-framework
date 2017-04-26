@@ -388,18 +388,15 @@ ssl_protocol! {
     /// if the peer does not support TLS 1.1.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     const Tls11 = kTLSProtocol11,
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     const Tls12 = kTLSProtocol12,
     /// Only the SSL 2.0 protocol is accepted.
     const Ssl2 = kSSLProtocol2,
     /// The DTLSv1 protocol is preferred.
-    #[cfg(feature = "OSX_10_8")]
     const Dtls1 = kDTLSProtocol1,
     /// Only the SSL 3.0 protocol is accepted.
     const Ssl3Only = kSSLProtocol3Only,
