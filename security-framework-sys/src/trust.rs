@@ -1,6 +1,7 @@
 use libc::c_void;
-use core_foundation_sys::base::{Boolean, OSStatus, CFTypeID, CFTypeRef};
+use core_foundation_sys::base::{Boolean, OSStatus, CFIndex, CFTypeID, CFTypeRef};
 use core_foundation_sys::array::CFArrayRef;
+use base::SecCertificateRef;
 
 pub type SecTrustResultType = u32;
 
@@ -19,6 +20,8 @@ pub type SecTrustRef = *mut __SecTrust;
 
 extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
+    pub fn SecTrustGetCertificateCount(trust: SecTrustRef) -> CFIndex;
+    pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef) -> SecCertificateRef;
     pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef,
                                          anchorCertificates: CFArrayRef)
                                          -> OSStatus;
