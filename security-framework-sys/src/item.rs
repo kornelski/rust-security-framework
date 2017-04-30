@@ -20,6 +20,7 @@ extern "C" {
     pub static kSecMatchSearchList: CFStringRef;
 
     pub static kSecAttrKeyType: CFStringRef;
+    pub static kSecAttrLabel: CFStringRef;
 
     #[cfg(target_os = "macos")]
     pub static kSecAttrKeyTypeRSA: CFStringRef;

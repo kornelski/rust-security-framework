@@ -26,18 +26,20 @@ pub enum KeyType {
 
 impl PrivKeyType for KeyType {
     fn to_str(&self) -> CFString {
-        let raw = match *self {
-            KeyType::Rsa => kSecAttrKeyTypeRSA,
-            KeyType::Dsa => kSecAttrKeyTypeDSA,
-            KeyType::Aes => kSecAttrKeyTypeAES,
-            KeyType::Des => kSecAttrKeyTypeDES,
-            KeyType::TripleDes => kSecAttrKeyType3DES,
-            KeyType::Rc4 => kSecAttrKeyTypeRC4,
-            KeyType::Cast => kSecAttrKeyTypeCAST,
-            #[cfg(feature = "OSX_10_9")]
-            KeyType::Ec => kSecAttrKeyTypeEC,
-        };
-        unsafe { CFString::wrap_under_get_rule(raw) }
+        unsafe {
+            let raw = match *self {
+                KeyType::Rsa => kSecAttrKeyTypeRSA,
+                KeyType::Dsa => kSecAttrKeyTypeDSA,
+                KeyType::Aes => kSecAttrKeyTypeAES,
+                KeyType::Des => kSecAttrKeyTypeDES,
+                KeyType::TripleDes => kSecAttrKeyType3DES,
+                KeyType::Rc4 => kSecAttrKeyTypeRC4,
+                KeyType::Cast => kSecAttrKeyTypeCAST,
+                #[cfg(feature = "OSX_10_9")]
+                KeyType::Ec => kSecAttrKeyTypeEC,
+            };
+            CFString::wrap_under_get_rule(raw)
+        }
     }
 }
 

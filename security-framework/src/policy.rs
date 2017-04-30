@@ -4,6 +4,7 @@ use core_foundation::string::CFString;
 use security_framework_sys::base::{errSecParam, SecPolicyRef};
 use security_framework_sys::policy::*;
 use std::fmt;
+use std::ptr;
 
 use base::{Error, Result};
 use secure_transport::ProtocolSide;
@@ -24,7 +25,8 @@ impl fmt::Debug for SecPolicy {
 }
 
 impl SecPolicy {
-    /// Creates a `SecPolicy` suitable for validating certificates for SSL.
+    /// Deprecated
+    #[deprecated(since = "0.1.12", note = "use SecPolicy::create_ssl")]
     pub fn for_ssl(protocol_side: ProtocolSide, hostname: &str) -> Result<SecPolicy> {
         let hostname_cf = CFString::new(hostname);
         let client_side = match protocol_side {
@@ -40,6 +42,23 @@ impl SecPolicy {
             }
         }
     }
+
+    /// Creates a `SecPolicy` for evaluating SSL certificate chains.
+    ///
+    /// The side which you are evaluating should be provided (i.e. pass `ProtocolSide::Server` if
+    /// you are a client looking to validate a server's certificate chain).
+    pub fn create_ssl(protocol_side: ProtocolSide, hostname: Option<&str>) -> SecPolicy {
+        let hostname = hostname.map(CFString::new);
+        let hostname = hostname.as_ref().map(|s| s.as_concrete_TypeRef()).unwrap_or(ptr::null_mut());
+        let server = match protocol_side {
+            ProtocolSide::Server => 1,
+            ProtocolSide::Client => 0,
+        };
+        unsafe {
+            let policy = SecPolicyCreateSSL(server, hostname);
+            SecPolicy::wrap_under_create_rule(policy)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -48,8 +67,7 @@ mod test {
     use secure_transport::ProtocolSide;
 
     #[test]
-    fn for_ssl() {
-        let policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.org");
-        assert_eq!(policy.is_ok(), true);
+    fn create_ssl() {
+        SecPolicy::create_ssl(ProtocolSide::Server, Some("certifi.org"));
     }
 }

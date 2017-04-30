@@ -50,7 +50,7 @@ impl SecKeychainExt for SecKeychain {
 impl SecKeychain {
     /// Creates a `SecKeychain` object corresponding to the user's default
     /// keychain.
-    fn default() -> Result<SecKeychain> {
+    pub fn default() -> Result<SecKeychain> {
         unsafe {
             let mut keychain = ptr::null_mut();
             try!(cvt(SecKeychainCopyDefault(&mut keychain)));
@@ -59,7 +59,7 @@ impl SecKeychain {
     }
 
     /// Opens a keychain from a file.
-    fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
         let path_name = path.as_ref().as_os_str().as_bytes();
         // FIXME
         let path_name = CString::new(path_name).unwrap();
@@ -74,7 +74,7 @@ impl SecKeychain {
     /// Unlocks the keychain.
     ///
     /// If a password is not specified, the user will be prompted to enter it.
-    fn unlock(&mut self, password: Option<&str>) -> Result<()> {
+    pub fn unlock(&mut self, password: Option<&str>) -> Result<()> {
         let (len, ptr, use_password) = match password {
             Some(password) => (password.len(), password.as_ptr() as *const _, true),
             None => (0, ptr::null(), false),
@@ -85,6 +85,13 @@ impl SecKeychain {
                                   len as u32,
                                   ptr,
                                   use_password as Boolean))
+        }
+    }
+
+    /// Sets settings of the keychain.
+    pub fn set_settings(&mut self, settings: &KeychainSettings) -> Result<()> {
+        unsafe {
+            cvt(SecKeychainSetSettings(self.as_concrete_TypeRef(), &settings.0))
         }
     }
 }
@@ -152,6 +159,45 @@ impl CreateOptions {
     }
 }
 
+/// Settings associated with a `SecKeychain`.
+pub struct KeychainSettings(SecKeychainSettings);
+
+impl KeychainSettings {
+    /// Creates a new `KeychainSettings` with default settings.
+    pub fn new() -> KeychainSettings {
+        KeychainSettings(SecKeychainSettings {
+            version: SEC_KEYCHAIN_SETTINGS_VERS1,
+            lockOnSleep: 0,
+            useLockInterval: 0,
+            lockInterval: i32::max_value() as u32,
+        })
+    }
+
+    /// If set, the keychain will automatically lock when the computer sleeps.
+    ///
+    /// Defaults to `false`.
+    pub fn set_lock_on_sleep(&mut self, lock_on_sleep: bool) {
+        self.0.lockOnSleep = lock_on_sleep as Boolean;
+    }
+
+    /// Sets the interval of time in seconds after which the keychain is
+    /// automatically locked.
+    ///
+    /// Defaults to `None`.
+    pub fn set_lock_interval(&mut self, lock_interval: Option<u32>) {
+        match lock_interval {
+            Some(lock_interval) => {
+                self.0.useLockInterval = 1;
+                self.0.lockInterval = lock_interval;
+            }
+            None => {
+                self.0.useLockInterval = 0;
+                self.0.lockInterval = i32::max_value() as u32;
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;
@@ -162,9 +208,11 @@ mod test {
     fn create_options() {
         let dir = TempDir::new("keychain").unwrap();
 
-        CreateOptions::new()
+        let mut keychain = CreateOptions::new()
             .password("foobar")
             .create(dir.path().join("test.keychain"))
             .unwrap();
+
+        keychain.set_settings(&KeychainSettings::new()).unwrap();
     }
 }

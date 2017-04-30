@@ -92,6 +92,11 @@ impl SecTrust {
         unsafe { cvt(SecTrustSetAnchorCertificatesOnly(self.0, only as Boolean)) }
     }
 
+    /// Sets the policy used to evaluate trust.
+    pub fn set_policy(&mut self, policy: &SecPolicy) -> Result<()> {
+        unsafe { cvt(SecTrustSetPolicies(self.0, policy.as_CFTypeRef())) }
+    }
+
     /// Evaluates trust.
     pub fn evaluate(&self) -> Result<TrustResult> {
         unsafe {
@@ -112,9 +117,17 @@ mod test {
     #[test]
     fn create_with_certificates() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::for_ssl(ProtocolSide::Client, "certifi.io").unwrap();
-        let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]);
-        assert_eq!(trust.is_ok(), true);
-        assert_eq!(trust.unwrap().evaluate().unwrap().success(), false)
+        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
+        assert_eq!(trust.evaluate().unwrap().success(), false)
+    }
+
+    #[test]
+    fn set_policy() {
+        let cert = certificate();
+        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let mut trust = SecTrust::create_with_certificates(&[cert], &[]).unwrap();
+        trust.set_policy(&ssl_policy).unwrap();
+        assert_eq!(trust.evaluate().unwrap().success(), false)
     }
 }

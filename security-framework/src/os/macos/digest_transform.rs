@@ -28,17 +28,19 @@ pub enum DigestType {
 
 impl DigestType {
     fn to_type(&self) -> CFTypeRef {
-        let s = match *self {
-            DigestType::HmacMd5 => kSecDigestHMACMD5,
-            DigestType::HmacSha1 => kSecDigestHMACSHA1,
-            DigestType::HmacSha2 => kSecDigestHMACSHA2,
-            DigestType::Md2 => kSecDigestMD2,
-            DigestType::Md4 => kSecDigestMD4,
-            DigestType::Md5 => kSecDigestMD5,
-            DigestType::Sha1 => kSecDigestSHA1,
-            DigestType::Sha2 => kSecDigestSHA2,
-        };
-        s as CFTypeRef
+        unsafe {
+            let s = match *self {
+                DigestType::HmacMd5 => kSecDigestHMACMD5,
+                DigestType::HmacSha1 => kSecDigestHMACSHA1,
+                DigestType::HmacSha2 => kSecDigestHMACSHA2,
+                DigestType::Md2 => kSecDigestMD2,
+                DigestType::Md4 => kSecDigestMD4,
+                DigestType::Md5 => kSecDigestMD5,
+                DigestType::Sha1 => kSecDigestSHA1,
+                DigestType::Sha2 => kSecDigestSHA2,
+            };
+            s as CFTypeRef
+        }
     }
 }
 

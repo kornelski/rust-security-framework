@@ -1,15 +1,14 @@
 [package]
 name = "security-framework-sys"
-version = "0.1.8"
+version = "0.1.14"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Security Framework bindings"
 repository = "https://github.com/sfackler/rust-security-framework"
-documentation = "https://sfackler.github.io/rust-security-framework/doc/v0.1.8/security_framework_sys"
+documentation = "https://sfackler.github.io/rust-security-framework/doc/v0.1.14/security_framework_sys"
 readme = "../README.md"
 keywords = ["OSX", "iOS", "TLS", "SSL", "crypto"]
 build = "build.rs"
-links = "Security.framework"
 
 [dependencies]
 libc = "0.2"

@@ -292,7 +292,6 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         assert!(ClientBuilder::new()
-                    .anchor_certificates(&[])
                     .handshake("foobar.com", stream)
                     .is_err());
 
@@ -508,5 +507,67 @@ mod test {
         assert!(p!(ctx.certificate_authorities()).is_none());
         p!(ctx.set_certificate_authorities(&[certificate()]));
         assert_eq!(p!(ctx.certificate_authorities()).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn close() {
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("close"));
+
+            let identity = identity(dir.path());
+            let builder = ServerBuilder::new(&identity, &[]);
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(builder.handshake(stream));
+            p!(stream.close());
+        });
+
+        let stream = p!(TcpStream::connect(("localhost", port)));
+        let mut stream = p!(ClientBuilder::new()
+                                .anchor_certificates(&[certificate()])
+                                .handshake("foobar.com", stream));
+
+        let mut buf = [0; 1];
+        assert_eq!(p!(stream.read(&mut buf)), 0);
+        p!(stream.close());
+
+        p!(handle.join());
+    }
+
+    #[test]
+    fn short_read() {
+        let listener = p!(TcpListener::bind("localhost:0"));
+        let port = p!(listener.local_addr()).port();
+
+        let handle = thread::spawn(move || {
+            let dir = p!(TempDir::new("short_read"));
+
+            let identity = identity(dir.path());
+            let builder = ServerBuilder::new(&identity, &[]);
+
+            let stream = p!(listener.accept()).0;
+            let mut stream = p!(builder.handshake(stream));
+
+            stream.write_all(b"hello").unwrap();
+            // make sure stream doesn't close
+            stream
+        });
+
+        let stream = p!(TcpStream::connect(("localhost", port)));
+        let mut stream = p!(ClientBuilder::new()
+                                .anchor_certificates(&[certificate()])
+                                .handshake("foobar.com", stream));
+
+        let mut b = [0; 1];
+        stream.read_exact(&mut b).unwrap();
+        assert_eq!(stream.context().buffered_read_size().unwrap(), 4);
+        let mut b = [0; 5];
+        let read = stream.read(&mut b).unwrap();
+        assert_eq!(read, 4);
+
+        p!(handle.join());
     }
 }

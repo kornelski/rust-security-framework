@@ -36,14 +36,16 @@ pub enum ItemClass {
 
 impl ItemClass {
     fn to_value(&self) -> CFType {
-        let raw = match *self {
-            ItemClass::GenericPassword => kSecClassGenericPassword,
-            ItemClass::InternetPassword => kSecClassInternetPassword,
-            ItemClass::Certificate => kSecClassCertificate,
-            ItemClass::Key => kSecClassKey,
-            ItemClass::Identity => kSecClassIdentity,
-        };
-        unsafe { CFType::wrap_under_get_rule(raw as *const _) }
+        unsafe {
+            let raw = match *self {
+                ItemClass::GenericPassword => kSecClassGenericPassword,
+                ItemClass::InternetPassword => kSecClassInternetPassword,
+                ItemClass::Certificate => kSecClassCertificate,
+                ItemClass::Key => kSecClassKey,
+                ItemClass::Identity => kSecClassIdentity,
+            };
+            CFType::wrap_under_get_rule(raw as *const _)
+        }
     }
 }
 
@@ -54,6 +56,7 @@ pub struct ItemSearchOptions {
     class: Option<ItemClass>,
     load_refs: bool,
     limit: Option<i64>,
+    label: Option<CFString>,
 }
 
 #[cfg(target_os = "macos")]
@@ -100,6 +103,12 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Search for an item with the given label.
+    pub fn label(&mut self, label: &str) -> &mut ItemSearchOptions {
+        self.label = Some(CFString::new(label));
+        self
+    }
+
     /// Search for objects.
     pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
@@ -122,6 +131,11 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((CFString::wrap_under_get_rule(kSecMatchLimit),
                              CFNumber::from_i64(limit).as_CFType()));
+            }
+
+            if let Some(ref label) = self.label {
+                params.push((CFString::wrap_under_get_rule(kSecAttrLabel),
+                             label.as_CFType()));
             }
 
             let params = CFDictionary::from_CFType_pairs(&params);

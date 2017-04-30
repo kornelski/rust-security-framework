@@ -11,7 +11,7 @@ unsafe impl Send for SecRandom {}
 
 impl Default for SecRandom {
     fn default() -> SecRandom {
-        SecRandom(kSecRandomDefault)
+        unsafe { SecRandom(kSecRandomDefault) }
     }
 }
 
