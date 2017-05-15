@@ -221,6 +221,7 @@ pub struct MidHandshakeClientBuilder<S> {
     stream: MidHandshakeSslStream<S>,
     domain: Option<String>,
     certs: Vec<SecCertificate>,
+    trust_certs_only: bool,
 }
 
 impl<S> MidHandshakeClientBuilder<S> {
@@ -241,7 +242,7 @@ impl<S> MidHandshakeClientBuilder<S> {
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, ClientHandshakeError<S>> {
-        let MidHandshakeClientBuilder { stream, domain, certs } = self;
+        let MidHandshakeClientBuilder { stream, domain, certs, trust_certs_only } = self;
         let mut result = stream.handshake();
         loop {
             let stream = match result {
@@ -255,6 +256,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                     stream: stream,
                     domain: domain,
                     certs: certs,
+                    trust_certs_only: trust_certs_only,
                 };
                 return Err(ClientHandshakeError::Interrupted(ret));
             }
@@ -262,7 +264,7 @@ impl<S> MidHandshakeClientBuilder<S> {
             if stream.server_auth_completed() {
                 let mut trust = try!(stream.context().peer_trust());
                 try!(trust.set_anchor_certificates(&certs));
-                try!(trust.set_trust_anchor_certificates_only(false));
+                try!(trust.set_trust_anchor_certificates_only(self.trust_certs_only));
                 let policy = SecPolicy::create_ssl(ProtocolSide::Server, domain.as_ref().map(|s| &**s));
                 try!(trust.set_policy(&policy));
                 let trusted = try!(trust.evaluate());
@@ -1088,6 +1090,7 @@ pub struct ClientBuilder {
     chain: Vec<SecCertificate>,
     protocol_min: Option<SslProtocol>,
     protocol_max: Option<SslProtocol>,
+    trust_certs_only: bool,
 }
 
 impl Default for ClientBuilder {
@@ -1105,13 +1108,21 @@ impl ClientBuilder {
             chain: Vec::new(),
             protocol_min: None,
             protocol_max: None,
+            trust_certs_only: false,
         }
     }
 
-    /// Specifies the set of additional root certificates to trust when
+    /// Specifies the set of root certificates to trust when
     /// verifying the server's certificate.
     pub fn anchor_certificates(&mut self, certs: &[SecCertificate]) -> &mut Self {
         self.certs = certs.to_owned();
+        self
+    }
+
+    /// Specifies whether to trust the built-in certificates in addition
+    /// to specified anchor certificates.
+    pub fn trust_anchor_certificates_only(&mut self, only: bool) -> &mut Self {
+        self.trust_certs_only = only;
         self
     }
 
@@ -1216,6 +1227,7 @@ impl ClientBuilder {
             stream: stream,
             domain: domain.map(|s| s.to_string()),
             certs: certs,
+            trust_certs_only: self.trust_certs_only,
         };
         stream.handshake()
     }
@@ -1308,6 +1320,15 @@ mod test {
         println!("{}", String::from_utf8_lossy(&buf));
         assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
         assert!(buf.ends_with(b"</html>"));
+    }
+
+
+    #[test]
+    fn client_no_anchor_certs() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+        assert!(ClientBuilder::new()
+            .trust_anchor_certificates_only(true)
+            .handshake("google.com", stream).is_err());
     }
 
     #[test]
