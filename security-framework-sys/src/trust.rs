@@ -21,7 +21,7 @@ pub type SecTrustRef = *mut __SecTrust;
 extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
     pub fn SecTrustGetCertificateCount(trust: SecTrustRef) -> CFIndex;
-    pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef) -> SecCertificateRef;
+    pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef, ix: CFIndex) -> SecCertificateRef;
     pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef,
                                          anchorCertificates: CFArrayRef)
                                          -> OSStatus;
