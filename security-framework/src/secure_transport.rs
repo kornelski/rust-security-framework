@@ -1214,10 +1214,8 @@ impl ClientBuilder {
         self.handshake_inner(None, stream)
     }
 
-    fn handshake_inner<S>(&self,
-                          domain: Option<&str>,
-                          stream: S)
-                          -> result::Result<SslStream<S>, ClientHandshakeError<S>>
+
+    fn ctx_into_stream<S>(&self, domain: Option<&str>, stream: S) -> Result<SslStream<S>>
         where S: Read + Write
     {
         let mut ctx = try!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
@@ -1232,14 +1230,23 @@ impl ClientBuilder {
         try!(self.configure_protocols(&mut ctx));
         try!(self.configure_ciphers(&mut ctx));
 
-        let certs = self.certs.clone();
+        ctx.into_stream(stream)
+    }
 
+    fn handshake_inner<S>(&self,
+                          domain: Option<&str>,
+                          stream: S)
+                          -> result::Result<SslStream<S>, ClientHandshakeError<S>>
+        where S: Read + Write
+    {
         // the logic for trust validation is in MidHandshakeClientBuilder::connect, so run all
         // of the handshake logic through that.
         let stream = MidHandshakeSslStream {
-            stream: try!(ctx.into_stream(stream)),
+            stream: try!(self.ctx_into_stream(domain, stream)),
             error: Error::from(errSecSuccess),
         };
+
+        let certs = self.certs.clone();
         let stream = MidHandshakeClientBuilder {
             stream: stream,
             domain: domain.map(|s| s.to_string()),
@@ -1415,7 +1422,7 @@ mod test {
         let cipher = ciphers.first().unwrap();
         let stream = p!(ClientBuilder::new()
             .whitelist_ciphers(&[*cipher])
-            .handshake("google.com", stream));
+            .ctx_into_stream(None, stream));
 
         assert_eq!(1, p!(stream.context().enabled_ciphers()).len());
     }
@@ -1432,7 +1439,7 @@ mod test {
         let cipher = ciphers.first().unwrap();
         let stream = p!(ClientBuilder::new()
             .blacklist_ciphers(&[*cipher])
-            .handshake("google.com", stream));
+            .ctx_into_stream(None, stream));
 
         assert_eq!(num - 1, p!(stream.context().enabled_ciphers()).len());
     }
