@@ -1091,6 +1091,8 @@ pub struct ClientBuilder {
     protocol_min: Option<SslProtocol>,
     protocol_max: Option<SslProtocol>,
     trust_certs_only: bool,
+    whitelisted_ciphers: Vec<CipherSuite>,
+    blacklisted_ciphers: Vec<CipherSuite>,
 }
 
 impl Default for ClientBuilder {
@@ -1109,6 +1111,8 @@ impl ClientBuilder {
             protocol_min: None,
             protocol_max: None,
             trust_certs_only: false,
+            whitelisted_ciphers: Vec::new(),
+            blacklisted_ciphers: Vec::new(),
         }
     }
 
@@ -1123,6 +1127,18 @@ impl ClientBuilder {
     /// to specified anchor certificates.
     pub fn trust_anchor_certificates_only(&mut self, only: bool) -> &mut Self {
         self.trust_certs_only = only;
+        self
+    }
+
+    /// Set a whitelist of enabled ciphers. Any ciphers not whitelisted will be disabled.
+    pub fn whitelist_ciphers(&mut self, whitelisted_ciphers: &[CipherSuite]) -> &mut Self {
+        self.whitelisted_ciphers = whitelisted_ciphers.to_owned();
+        self
+    }
+
+    /// Set a blacklist of disabled ciphers. Blacklisted ciphers will be disabled.
+    pub fn blacklist_ciphers(&mut self, blacklisted_ciphers: &[CipherSuite]) -> &mut Self {
+        self.blacklisted_ciphers = blacklisted_ciphers.to_owned();
         self
     }
 
@@ -1214,6 +1230,7 @@ impl ClientBuilder {
         }
         try!(ctx.set_break_on_server_auth(true));
         try!(self.configure_protocols(&mut ctx));
+        try!(self.configure_ciphers(&mut ctx));
 
         let certs = self.certs.clone();
 
@@ -1245,6 +1262,22 @@ impl ClientBuilder {
 
     #[cfg(not(feature = "OSX_10_8"))]
     fn configure_protocols(&self, _ctx: &mut SslContext) -> Result<()> {
+        Ok(())
+    }
+
+    fn configure_ciphers(&self, ctx: &mut SslContext) -> Result<()> {
+        let mut ciphers = if self.whitelisted_ciphers.is_empty() {
+            try!(ctx.enabled_ciphers())
+        }
+        else {
+            self.whitelisted_ciphers.clone()
+        };
+
+        if !self.blacklisted_ciphers.is_empty() {
+            ciphers.retain(|cipher| !self.blacklisted_ciphers.contains(cipher));
+        }
+
+        try!(ctx.set_enabled_ciphers(&ciphers));
         Ok(())
     }
 }
@@ -1369,6 +1402,39 @@ mod test {
             .collect::<Vec<_>>();
         p!(ctx.set_enabled_ciphers(&ciphers));
         assert_eq!(ciphers, p!(ctx.enabled_ciphers()));
+    }
+
+    #[test]
+    fn test_builder_whitelist_ciphers() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+
+        let ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        assert!(p!(ctx.enabled_ciphers()).len() > 1);
+
+        let ciphers = p!(ctx.enabled_ciphers());
+        let cipher = ciphers.first().unwrap();
+        let stream = p!(ClientBuilder::new()
+            .whitelist_ciphers(&[*cipher])
+            .handshake("google.com", stream));
+
+        assert_eq!(1, p!(stream.context().enabled_ciphers()).len());
+    }
+
+    #[test]
+    fn test_builder_blacklist_ciphers() {
+        let stream = p!(TcpStream::connect("google.com:443"));
+
+        let ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let num = p!(ctx.enabled_ciphers()).len();
+        assert!(num > 1);
+
+        let ciphers = p!(ctx.enabled_ciphers());
+        let cipher = ciphers.first().unwrap();
+        let stream = p!(ClientBuilder::new()
+            .blacklist_ciphers(&[*cipher])
+            .handshake("google.com", stream));
+
+        assert_eq!(num - 1, p!(stream.context().enabled_ciphers()).len());
     }
 
     #[test]
