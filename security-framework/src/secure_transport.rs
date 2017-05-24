@@ -1428,6 +1428,7 @@ mod test {
     }
 
     #[test]
+    #[cfg_attr(target_os = "ios", ignore)] // FIXME same issue as cipher_configuration
     fn test_builder_blacklist_ciphers() {
         let stream = p!(TcpStream::connect("google.com:443"));
 
