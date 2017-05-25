@@ -114,30 +114,43 @@ impl Pkcs12ImportOptions {
 
             for raw_item in &raw_items {
                 let raw_item = CFDictionary::wrap_under_get_rule(raw_item as *mut _);
-                let label = raw_item.get(kSecImportItemLabel as *const _);
-                let label = CFString::wrap_under_get_rule(label as *const _).to_string();
-                let key_id = raw_item.get(kSecImportItemKeyID as *const _);
-                let key_id = CFData::wrap_under_get_rule(key_id as *const _).to_owned();
-                let trust = raw_item.get(kSecImportItemTrust as *const _);
+                let label =
+                    raw_item
+                        .find(kSecImportItemLabel as *const _)
+                        .map_or(String::new(""), |label| {
+                            CFString::wrap_under_get_rule(label as *const _).to_string()
+                        });
+                let key_id =
+                    raw_item
+                        .find(kSecImportItemKeyID as *const _)
+                        .map_or(vec![], |key_id| {
+                            CFData::wrap_under_get_rule(key_id as *const _).to_owned()
+                        });
+                let trust = raw_item
+                    .find(kSecImportItemTrust as *const _)
+                    .expect("Could not get trust item from pkcs12");
                 let trust = SecTrust::wrap_under_get_rule(trust as usize as *mut _);
-                let cert_chain = raw_item.get(kSecImportItemCertChain as *const _);
+                let cert_chain = raw_item
+                    .find(kSecImportItemCertChain as *const _)
+                    .expect("Could not get cert chain item from pkcs12");
                 let cert_chain = CFArray::wrap_under_get_rule(cert_chain as *const _);
-                let cert_chain = cert_chain.iter()
-                                           .map(|c| {
-                                               SecCertificate::wrap_under_get_rule(c as *mut _)
-                                           })
-                                           .collect();
-                let identity = raw_item.get(kSecImportItemIdentity as *const _);
+                let cert_chain = cert_chain
+                    .iter()
+                    .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
+                    .collect();
+                let identity = raw_item
+                    .find(kSecImportItemIdentity as *const _)
+                    .expect("Could not get identity item from pkcs12");
                 let identity = SecIdentity::wrap_under_get_rule(identity as usize as *mut _);
 
                 items.push(ImportedIdentity {
-                    label: label,
-                    key_id: key_id,
-                    trust: trust,
-                    cert_chain: cert_chain,
-                    identity: identity,
-                    _p: (),
-                });
+                               label: label,
+                               key_id: key_id,
+                               trust: trust,
+                               cert_chain: cert_chain,
+                               identity: identity,
+                               _p: (),
+                           });
             }
 
             Ok(items)
