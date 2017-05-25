@@ -117,7 +117,7 @@ impl Pkcs12ImportOptions {
                 let label =
                     raw_item
                         .find(kSecImportItemLabel as *const _)
-                        .map_or(String::new(""), |label| {
+                        .map_or(String::new(), |label| {
                             CFString::wrap_under_get_rule(label as *const _).to_string()
                         });
                 let key_id =
