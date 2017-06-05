@@ -33,6 +33,21 @@ pub struct ImportedIdentity {
     _p: (),
 }
 
+/// Information about an imported identity.
+pub struct ImportedIdentityOptions {
+    /// The label of the identity.
+    pub label: Option<String>,
+    /// The ID of the identity. Typically the SHA-1 hash of the public key.
+    pub key_id: Option<Vec<u8>>,
+    /// A `SecTrust` object set up to validate this identity.
+    pub trust: Option<SecTrust>,
+    /// A certificate chain validating this identity.
+    pub cert_chain: Option<Vec<SecCertificate>>,
+    /// The identity itself.
+    pub identity: Option<SecIdentity>,
+    _p: (),
+}
+
 /// A builder type to import an identity from PKCS#12 formatted data.
 #[derive(Default)]
 pub struct Pkcs12ImportOptions {
@@ -89,7 +104,38 @@ impl Pkcs12ImportOptions {
     }
 
     /// Imports identities from PKCS#12 encoded data.
+    #[deprecated(since="0.1.15", note="please use `import_optional` instead")]
     pub fn import(&self, pkcs12_data: &[u8]) -> Result<Vec<ImportedIdentity>> {
+        self.import_optional(pkcs12_data)
+            .and_then(|result| {
+                Ok(result
+                       .into_iter()
+                       .map(move |identity| {
+                    ImportedIdentity {
+                        label: identity
+                            .label
+                            .expect("Could not get label item from pkcs12"),
+                        key_id: identity
+                            .key_id
+                            .expect("Could not get key item from pkcs12"),
+                        trust: identity
+                            .trust
+                            .expect("Could not get trust item from pkcs12"),
+                        cert_chain: identity
+                            .cert_chain
+                            .expect("Could not get cert chain item from pkcs12"),
+                        identity: identity
+                            .identity
+                            .expect("Could not get identity item from pkcs12"),
+                        _p: (),
+                    }
+                })
+                       .collect())
+            })
+    }
+
+    /// Imports identities from PKCS#12 encoded data allowing missing items
+    pub fn import_optional(&self, pkcs12_data: &[u8]) -> Result<Vec<ImportedIdentityOptions>> {
         unsafe {
             let pkcs12_data = CFData::from_buffer(pkcs12_data);
 
@@ -117,33 +163,31 @@ impl Pkcs12ImportOptions {
                 let label =
                     raw_item
                         .find(kSecImportItemLabel as *const _)
-                        .map_or(String::new(), |label| {
-                            CFString::wrap_under_get_rule(label as *const _).to_string()
-                        });
+                        .map(|label| CFString::wrap_under_get_rule(label as *const _).to_string());
                 let key_id =
                     raw_item
                         .find(kSecImportItemKeyID as *const _)
-                        .map_or(vec![], |key_id| {
-                            CFData::wrap_under_get_rule(key_id as *const _).to_owned()
-                        });
-                let trust = raw_item
-                    .find(kSecImportItemTrust as *const _)
-                    .expect("Could not get trust item from pkcs12");
-                let trust = SecTrust::wrap_under_get_rule(trust as usize as *mut _);
+                        .map(|key_id| CFData::wrap_under_get_rule(key_id as *const _).to_owned());
+                let trust =
+                    raw_item
+                        .find(kSecImportItemTrust as *const _)
+                        .map(|trust| SecTrust::wrap_under_get_rule(trust as usize as *mut _));
                 let cert_chain = raw_item
                     .find(kSecImportItemCertChain as *const _)
-                    .expect("Could not get cert chain item from pkcs12");
-                let cert_chain = CFArray::wrap_under_get_rule(cert_chain as *const _);
-                let cert_chain = cert_chain
-                    .iter()
-                    .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
-                    .collect();
-                let identity = raw_item
-                    .find(kSecImportItemIdentity as *const _)
-                    .expect("Could not get identity item from pkcs12");
-                let identity = SecIdentity::wrap_under_get_rule(identity as usize as *mut _);
+                    .map(|cert_chain| {
+                             CFArray::wrap_under_get_rule(cert_chain as *const _)
+                                 .iter()
+                                 .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
+                                 .collect()
+                         });
+                let identity =
+                    raw_item
+                        .find(kSecImportItemIdentity as *const _)
+                        .map(|identity| {
+                                 SecIdentity::wrap_under_get_rule(identity as usize as *mut _)
+                             });
 
-                items.push(ImportedIdentity {
+                items.push(ImportedIdentityOptions {
                                label: label,
                                key_id: key_id,
                                trust: trust,
@@ -183,6 +227,6 @@ mod test {
     #[test]
     fn missing_passphrase() {
         let data = include_bytes!("../test/server.p12");
-        assert!(Pkcs12ImportOptions::new().import(data).is_err());
+        assert!(Pkcs12ImportOptions::new().import_optional(data).is_err());
     }
 }
