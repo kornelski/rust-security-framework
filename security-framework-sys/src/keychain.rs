@@ -15,9 +15,9 @@ pub struct SecKeychainSettings {
 
 extern "C" {
     pub fn SecKeychainGetTypeID() -> CFTypeID;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecKeychainCopyDefault(keychain: *mut SecKeychainRef) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecKeychainCreate(pathName: *const c_char,
                              passwordLength: u32,
                              password: *const c_void,
@@ -25,14 +25,14 @@ extern "C" {
                              initialAccess: SecAccessRef,
                              keychain: *mut SecKeychainRef)
                              -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecKeychainOpen(pathName: *const c_char, keychain: *mut SecKeychainRef) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecKeychainUnlock(keychain: SecKeychainRef,
                              passwordLength: u32,
                              password: *const c_void,
                              usePassword: Boolean)
                              -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecKeychainSetSettings(keychain: SecKeychainRef, newSettings: *const SecKeychainSettings) -> OSStatus;
 }

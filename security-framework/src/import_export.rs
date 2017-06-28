@@ -8,9 +8,9 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::array::CFArray;
 use std::ptr;
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use access::SecAccess;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use keychain::SecKeychain;
 use trust::SecTrust;
 use certificate::SecCertificate;
@@ -52,13 +52,13 @@ pub struct ImportedIdentityOptions {
 #[derive(Default)]
 pub struct Pkcs12ImportOptions {
     passphrase: Option<CFString>,
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     keychain: Option<SecKeychain>,
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     access: Option<SecAccess>,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 impl ::Pkcs12ImportOptionsInternals for Pkcs12ImportOptions {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
@@ -88,7 +88,7 @@ impl Pkcs12ImportOptions {
     /// Deprecated
     ///
     /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::keychain`.
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
         self
@@ -97,7 +97,7 @@ impl Pkcs12ImportOptions {
     /// Deprecated
     ///
     /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::access`.
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self
@@ -201,7 +201,7 @@ impl Pkcs12ImportOptions {
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     fn import_setup(&self, options: &mut Vec<(CFString, CFType)>) {
         unsafe {
             if let Some(ref keychain) = self.keychain {
@@ -216,7 +216,7 @@ impl Pkcs12ImportOptions {
         }
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
     fn import_setup(&self, _: &mut Vec<(CFString, CFType)>) {}
 }
 

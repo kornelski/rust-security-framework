@@ -141,9 +141,9 @@ extern "C" {
                             protocolSide: SSLProtocolSide,
                             connectionType: SSLConnectionType)
                             -> SSLContextRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLNewContext(isServer: Boolean, contextPtr: *mut SSLContextRef) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLDisposeContext(context: SSLContextRef) -> OSStatus;
     pub fn SSLSetConnection(context: SSLContextRef, connection: SSLConnectionRef) -> OSStatus;
     pub fn SSLGetConnection(context: SSLContextRef, connection: *mut SSLConnectionRef) -> OSStatus;
@@ -175,12 +175,12 @@ extern "C" {
                                 peerNameLen: *mut size_t)
                                 -> OSStatus;
     pub fn SSLSetCertificate(context: SSLContextRef, certRefs: CFArrayRef) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLSetCertificateAuthorities(context: SSLContextRef,
                                         certificateOrArray: CFTypeRef,
                                         replaceExisting: Boolean)
                                         -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLCopyCertificateAuthorities(context: SSLContextRef,
                                          certificates: *mut CFArrayRef)
                                          -> OSStatus;
@@ -212,12 +212,12 @@ extern "C" {
                                 -> OSStatus;
     pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
     pub fn SSLSetClientSideAuthenticate(context: SSLContextRef, auth: SSLAuthenticate) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLSetDiffieHellmanParams(context: SSLContextRef,
                                      dhParams: *const c_void,
                                      dhParamsLen: size_t)
                                      -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLGetDiffieHellmanParams(context: SSLContextRef,
                                      dhParams: *mut *const c_void,
                                      dhParamsLen: *mut size_t)
@@ -249,7 +249,7 @@ extern "C" {
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
     #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLSetProtocolVersionMin(context: SSLContextRef, minVersion: SSLProtocol) -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SSLSetProtocolVersionEnabled(context: SSLContextRef,
                                         protocol: SSLProtocol,
                                         enable: Boolean) -> OSStatus;

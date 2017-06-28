@@ -16,11 +16,11 @@ extern crate tempdir;
 extern crate hex;
 
 // For back compat
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub use os::macos::keychain_item;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub use os::macos::access;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub use os::macos::keychain;
 
 use core_foundation_sys::base::OSStatus;
@@ -29,9 +29,9 @@ use security_framework_sys::cipher_suite::SSLCipherSuite;
 
 use base::{Result, Error};
 use cipher_suite::CipherSuite;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use os::macos::access::SecAccess;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use os::macos::keychain::SecKeychain;
 
 macro_rules! make_wrapper {
@@ -89,13 +89,13 @@ trait CipherSuiteInternals {
     fn to_raw(&self) -> SSLCipherSuite;
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 trait Pkcs12ImportOptionsInternals {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;
     fn access(&mut self, access: SecAccess) -> &mut Self;
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 trait ItemSearchOptionsInternals {
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
 }
