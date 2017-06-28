@@ -10,7 +10,7 @@ extern "C" {
     pub fn SecIdentityCopyPrivateKey(identity: SecIdentityRef,
                                      key_ref: *mut SecKeyRef)
                                      -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecIdentityCreateWithCertificate(keychain_or_Array: CFTypeRef,
                                             certificate_ref: SecCertificateRef,
                                             identity_ref: *mut SecIdentityRef)

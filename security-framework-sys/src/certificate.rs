@@ -11,11 +11,11 @@ extern "C" {
                                         -> SecCertificateRef;
     pub fn SecCertificateCopyData(certificate: SecCertificateRef) -> CFDataRef;
     pub fn SecCertificateCopySubjectSummary(certificate: SecCertificateRef) -> CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecCertificateCopyCommonName(certificate: SecCertificateRef,
                                         common_name: *mut CFStringRef)
                                         -> OSStatus;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn SecCertificateCopyPublicKey(certificate: SecCertificateRef,
                                        key: *mut SecKeyRef)
                                        -> OSStatus;

@@ -16,7 +16,7 @@ use certificate::SecCertificate;
 use cvt;
 use identity::SecIdentity;
 use key::SecKey;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
@@ -59,7 +59,7 @@ pub struct ItemSearchOptions {
     label: Option<CFString>,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 impl ::ItemSearchOptionsInternals for ItemSearchOptions {
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
@@ -82,7 +82,7 @@ impl ItemSearchOptions {
     /// Deprecated.
     ///
     /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
@@ -163,7 +163,7 @@ impl ItemSearchOptions {
     }
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     use os::macos::keychain_item::SecKeychainItem;
 
@@ -187,7 +187,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "ios")))]
 unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     let type_id = CFGetTypeID(item);
 
@@ -219,7 +219,7 @@ pub enum Reference {
     /// A `SecKeychainItem`.
     ///
     /// Only defined on OSX
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     KeychainItem(::os::macos::keychain_item::SecKeychainItem),
 }
 

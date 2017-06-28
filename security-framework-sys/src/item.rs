@@ -22,21 +22,21 @@ extern "C" {
     pub static kSecAttrKeyType: CFStringRef;
     pub static kSecAttrLabel: CFStringRef;
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeRSA: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeDSA: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeAES: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeDES: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyType3DES: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeRC4: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeRC2: CFStringRef;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub static kSecAttrKeyTypeCAST: CFStringRef;
     #[cfg(feature = "OSX_10_9")]
     pub static kSecAttrKeyTypeEC: CFStringRef;
