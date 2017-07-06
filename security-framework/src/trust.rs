@@ -3,12 +3,12 @@
 use core_foundation_sys::base::Boolean;
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
-use security_framework_sys::base::errSecParam;
+
 use security_framework_sys::trust::*;
 use std::ptr;
 
 use cvt;
-use base::{Error, Result};
+use base::Result;
 use certificate::SecCertificate;
 use policy::SecPolicy;
 
@@ -110,22 +110,22 @@ impl SecTrust {
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
     /// Note: evaluate must first be called on the SecTrust.
-    pub fn certificate_count(&self) -> Result<i64> {
+    pub fn certificate_count(&self) -> i64 {
         unsafe {
-            Ok(SecTrustGetCertificateCount(self.0))
+            SecTrustGetCertificateCount(self.0)
         }
     }
 
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
     ///
     /// Note: evaluate must first be called on the SecTrust.
-    pub fn certificate_at_index(&self, ix: i64) -> Result<SecCertificate> {
+    pub fn certificate_at_index(&self, ix: i64) -> Option<SecCertificate> {
         unsafe {
             let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
             if certificate.is_null() {
-                Err(Error::from_code(errSecParam))
+                None
             } else {
-                Ok(SecCertificate::wrap_under_get_rule(certificate as *mut _))
+                Some(SecCertificate::wrap_under_get_rule(certificate as *mut _))
             }
         }
     }
@@ -153,7 +153,7 @@ mod test {
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         trust.evaluate().unwrap();
 
-        let count = trust.certificate_count().unwrap();
+        let count = trust.certificate_count();
         assert_eq!(count, 1);
 
         let cert_bytes = trust.certificate_at_index(0).unwrap().to_der();
@@ -167,7 +167,7 @@ mod test {
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         trust.evaluate().unwrap();
 
-        assert!(trust.certificate_at_index(1).is_err());
+        assert!(trust.certificate_at_index(1).is_none());
     }
 
     #[test]
