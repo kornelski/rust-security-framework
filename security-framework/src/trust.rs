@@ -1,6 +1,6 @@
 //! Trust evaluation support.
 
-use core_foundation_sys::base::Boolean;
+use core_foundation_sys::base::{Boolean, CFIndex};
 use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
 
@@ -110,7 +110,7 @@ impl SecTrust {
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
     /// Note: evaluate must first be called on the SecTrust.
-    pub fn certificate_count(&self) -> i64 {
+    pub fn certificate_count(&self) -> CFIndex {
         unsafe {
             SecTrustGetCertificateCount(self.0)
         }
