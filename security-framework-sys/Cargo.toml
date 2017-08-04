@@ -12,7 +12,7 @@ build = "build.rs"
 
 [dependencies]
 libc = "0.2"
-core-foundation-sys = "0.2.1"
+core-foundation-sys = "0.4"
 
 [features]
 OSX_10_8 = []
