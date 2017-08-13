@@ -121,7 +121,13 @@ impl SecTrust {
     /// Note: evaluate must first be called on the SecTrust.
     pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         unsafe {
-            let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
+            if ix > <CFIndex>::max_value() as i64 {
+                return None
+            }
+            if ix < <CFIndex>::min_value() as i64 {
+                return None
+            }
+            let certificate = SecTrustGetCertificateAtIndex(self.0, ix as CFIndex);
             if certificate.is_null() {
                 None
             } else {
