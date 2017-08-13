@@ -119,7 +119,7 @@ impl SecTrust {
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
     ///
     /// Note: evaluate must first be called on the SecTrust.
-    pub fn certificate_at_index(&self, ix: i64) -> Option<SecCertificate> {
+    pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         unsafe {
             let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
             if certificate.is_null() {
