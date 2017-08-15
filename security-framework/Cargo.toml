@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "0.1.15"
+version = "0.1.16"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Security Framework bindings"
@@ -11,7 +11,7 @@ keywords = ["OSX", "iOS", "TLS", "SSL", "crypto"]
 exclude = ["test/*"]
 
 [dependencies]
-security-framework-sys = { version = "0.1.15", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.1.16", path = "../security-framework-sys" }
 core-foundation = "0.2.1"
 core-foundation-sys = "0.2.1"
 libc = "0.2"
