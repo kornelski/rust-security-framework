@@ -222,6 +222,7 @@ pub struct MidHandshakeClientBuilder<S> {
     domain: Option<String>,
     certs: Vec<SecCertificate>,
     trust_certs_only: bool,
+    danger_accept_invalid_certs: bool,
 }
 
 impl<S> MidHandshakeClientBuilder<S> {
@@ -242,7 +243,15 @@ impl<S> MidHandshakeClientBuilder<S> {
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, ClientHandshakeError<S>> {
-        let MidHandshakeClientBuilder { stream, domain, certs, trust_certs_only } = self;
+        let MidHandshakeClientBuilder {
+            stream,
+            domain,
+            certs,
+            trust_certs_only,
+            danger_accept_invalid_certs
+        } = self;
+
+
         let mut result = stream.handshake();
         loop {
             let stream = match result {
@@ -257,11 +266,16 @@ impl<S> MidHandshakeClientBuilder<S> {
                     domain: domain,
                     certs: certs,
                     trust_certs_only: trust_certs_only,
+                    danger_accept_invalid_certs: danger_accept_invalid_certs,
                 };
                 return Err(ClientHandshakeError::Interrupted(ret));
             }
 
             if stream.server_auth_completed() {
+                if danger_accept_invalid_certs {
+                    result = stream.handshake();
+                    continue;
+                }
                 let mut trust = try!(stream.context().peer_trust());
                 try!(trust.set_anchor_certificates(&certs));
                 try!(trust.set_trust_anchor_certificates_only(self.trust_certs_only));
@@ -1091,6 +1105,7 @@ pub struct ClientBuilder {
     protocol_min: Option<SslProtocol>,
     protocol_max: Option<SslProtocol>,
     trust_certs_only: bool,
+    danger_accept_invalid_certs: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
 }
@@ -1111,6 +1126,7 @@ impl ClientBuilder {
             protocol_min: None,
             protocol_max: None,
             trust_certs_only: false,
+            danger_accept_invalid_certs: false,
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
         }
@@ -1127,6 +1143,19 @@ impl ClientBuilder {
     /// to specified anchor certificates.
     pub fn trust_anchor_certificates_only(&mut self, only: bool) -> &mut Self {
         self.trust_certs_only = only;
+        self
+    }
+
+    /// Specifies whether to trust invalid certificates.
+    ///
+    /// # Warning
+    ///
+    /// You should think very carefully before using this method. If invalid
+    /// certificates are trusted, *any* certificate for *any* site will be
+    /// trusted for use. This includes expired certificates. This introduces
+    /// significant vulnerabilities, and should only be used as a last resort.
+    pub fn danger_accept_invalid_certs(&mut self, noverify: bool) -> &mut Self {
+        self.danger_accept_invalid_certs = noverify;
         self
     }
 
@@ -1252,6 +1281,7 @@ impl ClientBuilder {
             domain: domain.map(|s| s.to_string()),
             certs: certs,
             trust_certs_only: self.trust_certs_only,
+            danger_accept_invalid_certs: self.danger_accept_invalid_certs,
         };
         stream.handshake()
     }
@@ -1383,6 +1413,14 @@ mod test {
         ClientBuilder::new()
             .danger_handshake_without_providing_domain_for_certificate_validation_and_server_name_indication(stream)
             .unwrap();
+    }
+
+    #[test]
+    fn connect_no_verify_ssl() {
+        let stream = p!(TcpStream::connect("expired.badssl.com:443"));
+        let mut builder = ClientBuilder::new();
+        builder.danger_accept_invalid_certs(true);
+        builder.handshake("expired.badssl.com", stream).unwrap();
     }
 
     #[test]
