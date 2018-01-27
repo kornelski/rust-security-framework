@@ -13,10 +13,11 @@ use cvt;
 use base::Result;
 use os::macos::access::SecAccess;
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing a keychain.
-    struct SecKeychain, SecKeychainRef, SecKeychainGetTypeID
+    SecKeychain, SecKeychainRef
 }
+impl_TCFType!(SecKeychain, SecKeychainRef, SecKeychainGetTypeID);
 
 unsafe impl Sync for SecKeychain {}
 unsafe impl Send for SecKeychain {}

@@ -11,12 +11,13 @@ use base::Result;
 use certificate::SecCertificate;
 use key::SecKey;
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing an identity.
     ///
     /// Identities are a certificate paired with the corresponding private key.
-    struct SecIdentity, SecIdentityRef, SecIdentityGetTypeID
+    SecIdentity, SecIdentityRef
 }
+impl_TCFType!(SecIdentity, SecIdentityRef, SecIdentityGetTypeID);
 
 unsafe impl Sync for SecIdentity {}
 unsafe impl Send for SecIdentity {}

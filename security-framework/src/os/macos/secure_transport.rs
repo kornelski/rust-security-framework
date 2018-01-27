@@ -139,9 +139,9 @@ impl SslContextExt for SslContext {
             if raw_certs.is_null() {
                 Ok(None)
             } else {
-                let certs = CFArray::wrap_under_create_rule(raw_certs)
+                let certs = CFArray::<SecCertificate>::wrap_under_create_rule(raw_certs)
                                 .iter()
-                                .map(|c| SecCertificate::wrap_under_get_rule(c as *mut _))
+                                .map(|c| c.clone())
                                 .collect();
                 Ok(Some(certs))
             }

@@ -9,10 +9,11 @@ use std::ptr;
 use base::{Error, Result};
 use secure_transport::ProtocolSide;
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing a certificate validation policy.
-    struct SecPolicy, SecPolicyRef, SecPolicyGetTypeID
+    SecPolicy, SecPolicyRef
 }
+impl_TCFType!(SecPolicy, SecPolicyRef, SecPolicyGetTypeID);
 
 unsafe impl Sync for SecPolicy {}
 unsafe impl Send for SecPolicy {}
