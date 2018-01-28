@@ -34,33 +34,6 @@ use os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
 use os::macos::keychain::SecKeychain;
 
-macro_rules! make_wrapper {
-    ($(#[$a:meta])* struct $name:ident, $raw:ident, $ty_fn:ident) => {
-        $(#[$a])*
-        pub struct $name($raw);
-
-        impl Drop for $name {
-            fn drop(&mut self) {
-                unsafe {
-                    ::core_foundation_sys::base::CFRelease(self.0 as *mut _);
-                }
-            }
-        }
-
-        impl Clone for $name {
-            fn clone(&self) -> $name {
-                use core_foundation::base::TCFType;
-
-                unsafe {
-                    TCFType::wrap_under_get_rule(self.as_concrete_TypeRef())
-                }
-            }
-        }
-
-        impl_TCFType!($name, $raw, $ty_fn);
-    }
-}
-
 #[cfg(test)]
 macro_rules! p {
     ($e:expr) => {

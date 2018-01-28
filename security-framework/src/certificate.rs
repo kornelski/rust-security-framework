@@ -10,10 +10,12 @@ use std::fmt;
 
 use base::{Error, Result};
 
-make_wrapper! {
+
+declare_TCFType! {
     /// A type representing a certificate.
-    struct SecCertificate, SecCertificateRef, SecCertificateGetTypeID
+    SecCertificate, SecCertificateRef
 }
+impl_TCFType!(SecCertificate, SecCertificateRef, SecCertificateGetTypeID);
 
 unsafe impl Sync for SecCertificate {}
 unsafe impl Send for SecCertificate {}
@@ -45,7 +47,7 @@ impl SecCertificate {
     pub fn to_der(&self) -> Vec<u8> {
         unsafe {
             let der_data = SecCertificateCopyData(self.0);
-            CFData::wrap_under_create_rule(der_data).to_owned()
+            CFData::wrap_under_create_rule(der_data).to_vec()
         }
     }
 

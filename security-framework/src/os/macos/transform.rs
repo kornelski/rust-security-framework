@@ -6,18 +6,19 @@ use core_foundation::string::CFString;
 use security_framework_sys::transform::*;
 use std::ptr;
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing a transform.
-    struct SecTransform, SecTransformRef, SecTransformGetTypeID
+    SecTransform, SecTransformRef
 }
+impl_TCFType!(SecTransform, SecTransformRef, SecTransformGetTypeID);
 
 unsafe impl Sync for SecTransform {}
 unsafe impl Send for SecTransform {}
 
 impl SecTransform {
     /// Sets an attribute of the transform.
-    pub fn set_attribute<T, U>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>
-        where T: TCFType<U>
+    pub fn set_attribute<T>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>
+        where T: TCFType
     {
         unsafe {
             let mut error = ptr::null_mut();

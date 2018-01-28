@@ -1,13 +1,15 @@
 //! Encryption key support
 
+use core_foundation::base::TCFType;
 use security_framework_sys::base::SecKeyRef;
 use security_framework_sys::key::SecKeyGetTypeID;
 use std::fmt;
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing an encryption key.
-    struct SecKey, SecKeyRef, SecKeyGetTypeID
+    SecKey, SecKeyRef
 }
+impl_TCFType!(SecKey, SecKeyRef, SecKeyGetTypeID);
 
 unsafe impl Sync for SecKey {}
 unsafe impl Send for SecKey {}

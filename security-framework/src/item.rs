@@ -52,7 +52,10 @@ impl ItemClass {
 /// A builder type to search for items in keychains.
 #[derive(Default)]
 pub struct ItemSearchOptions {
-    keychains: Option<CFArray>,
+    #[cfg(target_os = "macos")]
+    keychains: Option<CFArray<SecKeychain>>,
+    #[cfg(not(target_os = "macos"))]
+    keychains: Option<CFArray<CFType>>,
     class: Option<ItemClass>,
     load_refs: bool,
     limit: Option<i64>,
@@ -130,7 +133,7 @@ impl ItemSearchOptions {
 
             if let Some(limit) = self.limit {
                 params.push((CFString::wrap_under_get_rule(kSecMatchLimit),
-                             CFNumber::from_i64(limit).as_CFType()));
+                             CFNumber::from(limit).as_CFType()));
             }
 
             if let Some(ref label) = self.label {
@@ -146,10 +149,10 @@ impl ItemSearchOptions {
 
             let mut items = vec![];
 
-            if type_id == CFArray::type_id() {
-                let array = CFArray::wrap_under_create_rule(ret as *mut _);
-                for item in &array {
-                    items.push(get_item(item as *const _));
+            if type_id == CFArray::<CFType>::type_id() {
+                let array: CFArray<CFType> = CFArray::wrap_under_create_rule(ret as *mut _);
+                for item in array.iter() {
+                    items.push(get_item(item.as_CFTypeRef()));
                 }
             } else {
                 items.push(get_item(ret));

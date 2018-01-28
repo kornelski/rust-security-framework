@@ -3,7 +3,7 @@ cache:
   directories:
     - $HOME/.cargo
     - $TRAVIS_BUILD_DIR/security-framework/target
-rust: 1.11.0
+rust: 1.20.0
 os: osx
 env:
   - TARGET=x86_64-apple-darwin

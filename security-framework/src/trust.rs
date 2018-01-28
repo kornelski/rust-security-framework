@@ -54,10 +54,11 @@ impl TrustResult {
     }
 }
 
-make_wrapper! {
+declare_TCFType! {
     /// A type representing a trust evaluation for a certificate.
-    struct SecTrust, SecTrustRef, SecTrustGetTypeID
+    SecTrust, SecTrustRef
 }
+impl_TCFType!(SecTrust, SecTrustRef, SecTrustGetTypeID);
 
 unsafe impl Sync for SecTrust {}
 unsafe impl Send for SecTrust {}
