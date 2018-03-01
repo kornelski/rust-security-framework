@@ -3,12 +3,15 @@
 use core_foundation::array::CFArray;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::boolean::CFBoolean;
+use core_foundation::data::CFData;
+use core_foundation::date::CFDate;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
-use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
+use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
+use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
 
@@ -64,6 +67,8 @@ pub struct ItemSearchOptions {
     keychains: Option<CFArray<CFType>>,
     class: Option<ItemClass>,
     load_refs: bool,
+    load_attributes: bool,
+    load_data: bool,
     limit: Option<i64>,
     label: Option<CFString>,
 }
@@ -104,6 +109,20 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Load Security Framework object attributes for
+    /// the results.
+    pub fn load_attributes(&mut self, load_attributes: bool) -> &mut ItemSearchOptions {
+        self.load_attributes = load_attributes;
+        self
+    }
+
+    /// Load Security Framework objects data for
+    /// the results.
+    pub fn load_data(&mut self, load_data: bool) -> &mut ItemSearchOptions {
+        self.load_data = load_data;
+        self
+    }
+
     /// Limit the number of search results.
     ///
     /// If this is not called, the default limit is 1.
@@ -137,6 +156,20 @@ impl ItemSearchOptions {
             if self.load_refs {
                 params.push((
                     CFString::wrap_under_get_rule(kSecReturnRef),
+                    CFBoolean::true_value().as_CFType(),
+                ));
+            }
+
+            if self.load_attributes {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecReturnAttributes),
+                    CFBoolean::true_value().as_CFType(),
+                ));
+            }
+
+            if self.load_data {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecReturnData),
                     CFBoolean::true_value().as_CFType(),
                 ));
             }
@@ -186,6 +219,17 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
 
     let type_id = CFGetTypeID(item);
 
+    if type_id == CFData::type_id() {
+        let data = CFData::wrap_under_get_rule(item as *mut _);
+        let mut buf = Vec::new();
+        buf.extend_from_slice(data.bytes());
+        return SearchResult::Data(buf);
+    }
+
+    if type_id == CFDictionary::type_id() {
+        return SearchResult::Dict(CFDictionary::wrap_under_get_rule(item as *mut _));
+    }
+
     let reference = if type_id == SecCertificate::type_id() {
         Reference::Certificate(SecCertificate::wrap_under_get_rule(item as *mut _))
     } else if type_id == SecKey::type_id() {
@@ -198,10 +242,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
         panic!("Got bad type from SecItemCopyMatching: {}", type_id);
     };
 
-    SearchResult {
-        reference: Some(reference),
-        _p: (),
-    }
+    SearchResult::Ref(reference)
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -218,10 +259,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
         panic!("Got bad type from SecItemCopyMatching: {}", type_id);
     };
 
-    SearchResult {
-        reference: Some(reference),
-        _p: (),
-    }
+    SearchResult::Ref(reference)
 }
 
 /// An enum including all objects which can be found by `ItemSearchOptions`.
@@ -243,17 +281,74 @@ pub enum Reference {
 }
 
 /// An individual search result.
-pub struct SearchResult {
+pub enum SearchResult {
     /// A reference to the Security Framework object, if asked for.
-    pub reference: Option<Reference>,
-    _p: (),
+    Ref(Reference),
+    /// A dictionary of data about the Security Framework object, if asked for.
+    Dict(CFDictionary),
+    /// The Security Framework object as bytes, if asked for.
+    Data(Vec<u8>),
+    /// An unknown representation of the Security Framework object.
+    Other,
 }
 
 impl fmt::Debug for SearchResult {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.debug_struct("SearchResult")
-            .field("reference", &self.reference)
-            .finish()
+        match *self {
+            SearchResult::Ref(ref reference) => fmt
+                .debug_struct("SearchResult::Ref")
+                .field("reference", reference)
+                .finish(),
+            SearchResult::Data(ref buf) => fmt
+                .debug_struct("SearchResult::Data")
+                .field("data", buf)
+                .finish(),
+            SearchResult::Dict(_) => {
+                let mut debug = fmt.debug_struct("SearchResult::Dict");
+                for (k, v) in self.simplify_dict().unwrap() {
+                    debug.field(&k, &v);
+                }
+                debug.finish()
+            }
+            SearchResult::Other => write!(fmt, "SearchResult::Other"),
+        }
+    }
+}
+
+impl SearchResult {
+    /// If the search result is a `CFDict`, simplify that to a
+    /// `HashMap<String, String>`. This transformation isn't
+    /// comprehensive, it only supports CFString, CFDate, and CFData
+    /// value types.
+    pub fn simplify_dict(&self) -> Option<HashMap<String, String>> {
+        match *self {
+            SearchResult::Dict(ref d) => unsafe {
+                let mut retmap = HashMap::new();
+                let (keys, values) = d.get_keys_and_values();
+                for (k, v) in keys.iter().zip(values.iter()) {
+                    let keycfstr = CFString::wrap_under_get_rule(*k as *const _);
+                    let val: String = match CFGetTypeID(*v) {
+                        cfstring if cfstring == CFString::type_id() => {
+                            format!("{}", CFString::wrap_under_get_rule(*v as *const _))
+                        }
+                        cfdata if cfdata == CFData::type_id() => {
+                            let buf = CFData::wrap_under_get_rule(*v as *const _);
+                            let mut vec = Vec::new();
+                            vec.extend_from_slice(buf.bytes());
+                            format!("{}", String::from_utf8_lossy(&vec))
+                        }
+                        cfdate if cfdate == CFDate::type_id() => format!(
+                            "{}",
+                            CFString::wrap_under_create_rule(CFCopyDescription(*v))
+                        ),
+                        _ => String::from("unknown"),
+                    };
+                    retmap.insert(format!("{}", keycfstr), val);
+                }
+                Some(retmap)
+            },
+            _ => None,
+        }
     }
 }
 

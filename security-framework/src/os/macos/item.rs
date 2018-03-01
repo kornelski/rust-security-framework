@@ -84,8 +84,8 @@ mod test {
             .class(ItemClass::certificate())
             .search());
         assert_eq!(1, results.len());
-        let certificate = match results[0].reference {
-            Some(Reference::Certificate(ref cert)) => cert,
+        let certificate = match results[0] {
+            SearchResult::Ref(Reference::Certificate(ref cert)) => cert,
             _ => panic!("expected certificate"),
         };
         assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
