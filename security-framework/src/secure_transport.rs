@@ -374,7 +374,7 @@ macro_rules! ssl_protocol {
                 use self::SslProtocol::*;
 
                 match raw {
-                    $($(#[$a])* $value => $variant,)+
+                    $($value => $variant,)+
                     _ => panic!("invalid ssl protocol {}", raw),
                 }
             }
@@ -383,7 +383,7 @@ macro_rules! ssl_protocol {
                 use self::SslProtocol::*;
 
                 match *self {
-                    $($(#[$a])* $variant => $value,)+
+                    $($variant => $value,)+
                 }
             }
         }
@@ -849,7 +849,7 @@ unsafe extern "C" fn read_func<S>(connection: SSLConnectionRef,
                                   -> OSStatus
     where S: Read
 {
-    let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
+    let conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts_mut(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
@@ -884,7 +884,7 @@ unsafe extern "C" fn write_func<S>(connection: SSLConnectionRef,
                                    -> OSStatus
     where S: Write
 {
-    let mut conn: &mut Connection<S> = &mut *(connection as *mut _);
+    let conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;
     let mut ret = errSecSuccess;
