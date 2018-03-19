@@ -1,4 +1,3 @@
-use core_foundation_sys::base::CFTypeID;
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
@@ -23,7 +22,9 @@ extern "C" {
     pub static kSecPaddingPKCS7Key: CFStringRef;
 
     pub fn SecDecryptTransformCreate(keyRef: SecKeyRef, error: *mut CFErrorRef) -> SecTransformRef;
-    pub fn SecDecryptTransformGetTypeID() -> CFTypeID;
+    // this symbol is apparently missing in 10.13.3?
+    // pub fn SecDecryptTransformGetTypeID() -> CFTypeID;
     pub fn SecEncryptTransformCreate(keyRef: SecKeyRef, error: *mut CFErrorRef) -> SecTransformRef;
-    pub fn SecEncryptTransformGetTypeID() -> CFTypeID;
+    // this symbol is apparently missing in 10.13.3?
+    // pub fn SecEncryptTransformGetTypeID() -> CFTypeID;
 }

@@ -7,7 +7,7 @@ use core_foundation_sys::array::CFArrayRef;
 use cipher_suite::SSLCipherSuite;
 use trust::SecTrustRef;
 
-pub type SSLContext = c_void;
+pub enum SSLContext {}
 pub type SSLContextRef = *mut SSLContext;
 
 pub type SSLConnectionRef = *const c_void;

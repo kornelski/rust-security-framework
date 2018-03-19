@@ -2,32 +2,25 @@ use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::string::CFStringRef;
 use libc::c_void;
 
-#[repr(C)]
-pub struct OpaqueSecKeychainRef(c_void);
+pub enum OpaqueSecKeychainRef {}
 pub type SecKeychainRef = *mut OpaqueSecKeychainRef;
 
-#[repr(C)]
-pub struct OpaqueSecKeychainItemRef(c_void);
+pub enum OpaqueSecKeychainItemRef {}
 pub type SecKeychainItemRef = *mut OpaqueSecKeychainItemRef;
 
-#[repr(C)]
-pub struct OpaqueSecCertificateRef(c_void);
+pub enum OpaqueSecCertificateRef {}
 pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
 
-#[repr(C)]
-pub struct OpaqueSecAccessRef(c_void);
+pub enum OpaqueSecAccessRef {}
 pub type SecAccessRef = *mut OpaqueSecAccessRef;
 
-#[repr(C)]
-pub struct OpaqueSecKeyRef(c_void);
+pub enum OpaqueSecKeyRef {}
 pub type SecKeyRef = *mut OpaqueSecKeyRef;
 
-#[repr(C)]
-pub struct OpaqueSecIdentityRef(c_void);
+pub enum OpaqueSecIdentityRef {}
 pub type SecIdentityRef = *mut OpaqueSecIdentityRef;
 
-#[repr(C)]
-pub struct OpaqueSecPolicyRef(c_void);
+pub enum OpaqueSecPolicyRef {}
 pub type SecPolicyRef = *mut OpaqueSecPolicyRef;
 
 pub const errSecSuccess: OSStatus = 0;

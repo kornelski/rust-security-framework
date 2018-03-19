@@ -32,11 +32,11 @@ pub struct SecItemImportExportKeyParameters {
     pub version: u32,
     pub flags: SecKeyImportExportFlags,
     pub passphrase: CFTypeRef,
-    pub alert_title: CFStringRef,
-    pub alert_prompt: CFStringRef,
-    pub access_ref: SecAccessRef,
-    pub key_usage: CFArrayRef,
-    pub key_attributes: CFArrayRef,
+    pub alertTitle: CFStringRef,
+    pub alertPrompt: CFStringRef,
+    pub accessRef: SecAccessRef,
+    pub keyUsage: CFArrayRef,
+    pub keyAttributes: CFArrayRef,
 }
 
 extern "C" {
@@ -53,7 +53,7 @@ extern "C" {
 
     #[cfg(target_os = "macos")]
     pub fn SecItemExport(secItemOrArray: CFTypeRef,
-                         outputFormat: *mut SecExternalFormat,
+                         outputFormat: SecExternalFormat,
                          flags: SecItemImportExportFlags,
                          keyParams: *const SecItemImportExportKeyParameters,
                          exportedData: *mut CFDataRef)
