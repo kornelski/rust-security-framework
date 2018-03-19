@@ -1,5 +1,7 @@
 extern crate ctest;
 
+use std::env;
+
 fn main() {
     let mut test = ctest::TestGenerator::new();
 
@@ -14,21 +16,25 @@ fn main() {
     #[cfg(feature = "OSX_10_12")]
     test.cfg("feature", Some("OSX_10_12"));
 
-    test.header("Security/SecAccess.h")
-        .header("Security/SecBase.h")
+    if env::var("TARGET").unwrap().contains("darwin") {
+        test.header("Security/SecAccess.h")
+            .header("Security/SecDigestTransform.h")
+            .header("Security/SecEncryptTransform.h")
+            .header("Security/SecKeychain.h")
+            .header("Security/SecKeychainItem.h")
+            .header("Security/SecTransform.h");
+    }
+
+    test.header("Security/SecBase.h")
         .header("Security/SecCertificate.h")
         .header("Security/CipherSuite.h")
-        .header("Security/SecDigestTransform.h")
-        .header("Security/SecEncryptTransform.h")
         .header("Security/SecIdentity.h")
         .header("Security/SecImportExport.h")
         .header("Security/SecItem.h")
         .header("Security/SecKey.h")
-        .header("Security/SecKeychainItem.h")
         .header("Security/SecPolicy.h")
         .header("Security/SecRandom.h")
         .header("Security/SecureTransport.h")
-        .header("Security/SecTransform.h")
         .header("Security/SecTrust.h")
         .flag("-Wno-deprecated-declarations")
         .type_name(|name, _| name.to_string())
