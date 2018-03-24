@@ -2,8 +2,10 @@
 
 extern crate security_framework_sys;
 extern crate core_foundation_sys;
+extern crate libc;
 
 use core_foundation_sys::base::OSStatus;
+use libc::*;
 
 #[cfg(target_os = "macos")]
 use security_framework_sys::access::*;
