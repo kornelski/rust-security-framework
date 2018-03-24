@@ -133,11 +133,11 @@ impl<'a> ImportOptions<'a> {
             version: SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION,
             flags: 0,
             passphrase: ptr::null(),
-            alert_title: ptr::null(),
-            alert_prompt: ptr::null(),
-            access_ref: ptr::null_mut(),
-            key_usage: ptr::null_mut(),
-            key_attributes: ptr::null(),
+            alertTitle: ptr::null(),
+            alertPrompt: ptr::null(),
+            accessRef: ptr::null_mut(),
+            keyUsage: ptr::null_mut(),
+            keyAttributes: ptr::null(),
         };
 
         if let Some(ref passphrase) = self.passphrase {
@@ -153,11 +153,11 @@ impl<'a> ImportOptions<'a> {
         }
 
         if let Some(ref alert_title) = self.alert_title {
-            key_params.alert_title = alert_title.as_concrete_TypeRef();
+            key_params.alertTitle = alert_title.as_concrete_TypeRef();
         }
 
         if let Some(ref alert_prompt) = self.alert_prompt {
-            key_params.alert_prompt = alert_prompt.as_concrete_TypeRef();
+            key_params.alertPrompt = alert_prompt.as_concrete_TypeRef();
         }
 
         let keychain = match self.keychain {

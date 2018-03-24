@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{CFTypeRef, CFTypeID, CFIndex};
+use core_foundation_sys::base::{CFTypeRef, CFIndex};
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
@@ -22,5 +22,6 @@ extern "C" {
                                     error: *mut CFErrorRef)
                                     -> SecTransformRef;
 
-    pub fn SecDigestTransformGetTypeID() -> CFTypeID;
+    // this symbol is apparently missing in 10.13.3?
+    // pub fn SecDigestTransformGetTypeID() -> CFTypeID;
 }

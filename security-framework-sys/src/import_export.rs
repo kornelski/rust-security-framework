@@ -3,6 +3,7 @@ use core_foundation_sys::base::{OSStatus, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
+use libc::c_uint;
 
 use base::{SecKeychainRef, SecAccessRef};
 
@@ -23,20 +24,20 @@ pub const kSecKeySecurePassphrase: SecKeyImportExportFlags = 2;
 pub const kSecKeyNoAccessControl: SecKeyImportExportFlags = 4;
 
 #[cfg(target_os = "macos")]
-pub const SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION: u32 = 0;
+pub const SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION: c_uint = 0;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 #[cfg(target_os = "macos")]
 pub struct SecItemImportExportKeyParameters {
-    pub version: u32,
+    pub version: c_uint,
     pub flags: SecKeyImportExportFlags,
     pub passphrase: CFTypeRef,
-    pub alert_title: CFStringRef,
-    pub alert_prompt: CFStringRef,
-    pub access_ref: SecAccessRef,
-    pub key_usage: CFArrayRef,
-    pub key_attributes: CFArrayRef,
+    pub alertTitle: CFStringRef,
+    pub alertPrompt: CFStringRef,
+    pub accessRef: SecAccessRef,
+    pub keyUsage: CFArrayRef,
+    pub keyAttributes: CFArrayRef,
 }
 
 extern "C" {
@@ -53,7 +54,7 @@ extern "C" {
 
     #[cfg(target_os = "macos")]
     pub fn SecItemExport(secItemOrArray: CFTypeRef,
-                         outputFormat: *mut SecExternalFormat,
+                         outputFormat: SecExternalFormat,
                          flags: SecItemImportExportFlags,
                          keyParams: *const SecItemImportExportKeyParameters,
                          exportedData: *mut CFDataRef)

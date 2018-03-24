@@ -2,6 +2,7 @@
 
 use security_framework_sys::random::*;
 use std::io;
+use libc::c_void;
 
 /// A source of random data.
 pub struct SecRandom(SecRandomRef);
@@ -18,7 +19,7 @@ impl Default for SecRandom {
 impl SecRandom {
     /// Fills the buffer with cryptographically secure random bytes.
     pub fn copy_bytes(&self, buf: &mut [u8]) -> io::Result<()> {
-        if unsafe { SecRandomCopyBytes(self.0, buf.len(), buf.as_mut_ptr()) } == 0 {
+        if unsafe { SecRandomCopyBytes(self.0, buf.len(), buf.as_mut_ptr() as *mut c_void) } == 0 {
             Ok(())
         } else {
             Err(io::Error::last_os_error())
