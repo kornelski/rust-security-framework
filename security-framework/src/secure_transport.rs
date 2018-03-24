@@ -330,88 +330,84 @@ impl SessionState {
 }
 
 /// Specifies a server's requirement for client certificates.
-#[derive(Debug, Copy, Clone)]
-pub enum SslAuthenticate {
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SslAuthenticate(SSLAuthenticate);
+
+impl SslAuthenticate {
     /// Do not request a client certificate.
-    Never,
+    pub const NEVER: SslAuthenticate = SslAuthenticate(kNeverAuthenticate);
+
     /// Require a client certificate.
-    Always,
+    pub const ALWAYS: SslAuthenticate = SslAuthenticate(kAlwaysAuthenticate);
+
     /// Request but do not require a client certificate.
-    Try,
+    pub const TRY: SslAuthenticate = SslAuthenticate(kTryAuthenticate);
 }
 
 /// Specifies the state of client certificate processing.
-#[derive(Debug)]
-pub enum SslClientCertificateState {
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SslClientCertificateState(SSLClientCertificateState);
+
+impl SslClientCertificateState {
     /// A client certificate has not been requested or sent.
-    None,
+    pub const NONE: SslClientCertificateState = SslClientCertificateState(kSSLClientCertNone);
+
     /// A client certificate has been requested but not recieved.
-    Requested,
+    pub const REQUESTED: SslClientCertificateState =
+        SslClientCertificateState(kSSLClientCertRequested);
+
     /// A client certificate has been received and successfully validated.
-    Sent,
+    pub const SENT: SslClientCertificateState = SslClientCertificateState(kSSLClientCertSent);
+
     /// A client certificate has been received but has failed to validate.
-    Rejected,
+    pub const REJECTED: SslClientCertificateState =
+        SslClientCertificateState(kSSLClientCertRejected);
 }
 
-macro_rules! ssl_protocol {
-    ($($(#[$a:meta])* const $variant:ident = $value:ident,)+) => {
-        /// Specifies protocol versions.
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        pub enum SslProtocol {
-            $($(#[$a])* $variant,)+
-        }
+/// Specifies protocol versions.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SslProtocol(SSLProtocol);
 
-        impl SslProtocol {
-            fn from_raw(raw: SSLProtocol) -> SslProtocol {
-                use self::SslProtocol::*;
+impl SslProtocol {
+    /// No protocol has been or should be negotiated or specified; use the default.
+    pub const UNKNOWN: SslProtocol = SslProtocol(kSSLProtocolUnknown);
 
-                match raw {
-                    $($value => $variant,)+
-                    _ => panic!("invalid ssl protocol {}", raw),
-                }
-            }
+    /// The SSL 3.0 protocol is preferred, though SSL 2.0 may be used if the peer does not support
+    /// SSL 3.0.
+    pub const SSL3: SslProtocol = SslProtocol(kSSLProtocol3);
 
-            fn to_raw(&self) -> SSLProtocol {
-                use self::SslProtocol::*;
-
-                match *self {
-                    $($variant => $value,)+
-                }
-            }
-        }
-    }
-}
-
-ssl_protocol! {
-    /// No protocol has been or should be negotiated or specified; use the
-    /// default.
-    const Unknown = kSSLProtocolUnknown,
-    /// The SSL 3.0 protocol is preferred, though SSL 2.0 may be used if the
-    /// peer does not support SSL 3.0.
-    const Ssl3 = kSSLProtocol3,
     /// The TLS 1.0 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.0.
-    const Tls1 = kTLSProtocol1,
+    pub const TLS1: SslProtocol = SslProtocol(kTLSProtocol1);
+
     /// The TLS 1.1 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.1.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    const Tls11 = kTLSProtocol11,
+    #[cfg(feature = "OSX_10_8")]
+    pub const TLS11: SslProtocol = SslProtocol(kTLSProtocol11);
+
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
-    const Tls12 = kTLSProtocol12,
+    #[cfg(feature = "OSX_10_8")]
+    pub const TLS12: SslProtocol = SslProtocol(kTLSProtocol12);
+
     /// Only the SSL 2.0 protocol is accepted.
-    const Ssl2 = kSSLProtocol2,
+    pub const SSL2: SslProtocol = SslProtocol(kSSLProtocol2);
+
     /// The DTLSv1 protocol is preferred.
-    const Dtls1 = kDTLSProtocol1,
+    pub const DTLS1: SslProtocol = SslProtocol(kDTLSProtocol1);
+
     /// Only the SSL 3.0 protocol is accepted.
-    const Ssl3Only = kSSLProtocol3Only,
+    pub const SSL3_ONLY: SslProtocol = SslProtocol(kSSLProtocol3Only);
+
     /// Only the TLS 1.0 protocol is accepted.
-    const Tls1Only = kTLSProtocol1Only,
+    pub const TLS1_ONLY: SslProtocol = SslProtocol(kTLSProtocol1Only);
+
     /// All supported TLS/SSL versions are accepted.
-    const All = kSSLProtocolAll,
+    pub const ALL: SslProtocol = SslProtocol(kSSLProtocolAll);
 }
 
 /// A Secure Transport SSL/TLS context object.
@@ -657,13 +653,7 @@ impl SslContext {
     ///
     /// Should only be called on server-side sessions.
     pub fn set_client_side_authenticate(&mut self, auth: SslAuthenticate) -> Result<()> {
-        let auth = match auth {
-            SslAuthenticate::Never => kNeverAuthenticate,
-            SslAuthenticate::Always => kAlwaysAuthenticate,
-            SslAuthenticate::Try => kTryAuthenticate,
-        };
-
-        unsafe { cvt(SSLSetClientSideAuthenticate(self.0, auth)) }
+        unsafe { cvt(SSLSetClientSideAuthenticate(self.0, auth.0)) }
     }
 
     /// Returns the state of client certificate processing.
@@ -673,15 +663,7 @@ impl SslContext {
         unsafe {
             try!(cvt(SSLGetClientCertificateState(self.0, &mut state)));
         }
-
-        let state = match state {
-            kSSLClientCertNone => SslClientCertificateState::None,
-            kSSLClientCertRequested => SslClientCertificateState::Requested,
-            kSSLClientCertSent => SslClientCertificateState::Sent,
-            kSSLClientCertRejected => SslClientCertificateState::Rejected,
-            _ => panic!("got invalid client cert state {}", state),
-        };
-        Ok(state)
+        Ok(SslClientCertificateState(state))
     }
 
     /// Returns the `SecTrust` object corresponding to the peer.
@@ -716,7 +698,7 @@ impl SslContext {
         unsafe {
             let mut version = 0;
             try!(cvt(SSLGetNegotiatedProtocolVersion(self.0, &mut version)));
-            Ok(SslProtocol::from_raw(version))
+            Ok(SslProtocol(version))
         }
     }
 
@@ -728,7 +710,7 @@ impl SslContext {
         unsafe {
             let mut version = 0;
             try!(cvt(SSLGetProtocolVersionMax(self.0, &mut version)));
-            Ok(SslProtocol::from_raw(version))
+            Ok(SslProtocol(version))
         }
     }
 
@@ -737,7 +719,7 @@ impl SslContext {
     /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
-        unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.to_raw())) }
+        unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.0)) }
     }
 
     /// Returns the minimum protocol version allowed by the session.
@@ -748,7 +730,7 @@ impl SslContext {
         unsafe {
             let mut version = 0;
             try!(cvt(SSLGetProtocolVersionMin(self.0, &mut version)));
-            Ok(SslProtocol::from_raw(version))
+            Ok(SslProtocol(version))
         }
     }
 
@@ -757,15 +739,16 @@ impl SslContext {
     /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
-        unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.to_raw())) }
+        unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.0)) }
     }
 
     /// Sets whether a protocol is enabled or not.
     ///
-    /// Note that on OSX this is a deprecated API in favor of
-    /// `set_protocol_version_max` and `set_protocol_version_min`, although if
-    /// you're working with OSX 10.8 or before you may have to use this API
-    /// instead.
+    /// # Note
+    ///
+    /// On OSX this is a deprecated API in favor of `set_protocol_version_max` and
+    /// `set_protocol_version_min`, although if you're working with OSX 10.8 or before you may have
+    /// to use this API instead.
     #[cfg(target_os = "macos")]
     pub fn set_protocol_version_enabled(
         &mut self,
@@ -775,7 +758,7 @@ impl SslContext {
         unsafe {
             cvt(SSLSetProtocolVersionEnabled(
                 self.0,
-                protocol.to_raw(),
+                protocol.0,
                 enabled as Boolean,
             ))
         }

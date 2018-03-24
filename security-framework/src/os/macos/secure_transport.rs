@@ -9,7 +9,7 @@ use std::slice;
 use base::Result;
 use certificate::SecCertificate;
 use {cvt, AsInner};
-use secure_transport::{SslContext, MidHandshakeSslStream};
+use secure_transport::{MidHandshakeSslStream, SslContext};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
 /// type.
@@ -115,7 +115,11 @@ impl SslContextExt for SslContext {
         unsafe {
             let mut ptr = ptr::null();
             let mut len = 0;
-            try!(cvt(SSLGetDiffieHellmanParams(self.as_inner(), &mut ptr, &mut len)));
+            try!(cvt(SSLGetDiffieHellmanParams(
+                self.as_inner(),
+                &mut ptr,
+                &mut len
+            )));
             if ptr.is_null() {
                 Ok(None)
             } else {
@@ -126,23 +130,28 @@ impl SslContextExt for SslContext {
 
     fn set_diffie_hellman_params(&mut self, dh_params: &[u8]) -> Result<()> {
         unsafe {
-            cvt(SSLSetDiffieHellmanParams(self.as_inner(),
-                                          dh_params.as_ptr() as *const _,
-                                          dh_params.len()))
+            cvt(SSLSetDiffieHellmanParams(
+                self.as_inner(),
+                dh_params.as_ptr() as *const _,
+                dh_params.len(),
+            ))
         }
     }
 
     fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>> {
         unsafe {
             let mut raw_certs = ptr::null();
-            try!(cvt(SSLCopyCertificateAuthorities(self.as_inner(), &mut raw_certs)));
+            try!(cvt(SSLCopyCertificateAuthorities(
+                self.as_inner(),
+                &mut raw_certs
+            )));
             if raw_certs.is_null() {
                 Ok(None)
             } else {
                 let certs = CFArray::<SecCertificate>::wrap_under_create_rule(raw_certs)
-                                .iter()
-                                .map(|c| c.clone())
-                                .collect();
+                    .iter()
+                    .map(|c| c.clone())
+                    .collect();
                 Ok(Some(certs))
             }
         }
@@ -151,14 +160,22 @@ impl SslContextExt for SslContext {
     fn set_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()> {
         unsafe {
             let certs = CFArray::from_CFTypes(certs);
-            cvt(SSLSetCertificateAuthorities(self.as_inner(), certs.as_CFTypeRef(), 1))
+            cvt(SSLSetCertificateAuthorities(
+                self.as_inner(),
+                certs.as_CFTypeRef(),
+                1,
+            ))
         }
     }
 
     fn add_certificate_authorities(&mut self, certs: &[SecCertificate]) -> Result<()> {
         unsafe {
             let certs = CFArray::from_CFTypes(certs);
-            cvt(SSLSetCertificateAuthorities(self.as_inner(), certs.as_CFTypeRef(), 0))
+            cvt(SSLSetCertificateAuthorities(
+                self.as_inner(),
+                certs.as_CFTypeRef(),
+                0,
+            ))
         }
     }
 
@@ -211,7 +228,10 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("server_client"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
 
@@ -223,7 +243,10 @@ mod test {
             assert_eq!(&buf[..], b"hello world!");
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Client,
+            ConnectionType::Stream
+        ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
 
@@ -266,8 +289,8 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         let mut stream = p!(ClientBuilder::new()
-                                .anchor_certificates(&[certificate()])
-                                .handshake("foobar.com", stream));
+            .anchor_certificates(&[certificate()])
+            .handshake("foobar.com", stream));
 
         p!(stream.write_all(b"hello world!"));
 
@@ -282,7 +305,10 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("client_bad_cert"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
 
@@ -291,9 +317,11 @@ mod test {
         });
 
         let stream = p!(TcpStream::connect(("localhost", port)));
-        assert!(ClientBuilder::new()
-                    .handshake("foobar.com", stream)
-                    .is_err());
+        assert!(
+            ClientBuilder::new()
+                .handshake("foobar.com", stream)
+                .is_err()
+        );
 
         handle.join().unwrap();
     }
@@ -306,7 +334,10 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("client_bad_cert"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
 
@@ -320,8 +351,8 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         let mut stream = p!(ClientBuilder::new()
-                                .anchor_certificates(&[certificate()])
-                                .handshake("foobar.com", stream));
+            .anchor_certificates(&[certificate()])
+            .handshake("foobar.com", stream));
         p!(stream.write_all(b"hello world!"));
 
         handle.join().unwrap();
@@ -335,24 +366,36 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
-            p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                                         CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]));
+            p!(ctx.set_enabled_ciphers(&[
+                CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+            ]));
 
             let stream = p!(listener.accept()).0;
             let mut stream = p!(ctx.handshake(stream));
-            assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                       p!(stream.context().negotiated_cipher()));
+            assert_eq!(
+                CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                p!(stream.context().negotiated_cipher())
+            );
             let mut buf = [0; 1];
             p!(stream.read(&mut buf));
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Client,
+            ConnectionType::Stream
+        ));
         p!(ctx.set_break_on_server_auth(true));
-        p!(ctx.set_enabled_ciphers(&[CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
-                                     CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256]));
+        p!(ctx.set_enabled_ciphers(&[
+            CipherSuite::TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
+            CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+        ]));
         let stream = p!(TcpStream::connect(("localhost", port)));
 
         let stream = match ctx.handshake(stream) {
@@ -362,8 +405,10 @@ mod test {
         };
 
         let mut stream = p!(stream.handshake());
-        assert_eq!(CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-                   p!(stream.context().negotiated_cipher()));
+        assert_eq!(
+            CipherSuite::TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+            p!(stream.context().negotiated_cipher())
+        );
         p!(stream.write(&[0]));
 
         handle.join().unwrap();
@@ -373,7 +418,10 @@ mod test {
     fn dh_params() {
         let params = include_bytes!("../../../test/dhparam.der");
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Server,
+            ConnectionType::Stream
+        ));
         assert!(p!(ctx.diffie_hellman_params()).is_none());
         p!(ctx.set_diffie_hellman_params(params));
         assert_eq!(p!(ctx.diffie_hellman_params()).unwrap(), &params[..]);
@@ -387,10 +435,13 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
-            p!(ctx.set_client_side_authenticate(SslAuthenticate::Try));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::TRY));
             let cert = certificate();
             p!(ctx.add_certificate_authorities(&[cert]));
 
@@ -400,7 +451,10 @@ mod test {
             p!(stream.read(&mut buf));
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Client,
+            ConnectionType::Stream
+        ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
 
@@ -424,10 +478,13 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
-            p!(ctx.set_client_side_authenticate(SslAuthenticate::Always));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::ALWAYS));
 
             let stream = p!(listener.accept()).0;
 
@@ -438,7 +495,10 @@ mod test {
             }
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Client,
+            ConnectionType::Stream
+        ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
 
@@ -465,10 +525,13 @@ mod test {
         let handle = thread::spawn(move || {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
-            let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+            let mut ctx = p!(SslContext::new(
+                ProtocolSide::Server,
+                ConnectionType::Stream
+            ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
-            p!(ctx.set_client_side_authenticate(SslAuthenticate::Always));
+            p!(ctx.set_client_side_authenticate(SslAuthenticate::ALWAYS));
 
             let stream = p!(listener.accept()).0;
 
@@ -479,7 +542,10 @@ mod test {
             }
         });
 
-        let mut ctx = p!(SslContext::new(ProtocolSide::Client, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Client,
+            ConnectionType::Stream
+        ));
         p!(ctx.set_break_on_server_auth(true));
         let dir = p!(TempDir::new("negotiated_cipher"));
         let identity = identity(dir.path());
@@ -503,7 +569,10 @@ mod test {
 
     #[test]
     fn certificate_authorities() {
-        let mut ctx = p!(SslContext::new(ProtocolSide::Server, ConnectionType::Stream));
+        let mut ctx = p!(SslContext::new(
+            ProtocolSide::Server,
+            ConnectionType::Stream
+        ));
         assert!(p!(ctx.certificate_authorities()).is_none());
         p!(ctx.set_certificate_authorities(&[certificate()]));
         assert_eq!(p!(ctx.certificate_authorities()).unwrap().len(), 1);
@@ -527,8 +596,8 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         let mut stream = p!(ClientBuilder::new()
-                                .anchor_certificates(&[certificate()])
-                                .handshake("foobar.com", stream));
+            .anchor_certificates(&[certificate()])
+            .handshake("foobar.com", stream));
 
         let mut buf = [0; 1];
         assert_eq!(p!(stream.read(&mut buf)), 0);
@@ -558,8 +627,8 @@ mod test {
 
         let stream = p!(TcpStream::connect(("localhost", port)));
         let mut stream = p!(ClientBuilder::new()
-                                .anchor_certificates(&[certificate()])
-                                .handshake("foobar.com", stream));
+            .anchor_certificates(&[certificate()])
+            .handshake("foobar.com", stream));
 
         let mut b = [0; 1];
         stream.read_exact(&mut b).unwrap();
