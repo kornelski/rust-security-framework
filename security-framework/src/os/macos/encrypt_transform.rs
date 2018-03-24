@@ -5,6 +5,7 @@ use core_foundation::data::CFData;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
 use core_foundation_sys::data::CFDataRef;
+use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::encrypt_transform::*;
 use security_framework_sys::transform::*;
 use std::ptr;
@@ -14,35 +15,39 @@ use key::SecKey;
 
 #[derive(Debug, Copy, Clone)]
 /// The padding scheme to use for encryption.
-pub enum Padding {
+pub struct Padding(CFStringRef);
+
+impl Padding {
     /// Do not pad.
-    None,
+    pub fn none() -> Padding {
+        unsafe { Padding(kSecPaddingNoneKey) }
+    }
+
     /// Use PKCS#1 padding.
-    Pkcs1,
+    pub fn pkcs1() -> Padding {
+        unsafe { Padding(kSecPaddingPKCS1Key) }
+    }
+
     /// Use PKCS#5 padding.
-    Pkcs5,
+    pub fn pkcs5() -> Padding {
+        unsafe { Padding(kSecPaddingPKCS5Key) }
+    }
+
     /// Use PKCS#7 padding.
-    Pkcs7,
+    pub fn pkcs7() -> Padding {
+        unsafe { Padding(kSecPaddingPKCS7Key) }
+    }
+
     /// Use OAEP padding.
     ///
     /// Requires the `OSX_10_8` (or greater) feature.
     #[cfg(feature = "OSX_10_8")]
-    Oaep,
-}
+    pub fn oaep() -> Padding {
+        unsafe { Padding(kSecPaddingOAEPKey) }
+    }
 
-impl Padding {
     fn to_str(&self) -> CFString {
-        unsafe {
-            let raw = match *self {
-                Padding::None => kSecPaddingNoneKey,
-                Padding::Pkcs1 => kSecPaddingPKCS1Key,
-                Padding::Pkcs5 => kSecPaddingPKCS5Key,
-                Padding::Pkcs7 => kSecPaddingPKCS7Key,
-                #[cfg(feature = "OSX_10_8")]
-                Padding::Oaep => kSecPaddingOAEPKey,
-            };
-            CFString::wrap_under_get_rule(raw)
-        }
+        unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }
 
@@ -50,27 +55,32 @@ impl Padding {
 ///
 /// Only applies to AES encryption.
 #[derive(Debug, Copy, Clone)]
-#[allow(missing_docs)]
-pub enum Mode {
-    None,
-    Ecb,
-    Cbc,
-    Cfb,
-    Ofb,
-}
+pub struct Mode(CFStringRef);
 
+#[allow(missing_docs)]
 impl Mode {
+    pub fn none() -> Mode {
+        unsafe { Mode(kSecModeNoneKey) }
+    }
+
+    pub fn ecb() -> Mode {
+        unsafe { Mode(kSecModeECBKey) }
+    }
+
+    pub fn cbc() -> Mode {
+        unsafe { Mode(kSecModeCBCKey) }
+    }
+
+    pub fn cfb() -> Mode {
+        unsafe { Mode(kSecModeCFBKey) }
+    }
+
+    pub fn ofb() -> Mode {
+        unsafe { Mode(kSecModeOFBKey) }
+    }
+
     fn to_str(&self) -> CFString {
-        unsafe {
-            let raw = match *self {
-                Mode::None => kSecModeNoneKey,
-                Mode::Ecb => kSecModeECBKey,
-                Mode::Cbc => kSecModeCBCKey,
-                Mode::Cfb => kSecModeCFBKey,
-                Mode::Ofb => kSecModeOFBKey,
-            };
-            CFString::wrap_under_get_rule(raw)
-        }
+        unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }
 
@@ -203,18 +213,18 @@ mod test {
         let plaintext = Vec::<u8>::from_hex(plaintext).unwrap();
 
         let decrypted = Builder::new()
-                            .padding(Padding::None)
-                            .iv(CFData::from_buffer(&iv))
-                            .decrypt(&key, &CFData::from_buffer(&ciphertext))
-                            .unwrap();
+            .padding(Padding::none())
+            .iv(CFData::from_buffer(&iv))
+            .decrypt(&key, &CFData::from_buffer(&ciphertext))
+            .unwrap();
 
         assert_eq!(plaintext, decrypted.bytes());
 
         let encrypted = Builder::new()
-                            .padding(Padding::None)
-                            .iv(CFData::from_buffer(&iv))
-                            .encrypt(&key, &CFData::from_buffer(&plaintext))
-                            .unwrap();
+            .padding(Padding::none())
+            .iv(CFData::from_buffer(&iv))
+            .encrypt(&key, &CFData::from_buffer(&plaintext))
+            .unwrap();
 
         assert_eq!(ciphertext, encrypted.bytes());
     }
