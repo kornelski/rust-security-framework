@@ -2,44 +2,54 @@
 
 use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
+use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
 
 use ItemSearchOptionsInternals;
 use keychain::SecKeychain;
-use os::macos::PrivKeyType;
 use item::ItemSearchOptions;
 
 /// Types of `SecKey`s.
-#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone)]
-pub enum KeyType {
-    Rsa,
-    Dsa,
-    Aes,
-    Des,
-    TripleDes,
-    Rc4,
-    Cast,
-    #[cfg(feature = "OSX_10_9")]
-    Ec,
-}
+pub struct KeyType(CFStringRef);
 
-impl PrivKeyType for KeyType {
-    fn to_str(&self) -> CFString {
-        unsafe {
-            let raw = match *self {
-                KeyType::Rsa => kSecAttrKeyTypeRSA,
-                KeyType::Dsa => kSecAttrKeyTypeDSA,
-                KeyType::Aes => kSecAttrKeyTypeAES,
-                KeyType::Des => kSecAttrKeyTypeDES,
-                KeyType::TripleDes => kSecAttrKeyType3DES,
-                KeyType::Rc4 => kSecAttrKeyTypeRC4,
-                KeyType::Cast => kSecAttrKeyTypeCAST,
-                #[cfg(feature = "OSX_10_9")]
-                KeyType::Ec => kSecAttrKeyTypeEC,
-            };
-            CFString::wrap_under_get_rule(raw)
-        }
+#[allow(missing_docs)]
+impl KeyType {
+    pub fn rsa() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeRSA) }
+    }
+
+    pub fn dsa() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeDES) }
+    }
+
+    pub fn aes() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeAES) }
+    }
+
+    pub fn des() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeDES) }
+    }
+
+    pub fn triple_des() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyType3DES) }
+    }
+
+    pub fn rc4() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeRC4) }
+    }
+
+    pub fn cast() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeCAST) }
+    }
+
+    #[cfg(feature = "OSX_10_9")]
+    pub fn ec() -> KeyType {
+        unsafe { KeyType(kSecAttrKeyTypeEC) }
+    }
+
+    pub(crate) fn to_str(&self) -> CFString {
+        unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }
 

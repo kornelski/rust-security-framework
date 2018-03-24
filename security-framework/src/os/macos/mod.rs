@@ -1,5 +1,4 @@
 //! OSX specific extensions.
-use core_foundation::string::CFString;
 
 pub mod identity;
 pub mod access;
@@ -13,10 +12,6 @@ pub mod keychain;
 pub mod keychain_item;
 pub mod secure_transport;
 pub mod transform;
-
-trait PrivKeyType {
-    fn to_str(&self) -> CFString;
-}
 
 #[cfg(test)]
 pub mod test {
