@@ -172,14 +172,16 @@ impl<'a> ImportOptions<'a> {
         };
 
         unsafe {
-            let ret = SecItemImport(data,
-                                    filename,
-                                    ptr::null_mut(),
-                                    ptr::null_mut(),
-                                    0,
-                                    &mut key_params,
-                                    keychain,
-                                    items_ref);
+            let ret = SecItemImport(
+                data,
+                filename,
+                ptr::null_mut(),
+                ptr::null_mut(),
+                0,
+                &mut key_params,
+                keychain,
+                items_ref,
+            );
             if ret != errSecSuccess {
                 return Err(Error::from_code(ret));
             }
@@ -189,12 +191,17 @@ impl<'a> ImportOptions<'a> {
                 for item in raw_items.iter() {
                     let type_id = item.type_of();
                     if type_id == SecCertificate::type_id() {
-                        items.certificates
-                             .push(SecCertificate::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
+                        items.certificates.push(SecCertificate::wrap_under_get_rule(
+                            item.as_CFTypeRef() as *mut _,
+                        ));
                     } else if type_id == SecIdentity::type_id() {
-                        items.identities.push(SecIdentity::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
+                        items
+                            .identities
+                            .push(SecIdentity::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
                     } else if type_id == SecKey::type_id() {
-                        items.keys.push(SecKey::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
+                        items
+                            .keys
+                            .push(SecKey::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
                     } else {
                         panic!("Got bad type from SecItemImport: {}", type_id);
                     }
@@ -260,9 +267,9 @@ mod test {
     fn identity() {
         let dir = TempDir::new("identity").unwrap();
         let keychain = keychain::CreateOptions::new()
-                           .password("password")
-                           .create(dir.path().join("identity.keychain"))
-                           .unwrap();
+            .password("password")
+            .create(dir.path().join("identity.keychain"))
+            .unwrap();
 
         let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();
@@ -283,9 +290,9 @@ mod test {
     fn secure_passphrase_identity() {
         let dir = TempDir::new("identity").unwrap();
         let keychain = keychain::CreateOptions::new()
-                           .password("password")
-                           .create(dir.path().join("identity.keychain"))
-                           .unwrap();
+            .password("password")
+            .create(dir.path().join("identity.keychain"))
+            .unwrap();
 
         let data = include_bytes!("../../../test/server.p12");
         let mut items = SecItems::default();
@@ -307,17 +314,19 @@ mod test {
     fn pkcs12_import() {
         let dir = TempDir::new("pkcs12_import").unwrap();
         let keychain = keychain::CreateOptions::new()
-                           .password("password")
-                           .create(dir.path().join("pkcs12_import"))
-                           .unwrap();
+            .password("password")
+            .create(dir.path().join("pkcs12_import"))
+            .unwrap();
 
         let data = include_bytes!("../../../test/server.p12");
         let identities = p!(Pkcs12ImportOptions::new()
-                                .passphrase("password123")
-                                .keychain(keychain)
-                                .import_optional(data));
+            .passphrase("password123")
+            .keychain(keychain)
+            .import(data));
         assert_eq!(1, identities.len());
-        assert_eq!(identities[0].key_id.as_ref().unwrap().to_hex(),
-                   "ed6492936dcc8907e397e573b36e633458dc33f1");
+        assert_eq!(
+            identities[0].key_id.as_ref().unwrap().to_hex(),
+            "ed6492936dcc8907e397e573b36e633458dc33f1"
+        );
     }
 }
