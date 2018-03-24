@@ -9,9 +9,9 @@ use core_foundation::array::CFArray;
 use std::ptr;
 
 #[cfg(target_os = "macos")]
-use access::SecAccess;
+use os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 use trust::SecTrust;
 use certificate::SecCertificate;
 use identity::SecIdentity;

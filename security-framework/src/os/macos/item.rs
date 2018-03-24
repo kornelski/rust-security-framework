@@ -6,7 +6,7 @@ use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
 
 use ItemSearchOptionsInternals;
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 use item::ItemSearchOptions;
 
 /// Types of `SecKey`s.

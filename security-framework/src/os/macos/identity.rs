@@ -8,27 +8,31 @@ use cvt;
 use base::Result;
 use certificate::SecCertificate;
 use identity::SecIdentity;
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 
 /// An extension trait adding OSX specific functionality to `SecIdentity`.
 pub trait SecIdentityExt {
     /// Creates an identity corresponding to a certificate, looking in the
     /// provided keychains for the corresponding private key.
-    fn with_certificate(keychains: &[SecKeychain],
-                        certificate: &SecCertificate)
-                        -> Result<SecIdentity>;
+    fn with_certificate(
+        keychains: &[SecKeychain],
+        certificate: &SecCertificate,
+    ) -> Result<SecIdentity>;
 }
 
 impl SecIdentityExt for SecIdentity {
-    fn with_certificate(keychains: &[SecKeychain],
-                        certificate: &SecCertificate)
-                        -> Result<SecIdentity> {
+    fn with_certificate(
+        keychains: &[SecKeychain],
+        certificate: &SecCertificate,
+    ) -> Result<SecIdentity> {
         let keychains = CFArray::from_CFTypes(keychains);
         unsafe {
             let mut identity = ptr::null_mut();
-            try!(cvt(SecIdentityCreateWithCertificate(keychains.as_CFTypeRef(),
-                                                      certificate.as_concrete_TypeRef(),
-                                                      &mut identity)));
+            try!(cvt(SecIdentityCreateWithCertificate(
+                keychains.as_CFTypeRef(),
+                certificate.as_concrete_TypeRef(),
+                &mut identity
+            )));
             Ok(SecIdentity::wrap_under_create_rule(identity))
         }
     }
@@ -65,8 +69,9 @@ mod test {
     fn with_certificate() {
         let dir = p!(TempDir::new("with_certificate"));
 
-        let mut keychain =
-            p!(CreateOptions::new().password("foobar").create(dir.path().join("test.keychain")));
+        let mut keychain = p!(CreateOptions::new()
+            .password("foobar")
+            .create(dir.path().join("test.keychain")));
 
         let key = include_bytes!("../../../test/server.key");
         p!(ImportOptions::new()

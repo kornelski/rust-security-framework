@@ -10,13 +10,13 @@ use std::ptr;
 use std::str::FromStr;
 
 use Pkcs12ImportOptionsInternals;
-use access::SecAccess;
+use os::macos::access::SecAccess;
 use base::{Error, Result};
 use certificate::SecCertificate;
 use identity::SecIdentity;
 use import_export::Pkcs12ImportOptions;
 use key::SecKey;
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 
 /// An extension trait adding OSX specific functionality to `Pkcs12ImportOptions`.
 pub trait Pkcs12ImportOptionsExt {
