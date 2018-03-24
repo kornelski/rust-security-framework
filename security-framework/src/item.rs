@@ -18,7 +18,7 @@ use cvt;
 use identity::SecIdentity;
 use key::SecKey;
 #[cfg(target_os = "macos")]
-use keychain::SecKeychain;
+use os::macos::keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]

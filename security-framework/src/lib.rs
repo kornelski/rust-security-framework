@@ -15,14 +15,6 @@ extern crate hex;
 #[cfg(test)]
 extern crate tempdir;
 
-// For back compat
-#[cfg(target_os = "macos")]
-pub use os::macos::keychain_item;
-#[cfg(target_os = "macos")]
-pub use os::macos::access;
-#[cfg(target_os = "macos")]
-pub use os::macos::keychain;
-
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 
