@@ -122,10 +122,10 @@ impl SecTrust {
     /// Note: evaluate must first be called on the SecTrust.
     pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         unsafe {
-            let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
-            if certificate.is_null() {
+            if self.certificate_count() <= ix {
                 None
             } else {
+                let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
                 Some(SecCertificate::wrap_under_get_rule(certificate as *mut _))
             }
         }
@@ -174,8 +174,9 @@ mod test {
     #[test]
     fn set_policy() {
         let cert = certificate();
+        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io.bogus"));
+        let mut trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
-        let mut trust = SecTrust::create_with_certificates(&[cert], &[]).unwrap();
         trust.set_policy(&ssl_policy).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
     }

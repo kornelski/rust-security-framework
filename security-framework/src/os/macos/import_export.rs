@@ -315,9 +315,9 @@ mod test {
         let identities = p!(Pkcs12ImportOptions::new()
                                 .passphrase("password123")
                                 .keychain(keychain)
-                                .import(data));
+                                .import_optional(data));
         assert_eq!(1, identities.len());
-        assert_eq!(identities[0].key_id.to_hex(),
+        assert_eq!(identities[0].key_id.as_ref().unwrap().to_hex(),
                    "ed6492936dcc8907e397e573b36e633458dc33f1");
     }
 }
