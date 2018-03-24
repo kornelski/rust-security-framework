@@ -1,29 +1,25 @@
 //! Cipher Suites supported by Secure Transport
 
 use security_framework_sys::cipher_suite::*;
-use CipherSuiteInternals;
 
 macro_rules! make_suites {
     ($($suite:ident),+) => {
-        /// Specifies cipher suites
-        #[allow(non_camel_case_types, missing_docs)]
+        /// TLS cipher suites.
         #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-        pub enum CipherSuite {
-            $($suite),+
-        }
+        pub struct CipherSuite(SSLCipherSuite);
 
-        impl CipherSuiteInternals for CipherSuite {
-            fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite> {
-                match raw {
-                    $($suite => Some(CipherSuite::$suite),)+
-                    _ => None
-                }
+        #[allow(missing_docs)]
+        impl CipherSuite {
+            $(
+                pub const $suite: CipherSuite = CipherSuite($suite);
+            )+
+
+            pub fn from_raw(raw: SSLCipherSuite) -> CipherSuite {
+                CipherSuite(raw)
             }
 
-            fn to_raw(&self) -> SSLCipherSuite {
-                match *self {
-                    $(CipherSuite::$suite => $suite),+
-                }
+            pub fn to_raw(&self) -> SSLCipherSuite {
+                self.0
             }
         }
     }
@@ -31,12 +27,12 @@ macro_rules! make_suites {
 
 make_suites! {
     // The commented out ones up here are aliases of the matching TLS suites
-    //SSL_NULL_WITH_NULL_NULL,
-    //SSL_RSA_WITH_NULL_MD5,
-    //SSL_RSA_WITH_NULL_SHA,
+    SSL_NULL_WITH_NULL_NULL,
+    SSL_RSA_WITH_NULL_MD5,
+    SSL_RSA_WITH_NULL_SHA,
     SSL_RSA_EXPORT_WITH_RC4_40_MD5,
-    //SSL_RSA_WITH_RC4_128_MD5,
-    //SSL_RSA_WITH_RC4_128_SHA,
+    SSL_RSA_WITH_RC4_128_MD5,
+    SSL_RSA_WITH_RC4_128_SHA,
     SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5,
     SSL_RSA_WITH_IDEA_CBC_SHA,
     SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,

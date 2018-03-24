@@ -9,7 +9,6 @@ use security_framework_sys::key::*;
 use std::ptr;
 
 use key::SecKey;
-use os::macos::PrivKeyType;
 use os::macos::item::KeyType;
 
 /// An extension trait adding OSX specific functionality to `SecKey`.
@@ -25,9 +24,11 @@ impl SecKeyExt for SecKey {
             let dict = CFDictionary::from_CFType_pairs(&[(key, key_type.to_str())]);
 
             let mut err = ptr::null_mut();
-            let key = SecKeyCreateFromData(dict.as_concrete_TypeRef(),
-                                           key_data.as_concrete_TypeRef(),
-                                           &mut err);
+            let key = SecKeyCreateFromData(
+                dict.as_concrete_TypeRef(),
+                key_data.as_concrete_TypeRef(),
+                &mut err,
+            );
             if key.is_null() {
                 Err(CFError::wrap_under_create_rule(err))
             } else {

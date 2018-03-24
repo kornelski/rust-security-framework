@@ -1,5 +1,4 @@
 //! OSX specific extensions.
-use core_foundation::string::CFString;
 
 pub mod identity;
 pub mod access;
@@ -14,17 +13,13 @@ pub mod keychain_item;
 pub mod secure_transport;
 pub mod transform;
 
-trait PrivKeyType {
-    fn to_str(&self) -> CFString;
-}
-
 #[cfg(test)]
 pub mod test {
     use std::path::Path;
     use std::fs::File;
     use std::io::prelude::*;
 
-    use item::{ItemSearchOptions, ItemClass, Reference};
+    use item::{ItemClass, ItemSearchOptions, Reference};
     use identity::SecIdentity;
     use keychain::SecKeychain;
 
@@ -32,9 +27,9 @@ pub mod test {
         // FIXME https://github.com/rust-lang/rust/issues/30018
         let keychain = keychain(dir);
         let mut items = p!(ItemSearchOptions::new()
-                               .class(ItemClass::Identity)
-                               .keychains(&[keychain])
-                               .search());
+            .class(ItemClass::identity())
+            .keychains(&[keychain])
+            .search());
         match items.pop().unwrap().reference {
             Some(Reference::Identity(identity)) => identity,
             _ => panic!("expected identity"),

@@ -11,9 +11,9 @@ extern crate core_foundation_sys;
 extern crate libc;
 
 #[cfg(test)]
-extern crate tempdir;
-#[cfg(test)]
 extern crate hex;
+#[cfg(test)]
+extern crate tempdir;
 
 // For back compat
 #[cfg(target_os = "macos")]
@@ -25,10 +25,8 @@ pub use os::macos::keychain;
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
-use security_framework_sys::cipher_suite::SSLCipherSuite;
 
-use base::{Result, Error};
-use cipher_suite::CipherSuite;
+use base::{Error, Result};
 #[cfg(target_os = "macos")]
 use os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
@@ -36,12 +34,12 @@ use os::macos::keychain::SecKeychain;
 
 #[cfg(test)]
 macro_rules! p {
-    ($e:expr) => {
+    ($e: expr) => {
         match $e {
             Ok(s) => s,
             Err(e) => panic!("{:?}", e),
         }
-    }
+    };
 }
 
 pub mod base;
@@ -56,11 +54,6 @@ pub mod policy;
 pub mod random;
 pub mod secure_transport;
 pub mod trust;
-
-trait CipherSuiteInternals {
-    fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite>;
-    fn to_raw(&self) -> SSLCipherSuite;
-}
 
 #[cfg(target_os = "macos")]
 trait Pkcs12ImportOptionsInternals {

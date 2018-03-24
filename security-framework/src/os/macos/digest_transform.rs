@@ -1,11 +1,12 @@
 //! Digest Transform support
 
-use core_foundation::base::{TCFType, CFIndex};
+use core_foundation::base::{CFIndex, TCFType};
 use core_foundation::data::CFData;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::CFTypeRef;
 use core_foundation_sys::data::CFDataRef;
+use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::digest_transform::*;
 use security_framework_sys::transform::*;
 use std::ptr;
@@ -13,34 +14,45 @@ use std::ptr;
 use os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
-#[allow(missing_docs)]
 /// A type of digest.
-pub enum DigestType {
-    HmacMd5,
-    HmacSha1,
-    HmacSha2,
-    Md2,
-    Md4,
-    Md5,
-    Sha1,
-    Sha2,
-}
+pub struct DigestType(CFStringRef);
 
+#[allow(missing_docs)]
 impl DigestType {
+    pub fn hmac_md5() -> DigestType {
+        unsafe { DigestType(kSecDigestHMACMD5) }
+    }
+
+    pub fn hmac_sha1() -> DigestType {
+        unsafe { DigestType(kSecDigestHMACSHA1) }
+    }
+
+    pub fn hmac_sha2() -> DigestType {
+        unsafe { DigestType(kSecDigestHMACSHA2) }
+    }
+
+    pub fn md2() -> DigestType {
+        unsafe { DigestType(kSecDigestMD2) }
+    }
+
+    pub fn md4() -> DigestType {
+        unsafe { DigestType(kSecDigestMD4) }
+    }
+
+    pub fn md5() -> DigestType {
+        unsafe { DigestType(kSecDigestMD5) }
+    }
+
+    pub fn sha1() -> DigestType {
+        unsafe { DigestType(kSecDigestSHA1) }
+    }
+
+    pub fn sha2() -> DigestType {
+        unsafe { DigestType(kSecDigestSHA2) }
+    }
+
     fn to_type(&self) -> CFTypeRef {
-        unsafe {
-            let s = match *self {
-                DigestType::HmacMd5 => kSecDigestHMACMD5,
-                DigestType::HmacSha1 => kSecDigestHMACSHA1,
-                DigestType::HmacSha2 => kSecDigestHMACSHA2,
-                DigestType::Md2 => kSecDigestMD2,
-                DigestType::Md4 => kSecDigestMD4,
-                DigestType::Md5 => kSecDigestMD5,
-                DigestType::Sha1 => kSecDigestSHA1,
-                DigestType::Sha2 => kSecDigestSHA2,
-            };
-            s as CFTypeRef
-        }
+        self.0 as CFTypeRef
     }
 }
 
@@ -134,9 +146,9 @@ mod test {
     fn md5() {
         let data = CFData::from_buffer("The quick brown fox jumps over the lazy dog".as_bytes());
         let hash = Builder::new()
-                       .type_(DigestType::Md5)
-                       .execute(&data)
-                       .unwrap();
+            .type_(DigestType::md5())
+            .execute(&data)
+            .unwrap();
         assert_eq!(hash.bytes().to_hex(), "9e107d9d372bb6826bd81d3542a419d6");
     }
 
@@ -145,11 +157,13 @@ mod test {
         let data = CFData::from_buffer("The quick brown fox jumps over the lazy dog".as_bytes());
         let key = CFData::from_buffer("key".as_bytes());
         let hash = Builder::new()
-                       .type_(DigestType::HmacSha1)
-                       .hmac_key(key)
-                       .execute(&data)
-                       .unwrap();
-        assert_eq!(hash.bytes().to_hex(),
-                   "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9");
+            .type_(DigestType::hmac_sha1())
+            .hmac_key(key)
+            .execute(&data)
+            .unwrap();
+        assert_eq!(
+            hash.bytes().to_hex(),
+            "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9"
+        );
     }
 }
