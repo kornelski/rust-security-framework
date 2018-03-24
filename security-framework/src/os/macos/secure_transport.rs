@@ -230,7 +230,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -245,7 +245,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::CLIENT,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
@@ -307,7 +307,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -336,7 +336,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -368,7 +368,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -389,7 +389,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::CLIENT,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_break_on_server_auth(true));
         p!(ctx.set_enabled_ciphers(&[
@@ -420,7 +420,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::SERVER,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         assert!(p!(ctx.diffie_hellman_params()).is_none());
         p!(ctx.set_diffie_hellman_params(params));
@@ -437,7 +437,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -453,7 +453,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::CLIENT,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
@@ -480,7 +480,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -497,7 +497,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::CLIENT,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_break_on_server_auth(true));
         let stream = p!(TcpStream::connect(("localhost", port)));
@@ -527,7 +527,7 @@ mod test {
 
             let mut ctx = p!(SslContext::new(
                 SslProtocolSide::SERVER,
-                ConnectionType::Stream
+                SslConnectionType::STREAM
             ));
             let identity = identity(dir.path());
             p!(ctx.set_certificate(&identity, &[]));
@@ -544,7 +544,7 @@ mod test {
 
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::CLIENT,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_break_on_server_auth(true));
         let dir = p!(TempDir::new("negotiated_cipher"));
@@ -571,7 +571,7 @@ mod test {
     fn certificate_authorities() {
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::SERVER,
-            ConnectionType::Stream
+            SslConnectionType::STREAM
         ));
         assert!(p!(ctx.certificate_authorities()).is_none());
         p!(ctx.set_certificate_authorities(&[certificate()]));
