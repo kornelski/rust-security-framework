@@ -283,20 +283,20 @@ impl<S> MidHandshakeClientBuilder<S> {
                 try!(trust.set_policy(&policy));
                 let trusted = try!(trust.evaluate());
                 match trusted {
-                    TrustResult::Invalid | TrustResult::OtherError => {
-                        let err = Error::from_code(errSecBadReq);
-                        return Err(ClientHandshakeError::Failure(err));
-                    }
-                    TrustResult::Proceed | TrustResult::Unspecified => {
+                    TrustResult::PROCEED | TrustResult::UNSPECIFIED => {
                         result = stream.handshake();
                         continue;
                     }
-                    TrustResult::Deny => {
+                    TrustResult::DENY => {
                         let err = Error::from_code(errSecTrustSettingDeny);
                         return Err(ClientHandshakeError::Failure(err));
                     }
-                    TrustResult::RecoverableTrustFailure | TrustResult::FatalTrustFailure => {
+                    TrustResult::RECOVERABLE_TRUST_FAILURE | TrustResult::FATAL_TRUST_FAILURE => {
                         let err = Error::from_code(errSecNotTrusted);
+                        return Err(ClientHandshakeError::Failure(err));
+                    }
+                    TrustResult::INVALID | TrustResult::OTHER_ERROR | _ => {
+                        let err = Error::from_code(errSecBadReq);
                         return Err(ClientHandshakeError::Failure(err));
                     }
                 }

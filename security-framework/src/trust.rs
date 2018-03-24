@@ -13,42 +13,38 @@ use certificate::SecCertificate;
 use policy::SecPolicy;
 
 /// The result of trust evaluation.
-pub enum TrustResult {
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct TrustResult(SecTrustResultType);
+
+impl TrustResult {
     /// An invalid setting or result.
-    Invalid,
+    pub const INVALID: TrustResult = TrustResult(kSecTrustResultInvalid);
+
     /// You may proceed.
-    Proceed,
+    pub const PROCEED: TrustResult = TrustResult(kSecTrustResultProceed);
+
     /// Indicates a denial by the user, do not proceed.
-    Deny,
+    pub const DENY: TrustResult = TrustResult(kSecTrustResultDeny);
+
     /// The certificate is implicitly trusted.
-    Unspecified,
+    pub const UNSPECIFIED: TrustResult = TrustResult(kSecTrustResultUnspecified);
+
     /// Indicates a trust policy failure that the user can override.
-    RecoverableTrustFailure,
+    pub const RECOVERABLE_TRUST_FAILURE: TrustResult =
+        TrustResult(kSecTrustResultRecoverableTrustFailure);
+
     /// Indicates a trust policy failure that the user cannot override.
-    FatalTrustFailure,
+    pub const FATAL_TRUST_FAILURE: TrustResult = TrustResult(kSecTrustResultFatalTrustFailure);
+
     /// An error not related to trust validation.
-    OtherError,
+    pub const OTHER_ERROR: TrustResult = TrustResult(kSecTrustResultOtherError);
 }
 
 impl TrustResult {
-    fn from_raw(raw: SecTrustResultType) -> TrustResult {
-        match raw {
-            kSecTrustResultInvalid => TrustResult::Invalid,
-            kSecTrustResultProceed => TrustResult::Proceed,
-            kSecTrustResultDeny => TrustResult::Deny,
-            kSecTrustResultUnspecified => TrustResult::Unspecified,
-            kSecTrustResultRecoverableTrustFailure => TrustResult::RecoverableTrustFailure,
-            kSecTrustResultFatalTrustFailure => TrustResult::FatalTrustFailure,
-            kSecTrustResultOtherError => TrustResult::OtherError,
-            raw => panic!("unexpected value {}", raw),
-        }
-    }
-
-    /// Returns true if the result is "successful" - specifically `Proceed` or
-    /// `Unspecified`.
+    /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
     pub fn success(&self) -> bool {
         match *self {
-            TrustResult::Proceed | TrustResult::Unspecified => true,
+            TrustResult::PROCEED | TrustResult::UNSPECIFIED => true,
             _ => false,
         }
     }
@@ -66,16 +62,19 @@ unsafe impl Send for SecTrust {}
 impl SecTrust {
     /// Creates a SecTrustRef that is configured with a certificate chain, for validating
     /// that chain against a collection of policies.
-    pub fn create_with_certificates(certs: &[SecCertificate],
-                                    policies: &[SecPolicy])
-                                    -> Result<SecTrust> {
+    pub fn create_with_certificates(
+        certs: &[SecCertificate],
+        policies: &[SecPolicy],
+    ) -> Result<SecTrust> {
         let cert_array = CFArray::from_CFTypes(&certs);
         let policy_array = CFArray::from_CFTypes(&policies);
         let mut trust = ptr::null_mut();
         unsafe {
-            try!(cvt(SecTrustCreateWithCertificates(cert_array.as_CFTypeRef(),
-                                                    policy_array.as_CFTypeRef(),
-                                                    &mut trust)));
+            try!(cvt(SecTrustCreateWithCertificates(
+                cert_array.as_CFTypeRef(),
+                policy_array.as_CFTypeRef(),
+                &mut trust
+            )));
             Ok(SecTrust(trust))
         }
     }
@@ -84,7 +83,12 @@ impl SecTrust {
     pub fn set_anchor_certificates(&mut self, certs: &[SecCertificate]) -> Result<()> {
         let certs = CFArray::from_CFTypes(&certs);
 
-        unsafe { cvt(SecTrustSetAnchorCertificates(self.0, certs.as_concrete_TypeRef())) }
+        unsafe {
+            cvt(SecTrustSetAnchorCertificates(
+                self.0,
+                certs.as_concrete_TypeRef(),
+            ))
+        }
     }
 
     /// If set to `true`, only the certificates specified by
@@ -104,7 +108,7 @@ impl SecTrust {
         unsafe {
             let mut result = kSecTrustResultInvalid;
             try!(cvt(SecTrustEvaluate(self.0, &mut result)));
-            Ok(TrustResult::from_raw(result))
+            Ok(TrustResult(result))
         }
     }
 
@@ -112,9 +116,7 @@ impl SecTrust {
     ///
     /// Note: evaluate must first be called on the SecTrust.
     pub fn certificate_count(&self) -> CFIndex {
-        unsafe {
-            SecTrustGetCertificateCount(self.0)
-        }
+        unsafe { SecTrustGetCertificateCount(self.0) }
     }
 
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
