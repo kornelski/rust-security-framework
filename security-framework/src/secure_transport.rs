@@ -47,7 +47,7 @@
 //! ```rust,no_run
 //! use std::net::TcpListener;
 //! use std::thread;
-//! use security_framework::secure_transport::{SslContext, ProtocolSide, ConnectionType};
+//! use security_framework::secure_transport::{SslContext, SslProtocolSide, SslConnectionType};
 //!
 //! // Create a TCP listener and start accepting on it.
 //! let mut listener = TcpListener::bind("0.0.0.0:443").unwrap();
@@ -57,7 +57,7 @@
 //!     thread::spawn(move || {
 //!         // Create a new context configured to operate on the server side of
 //!         // a traditional SSL/TLS session.
-//!         let mut ctx = SslContext::new(ProtocolSide::Server, ConnectionType::Stream)
+//!         let mut ctx = SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM)
 //!                           .unwrap();
 //!
 //!         // Install the certificate chain that we will be using.
@@ -77,8 +77,7 @@ use libc::{c_void, size_t};
 use core_foundation::array::CFArray;
 use core_foundation::base::{Boolean, TCFType};
 use core_foundation_sys::base::OSStatus;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-use core_foundation_sys::base::{CFRelease, kCFAllocatorDefault};
+use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess,
                                    errSecTrustSettingDeny};
 use security_framework_sys::secure_transport::*;
@@ -103,24 +102,27 @@ use policy::SecPolicy;
 use trust::{SecTrust, TrustResult};
 
 /// Specifies a side of a TLS session.
-#[derive(Debug, Copy, Clone)]
-pub enum ProtocolSide {
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SslProtocolSide(SSLProtocolSide);
+
+impl SslProtocolSide {
     /// The server side of the session.
-    Server,
+    pub const SERVER: SslProtocolSide = SslProtocolSide(kSSLServerSide);
+
     /// The client side of the session.
-    Client,
+    pub const CLIENT: SslProtocolSide = SslProtocolSide(kSSLClientSide);
 }
 
 /// Specifies the type of TLS session.
 #[derive(Debug, Copy, Clone)]
-pub enum ConnectionType {
+pub struct SslConnectionType(SSLConnectionType);
+
+impl SslConnectionType {
     /// A traditional TLS stream.
-    Stream,
+    pub const STREAM: SslConnectionType = SslConnectionType(kSSLStreamType);
+
     /// A DTLS session.
-    ///
-    /// Requires the `OSX_10_8` (or higher) feature.
-    #[cfg(feature = "OSX_10_8")]
-    Datagram,
+    pub const DATAGRAM: SslConnectionType = SslConnectionType(kSSLDatagramType);
 }
 
 /// An error or intermediate state after a TLS handshake attempt.
@@ -279,7 +281,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 try!(trust.set_anchor_certificates(&certs));
                 try!(trust.set_trust_anchor_certificates_only(self.trust_certs_only));
                 let policy =
-                    SecPolicy::create_ssl(ProtocolSide::Server, domain.as_ref().map(|s| &**s));
+                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
                 try!(trust.set_policy(&policy));
                 let trusted = try!(trust.evaluate());
                 match trusted {
@@ -382,16 +384,10 @@ impl SslProtocol {
 
     /// The TLS 1.1 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.1.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub const TLS11: SslProtocol = SslProtocol(kTLSProtocol11);
 
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub const TLS12: SslProtocol = SslProtocol(kTLSProtocol12);
 
     /// Only the SSL 2.0 protocol is accepted.
@@ -410,29 +406,11 @@ impl SslProtocol {
     pub const ALL: SslProtocol = SslProtocol(kSSLProtocolAll);
 }
 
-/// A Secure Transport SSL/TLS context object.
-///
-/// `SslContext` implements `TCFType` if the `OSX_10_8` (or greater) feature is
-/// enabled.
-pub struct SslContext(SSLContextRef);
-
-impl Drop for SslContext {
-    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
-    fn drop(&mut self) {
-        unsafe {
-            SSLDisposeContext(self.0);
-        }
-    }
-
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.as_CFTypeRef());
-        }
-    }
+declare_TCFType! {
+    /// A Secure Transport SSL/TLS context object.
+    SslContext, SSLContextRef
 }
 
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 impl fmt::Debug for SslContext {
@@ -477,39 +455,9 @@ macro_rules! impl_options {
 impl SslContext {
     /// Creates a new `SslContext` for the specified side and type of SSL
     /// connection.
-    pub fn new(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
-        SslContext::new_inner(side, type_)
-    }
-
-    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
-    fn new_inner(side: ProtocolSide, _: ConnectionType) -> Result<SslContext> {
+    pub fn new(side: SslProtocolSide, type_: SslConnectionType) -> Result<SslContext> {
         unsafe {
-            let is_server = match side {
-                ProtocolSide::Server => 1,
-                ProtocolSide::Client => 0,
-            };
-
-            let mut ctx = ptr::null_mut();
-            try!(cvt(SSLNewContext(is_server, &mut ctx)));
-            Ok(SslContext(ctx))
-        }
-    }
-
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
-        let side = match side {
-            ProtocolSide::Server => kSSLServerSide,
-            ProtocolSide::Client => kSSLClientSide,
-        };
-
-        let type_ = match type_ {
-            ConnectionType::Stream => kSSLStreamType,
-            #[cfg(feature = "OSX_10_8")]
-            ConnectionType::Datagram => kSSLDatagramType,
-        };
-
-        unsafe {
-            let ctx = SSLCreateContext(kCFAllocatorDefault, side, type_);
+            let ctx = SSLCreateContext(kCFAllocatorDefault, side.0, type_.0);
             Ok(SslContext(ctx))
         }
     }
@@ -703,9 +651,6 @@ impl SslContext {
     }
 
     /// Returns the maximum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_max(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -715,17 +660,11 @@ impl SslContext {
     }
 
     /// Sets the maximum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.0)) }
     }
 
     /// Returns the minimum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_min(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -735,9 +674,6 @@ impl SslContext {
     }
 
     /// Sets the minimum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.0)) }
     }
@@ -783,9 +719,6 @@ impl SslContext {
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
         /// If enabled, the handshake process will pause and return instead of
         /// automatically validating a client's certificate.
-        ///
-        /// Requires the `OSX_10_8` (or greater) feature.
-        #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
         /// If enabled, TLS false start will be performed if an appropriate
         /// cipher suite is negotiated.
@@ -1197,18 +1130,12 @@ impl ClientBuilder {
     }
 
     /// Configure the minimum protocol that this client will support.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_min(&mut self, min: SslProtocol) -> &mut Self {
         self.protocol_min = Some(min);
         self
     }
 
     /// Configure the minimum protocol that this client will support.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_max(&mut self, max: SslProtocol) -> &mut Self {
         self.protocol_max = Some(max);
         self
@@ -1274,8 +1201,8 @@ impl ClientBuilder {
         S: Read + Write,
     {
         let mut ctx = try!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
 
         if let Some(domain) = domain {
@@ -1317,7 +1244,6 @@ impl ClientBuilder {
         stream.handshake()
     }
 
-    #[cfg(feature = "OSX_10_8")]
     fn configure_protocols(&self, ctx: &mut SslContext) -> Result<()> {
         if let Some(min) = self.protocol_min {
             try!(ctx.set_protocol_version_min(min));
@@ -1325,11 +1251,6 @@ impl ClientBuilder {
         if let Some(max) = self.protocol_max {
             try!(ctx.set_protocol_version_max(max));
         }
-        Ok(())
-    }
-
-    #[cfg(not(feature = "OSX_10_8"))]
-    fn configure_protocols(&self, _ctx: &mut SslContext) -> Result<()> {
         Ok(())
     }
 
@@ -1372,8 +1293,8 @@ impl ServerBuilder {
         S: Read + Write,
     {
         let mut ctx = try!(SslContext::new(
-            ProtocolSide::Server,
-            ConnectionType::Stream
+            SslProtocolSide::SERVER,
+            SslConnectionType::STREAM
         ));
         try!(ctx.set_certificate(&self.identity, &self.certs));
         match ctx.handshake(stream) {
@@ -1395,8 +1316,8 @@ mod test {
     #[test]
     fn connect() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1406,8 +1327,8 @@ mod test {
     #[test]
     fn connect_bad_domain() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1420,8 +1341,8 @@ mod test {
     #[test]
     fn load_page() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1487,8 +1408,8 @@ mod test {
     #[cfg_attr(target_os = "ios", ignore)] // FIXME what's going on with ios?
     fn cipher_configuration() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Server,
-            ConnectionType::Stream
+            SslProtocolSide::SERVER,
+            SslConnectionType::STREAM
         ));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers
@@ -1505,8 +1426,8 @@ mod test {
         let stream = p!(TcpStream::connect("google.com:443"));
 
         let ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         assert!(p!(ctx.enabled_ciphers()).len() > 1);
 
@@ -1525,8 +1446,8 @@ mod test {
         let stream = p!(TcpStream::connect("google.com:443"));
 
         let ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         let num = p!(ctx.enabled_ciphers()).len();
         assert!(num > 1);
@@ -1543,8 +1464,8 @@ mod test {
     #[test]
     fn idle_context_peer_trust() {
         let ctx = p!(SslContext::new(
-            ProtocolSide::Server,
-            ConnectionType::Stream
+            SslProtocolSide::SERVER,
+            SslConnectionType::STREAM
         ));
         assert!(ctx.peer_trust().is_err());
     }
@@ -1552,8 +1473,8 @@ mod test {
     #[test]
     fn peer_id() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Server,
-            ConnectionType::Stream
+            SslProtocolSide::SERVER,
+            SslConnectionType::STREAM
         ));
         assert!(p!(ctx.peer_id()).is_none());
         p!(ctx.set_peer_id(b"foobar"));
@@ -1563,8 +1484,8 @@ mod test {
     #[test]
     fn peer_domain_name() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         assert_eq!("", p!(ctx.peer_domain_name()));
         p!(ctx.set_peer_domain_name("foobar.com"));
@@ -1593,8 +1514,8 @@ mod test {
         }
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1623,8 +1544,8 @@ mod test {
         }
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1634,8 +1555,8 @@ mod test {
     #[test]
     fn zero_length_buffers() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
-            ConnectionType::Stream
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
         ));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));

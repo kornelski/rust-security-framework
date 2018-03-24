@@ -15,8 +15,7 @@ libc = "0.2"
 core-foundation-sys = "0.5.1"
 
 [features]
-OSX_10_8 = []
-OSX_10_9 = ["OSX_10_8"]
+OSX_10_9 = []
 OSX_10_10 = ["OSX_10_9"]
 OSX_10_11 = ["OSX_10_10"]
 OSX_10_12 = ["OSX_10_11"]

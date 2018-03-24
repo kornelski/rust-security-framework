@@ -1,6 +1,5 @@
 use libc::{c_void, c_char, size_t, c_int};
 use core_foundation_sys::base::{Boolean, OSStatus, CFTypeRef};
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 use core_foundation_sys::base::CFAllocatorRef;
 use core_foundation_sys::array::CFArrayRef;
 
@@ -27,7 +26,6 @@ pub const kSSLProtocolAll: SSLProtocol = 6;
 pub type SSLSessionOption = c_int;
 pub const kSSLSessionOptionBreakOnServerAuth: SSLSessionOption = 0;
 pub const kSSLSessionOptionBreakOnCertRequested: SSLSessionOption = 1;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kSSLSessionOptionBreakOnClientAuth: SSLSessionOption = 2;
 #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
 pub const kSSLSessionOptionFalseStart: SSLSessionOption = 3;
@@ -57,18 +55,12 @@ pub type SSLWriteFunc = unsafe extern "C" fn(connection: SSLConnectionRef,
                                              dataLength: *mut size_t)
                                              -> OSStatus;
 
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub type SSLProtocolSide = c_int;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kSSLServerSide: SSLProtocolSide = 0;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kSSLClientSide: SSLProtocolSide = 1;
 
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub type SSLConnectionType = c_int;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kSSLStreamType: SSLConnectionType = 0;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 pub const kSSLDatagramType: SSLConnectionType = 1;
 
 pub const errSSLProtocol: OSStatus = -9800;
@@ -134,9 +126,7 @@ pub const kSSLClientCertSent: SSLClientCertificateState = 2;
 pub const kSSLClientCertRejected: SSLClientCertificateState = 3;
 
 extern "C" {
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLContextGetTypeID() -> ::core_foundation_sys::base::CFTypeID;
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLCreateContext(alloc: CFAllocatorRef,
                             protocolSide: SSLProtocolSide,
                             connectionType: SSLConnectionType)
@@ -237,17 +227,13 @@ extern "C" {
     pub fn SSLGetNegotiatedProtocolVersion(context: SSLContextRef,
                                            protocol: *mut SSLProtocol)
                                            -> OSStatus;
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLGetProtocolVersionMax(context: SSLContextRef,
                                     maxVersion: *mut SSLProtocol)
                                     -> OSStatus;
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLGetProtocolVersionMin(context: SSLContextRef,
                                     minVersion: *mut SSLProtocol)
                                     -> OSStatus;
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLSetProtocolVersionMax(context: SSLContextRef, maxVersion: SSLProtocol) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
     pub fn SSLSetProtocolVersionMin(context: SSLContextRef, minVersion: SSLProtocol) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SSLSetProtocolVersionEnabled(context: SSLContextRef,

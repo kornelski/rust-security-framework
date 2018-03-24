@@ -15,7 +15,6 @@ extern "C" {
     pub static kSecModeOFBKey: CFStringRef;
     pub static kSecPaddingKey: CFStringRef;
     pub static kSecPaddingNoneKey: CFStringRef;
-    #[cfg(feature = "OSX_10_8")]
     pub static kSecPaddingOAEPKey: CFStringRef;
     pub static kSecPaddingPKCS1Key: CFStringRef;
     pub static kSecPaddingPKCS5Key: CFStringRef;

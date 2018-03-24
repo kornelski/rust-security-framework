@@ -39,9 +39,6 @@ impl Padding {
     }
 
     /// Use OAEP padding.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn oaep() -> Padding {
         unsafe { Padding(kSecPaddingOAEPKey) }
     }
