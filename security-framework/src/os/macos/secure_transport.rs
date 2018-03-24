@@ -229,7 +229,7 @@ mod test {
             let dir = p!(TempDir::new("server_client"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -244,7 +244,7 @@ mod test {
         });
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
+            SslProtocolSide::CLIENT,
             ConnectionType::Stream
         ));
         p!(ctx.set_break_on_server_auth(true));
@@ -306,7 +306,7 @@ mod test {
             let dir = p!(TempDir::new("client_bad_cert"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -335,7 +335,7 @@ mod test {
             let dir = p!(TempDir::new("client_bad_cert"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -367,7 +367,7 @@ mod test {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -388,7 +388,7 @@ mod test {
         });
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
+            SslProtocolSide::CLIENT,
             ConnectionType::Stream
         ));
         p!(ctx.set_break_on_server_auth(true));
@@ -419,7 +419,7 @@ mod test {
         let params = include_bytes!("../../../test/dhparam.der");
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Server,
+            SslProtocolSide::SERVER,
             ConnectionType::Stream
         ));
         assert!(p!(ctx.diffie_hellman_params()).is_none());
@@ -436,7 +436,7 @@ mod test {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -452,7 +452,7 @@ mod test {
         });
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
+            SslProtocolSide::CLIENT,
             ConnectionType::Stream
         ));
         p!(ctx.set_break_on_server_auth(true));
@@ -479,7 +479,7 @@ mod test {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -496,7 +496,7 @@ mod test {
         });
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
+            SslProtocolSide::CLIENT,
             ConnectionType::Stream
         ));
         p!(ctx.set_break_on_server_auth(true));
@@ -526,7 +526,7 @@ mod test {
             let dir = p!(TempDir::new("negotiated_cipher"));
 
             let mut ctx = p!(SslContext::new(
-                ProtocolSide::Server,
+                SslProtocolSide::SERVER,
                 ConnectionType::Stream
             ));
             let identity = identity(dir.path());
@@ -543,7 +543,7 @@ mod test {
         });
 
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Client,
+            SslProtocolSide::CLIENT,
             ConnectionType::Stream
         ));
         p!(ctx.set_break_on_server_auth(true));
@@ -570,7 +570,7 @@ mod test {
     #[test]
     fn certificate_authorities() {
         let mut ctx = p!(SslContext::new(
-            ProtocolSide::Server,
+            SslProtocolSide::SERVER,
             ConnectionType::Stream
         ));
         assert!(p!(ctx.certificate_authorities()).is_none());

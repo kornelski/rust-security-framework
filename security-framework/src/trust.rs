@@ -139,12 +139,12 @@ mod test {
     use test::certificate;
     use trust::SecTrust;
     use policy::SecPolicy;
-    use secure_transport::ProtocolSide;
+    use secure_transport::SslProtocolSide;
 
     #[test]
     fn create_with_certificates() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
     }
@@ -152,7 +152,7 @@ mod test {
     #[test]
     fn certificate_count_and_at_index() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         trust.evaluate().unwrap();
 
@@ -166,7 +166,7 @@ mod test {
     #[test]
     fn certificate_at_index_out_of_bounds() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         trust.evaluate().unwrap();
 
@@ -176,9 +176,9 @@ mod test {
     #[test]
     fn set_policy() {
         let cert = certificate();
-        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io.bogus"));
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io.bogus"));
         let mut trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
-        let ssl_policy = SecPolicy::create_ssl(ProtocolSide::Client, Some("certifi.io"));
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         trust.set_policy(&ssl_policy).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
     }
