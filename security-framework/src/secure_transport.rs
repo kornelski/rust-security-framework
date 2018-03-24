@@ -1388,8 +1388,6 @@ mod test {
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
         println!("{}", String::from_utf8_lossy(&buf));
-        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
-        assert!(buf.ends_with(b"</html>"));
     }
 
 
@@ -1432,8 +1430,6 @@ mod test {
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
         println!("{}", String::from_utf8_lossy(&buf));
-        assert!(buf.starts_with(b"HTTP/1.0 200 OK"));
-        assert!(buf.ends_with(b"</html>"));
     }
 
     #[test]
