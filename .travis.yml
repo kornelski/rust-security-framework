@@ -47,5 +47,4 @@ matrix:
 install:
   - rustup target add $TARGET || true
 script:
-  - cargo run --manifest-path=systest/Cargo.toml --features "$FEATURES" --target=$TARGET
   - cargo test --manifest-path=security-framework/Cargo.toml --features "$FEATURES" --target=$TARGET
