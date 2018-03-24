@@ -151,23 +151,23 @@ impl Builder {
         unsafe {
             if let Some(ref padding) = self.padding {
                 let key = CFString::wrap_under_get_rule(kSecPaddingKey);
-                try!(transform.set_attribute(&key, &padding.to_str()));
+                transform.set_attribute(&key, &padding.to_str())?;
             }
 
             if let Some(ref mode) = self.mode {
                 let key = CFString::wrap_under_get_rule(kSecEncryptionMode);
-                try!(transform.set_attribute(&key, &mode.to_str()));
+                transform.set_attribute(&key, &mode.to_str())?;
             }
 
             if let Some(ref iv) = self.iv {
                 let key = CFString::wrap_under_get_rule(kSecIVKey);
-                try!(transform.set_attribute(&key, iv));
+                transform.set_attribute(&key, iv)?;
             }
 
             let key = CFString::wrap_under_get_rule(kSecTransformInputAttributeName);
-            try!(transform.set_attribute(&key, data));
+            transform.set_attribute(&key, data)?;
 
-            let result = try!(transform.execute());
+            let result = transform.execute()?;
             Ok(CFData::wrap_under_get_rule(result.as_CFTypeRef() as CFDataRef))
         }
     }

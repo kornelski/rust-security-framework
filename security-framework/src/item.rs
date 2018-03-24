@@ -158,10 +158,10 @@ impl ItemSearchOptions {
             let params = CFDictionary::from_CFType_pairs(&params);
 
             let mut ret = ptr::null();
-            try!(cvt(SecItemCopyMatching(
+            cvt(SecItemCopyMatching(
                 params.as_concrete_TypeRef(),
                 &mut ret
-            )));
+            ))?;
             let type_id = CFGetTypeID(ret);
 
             let mut items = vec![];

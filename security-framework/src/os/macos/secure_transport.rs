@@ -103,7 +103,7 @@ macro_rules! impl_options {
             $(#[$a])*
             fn $get(&self) -> Result<bool> {
                 let mut value = 0;
-                unsafe { try!(cvt(SSLGetSessionOption(self.as_inner(), $opt, &mut value))); }
+                unsafe { cvt(SSLGetSessionOption(self.as_inner(), $opt, &mut value))?; }
                 Ok(value != 0)
             }
         )*
@@ -115,11 +115,11 @@ impl SslContextExt for SslContext {
         unsafe {
             let mut ptr = ptr::null();
             let mut len = 0;
-            try!(cvt(SSLGetDiffieHellmanParams(
+            cvt(SSLGetDiffieHellmanParams(
                 self.as_inner(),
                 &mut ptr,
-                &mut len
-            )));
+                &mut len,
+            ))?;
             if ptr.is_null() {
                 Ok(None)
             } else {
@@ -141,10 +141,10 @@ impl SslContextExt for SslContext {
     fn certificate_authorities(&self) -> Result<Option<Vec<SecCertificate>>> {
         unsafe {
             let mut raw_certs = ptr::null();
-            try!(cvt(SSLCopyCertificateAuthorities(
+            cvt(SSLCopyCertificateAuthorities(
                 self.as_inner(),
                 &mut raw_certs
-            )));
+            ))?;
             if raw_certs.is_null() {
                 Ok(None)
             } else {

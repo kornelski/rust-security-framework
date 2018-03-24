@@ -123,13 +123,13 @@ impl Builder {
 
             if let Some(ref hmac_key) = self.hmac_key {
                 let key = CFString::wrap_under_get_rule(kSecDigestHMACKeyAttribute);
-                try!(transform.set_attribute(&key, hmac_key));
+                transform.set_attribute(&key, hmac_key)?;
             }
 
             let key = CFString::wrap_under_get_rule(kSecTransformInputAttributeName);
-            try!(transform.set_attribute(&key, data));
+            transform.set_attribute(&key, data)?;
 
-            let result = try!(transform.execute());
+            let result = transform.execute()?;
             Ok(CFData::wrap_under_get_rule(result.as_CFTypeRef() as CFDataRef))
         }
     }

@@ -23,7 +23,7 @@ impl SecCertificateExt for SecCertificate {
     fn common_name(&self) -> Result<String> {
         unsafe {
             let mut string = ptr::null();
-            try!(cvt(SecCertificateCopyCommonName(self.as_concrete_TypeRef(), &mut string)));
+            cvt(SecCertificateCopyCommonName(self.as_concrete_TypeRef(), &mut string))?;
             Ok(CFString::wrap_under_create_rule(string).to_string())
         }
     }
@@ -31,7 +31,7 @@ impl SecCertificateExt for SecCertificate {
     fn public_key(&self) -> Result<SecKey> {
         unsafe {
             let mut key = ptr::null_mut();
-            try!(cvt(SecCertificateCopyPublicKey(self.as_concrete_TypeRef(), &mut key)));
+            cvt(SecCertificateCopyPublicKey(self.as_concrete_TypeRef(), &mut key))?;
             Ok(SecKey::wrap_under_create_rule(key))
         }
     }

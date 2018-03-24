@@ -28,11 +28,11 @@ impl SecIdentityExt for SecIdentity {
         let keychains = CFArray::from_CFTypes(keychains);
         unsafe {
             let mut identity = ptr::null_mut();
-            try!(cvt(SecIdentityCreateWithCertificate(
+            cvt(SecIdentityCreateWithCertificate(
                 keychains.as_CFTypeRef(),
                 certificate.as_concrete_TypeRef(),
-                &mut identity
-            )));
+                &mut identity,
+            ))?;
             Ok(SecIdentity::wrap_under_create_rule(identity))
         }
     }

@@ -107,11 +107,11 @@ impl Pkcs12ImportOptions {
             let options = CFDictionary::from_CFType_pairs(&options);
 
             let mut raw_items = ptr::null();
-            try!(cvt(SecPKCS12Import(
+            cvt(SecPKCS12Import(
                 pkcs12_data.as_concrete_TypeRef(),
                 options.as_concrete_TypeRef(),
                 &mut raw_items
-            )));
+            ))?;
             let raw_items = CFArray::<CFDictionary>::wrap_under_create_rule(raw_items);
 
             let mut items = vec![];

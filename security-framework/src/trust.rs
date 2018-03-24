@@ -70,11 +70,11 @@ impl SecTrust {
         let policy_array = CFArray::from_CFTypes(&policies);
         let mut trust = ptr::null_mut();
         unsafe {
-            try!(cvt(SecTrustCreateWithCertificates(
+            cvt(SecTrustCreateWithCertificates(
                 cert_array.as_CFTypeRef(),
                 policy_array.as_CFTypeRef(),
-                &mut trust
-            )));
+                &mut trust,
+            ))?;
             Ok(SecTrust(trust))
         }
     }
@@ -107,7 +107,7 @@ impl SecTrust {
     pub fn evaluate(&self) -> Result<TrustResult> {
         unsafe {
             let mut result = kSecTrustResultInvalid;
-            try!(cvt(SecTrustEvaluate(self.0, &mut result)));
+            cvt(SecTrustEvaluate(self.0, &mut result))?;
             Ok(TrustResult(result))
         }
     }

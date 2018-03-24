@@ -40,7 +40,7 @@ impl SecIdentity {
     pub fn certificate(&self) -> Result<SecCertificate> {
         unsafe {
             let mut certificate = ptr::null_mut();
-            try!(cvt(SecIdentityCopyCertificate(self.0, &mut certificate)));
+            cvt(SecIdentityCopyCertificate(self.0, &mut certificate))?;
             Ok(SecCertificate::wrap_under_create_rule(certificate))
         }
     }
@@ -49,7 +49,7 @@ impl SecIdentity {
     pub fn private_key(&self) -> Result<SecKey> {
         unsafe {
             let mut key = ptr::null_mut();
-            try!(cvt(SecIdentityCopyPrivateKey(self.0, &mut key)));
+            cvt(SecIdentityCopyPrivateKey(self.0, &mut key))?;
             Ok(SecKey::wrap_under_create_rule(key))
         }
     }
