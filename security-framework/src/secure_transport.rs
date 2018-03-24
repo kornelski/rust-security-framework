@@ -77,8 +77,7 @@ use libc::{c_void, size_t};
 use core_foundation::array::CFArray;
 use core_foundation::base::{Boolean, TCFType};
 use core_foundation_sys::base::OSStatus;
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-use core_foundation_sys::base::{CFRelease, kCFAllocatorDefault};
+use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess,
                                    errSecTrustSettingDeny};
 use security_framework_sys::secure_transport::*;
@@ -117,9 +116,6 @@ pub enum ConnectionType {
     /// A traditional TLS stream.
     Stream,
     /// A DTLS session.
-    ///
-    /// Requires the `OSX_10_8` (or higher) feature.
-    #[cfg(feature = "OSX_10_8")]
     Datagram,
 }
 
@@ -382,16 +378,10 @@ impl SslProtocol {
 
     /// The TLS 1.1 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.1.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub const TLS11: SslProtocol = SslProtocol(kTLSProtocol11);
 
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub const TLS12: SslProtocol = SslProtocol(kTLSProtocol12);
 
     /// Only the SSL 2.0 protocol is accepted.
@@ -410,29 +400,11 @@ impl SslProtocol {
     pub const ALL: SslProtocol = SslProtocol(kSSLProtocolAll);
 }
 
-/// A Secure Transport SSL/TLS context object.
-///
-/// `SslContext` implements `TCFType` if the `OSX_10_8` (or greater) feature is
-/// enabled.
-pub struct SslContext(SSLContextRef);
-
-impl Drop for SslContext {
-    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
-    fn drop(&mut self) {
-        unsafe {
-            SSLDisposeContext(self.0);
-        }
-    }
-
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.as_CFTypeRef());
-        }
-    }
+declare_TCFType! {
+    /// A Secure Transport SSL/TLS context object.
+    SslContext, SSLContextRef
 }
 
-#[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 impl fmt::Debug for SslContext {
@@ -478,25 +450,6 @@ impl SslContext {
     /// Creates a new `SslContext` for the specified side and type of SSL
     /// connection.
     pub fn new(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
-        SslContext::new_inner(side, type_)
-    }
-
-    #[cfg(not(any(feature = "OSX_10_8", target_os = "ios")))]
-    fn new_inner(side: ProtocolSide, _: ConnectionType) -> Result<SslContext> {
-        unsafe {
-            let is_server = match side {
-                ProtocolSide::Server => 1,
-                ProtocolSide::Client => 0,
-            };
-
-            let mut ctx = ptr::null_mut();
-            try!(cvt(SSLNewContext(is_server, &mut ctx)));
-            Ok(SslContext(ctx))
-        }
-    }
-
-    #[cfg(any(feature = "OSX_10_8", target_os = "ios"))]
-    fn new_inner(side: ProtocolSide, type_: ConnectionType) -> Result<SslContext> {
         let side = match side {
             ProtocolSide::Server => kSSLServerSide,
             ProtocolSide::Client => kSSLClientSide,
@@ -504,7 +457,6 @@ impl SslContext {
 
         let type_ = match type_ {
             ConnectionType::Stream => kSSLStreamType,
-            #[cfg(feature = "OSX_10_8")]
             ConnectionType::Datagram => kSSLDatagramType,
         };
 
@@ -703,9 +655,6 @@ impl SslContext {
     }
 
     /// Returns the maximum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_max(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -715,17 +664,11 @@ impl SslContext {
     }
 
     /// Sets the maximum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_max(&mut self, max_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMax(self.0, max_version.0)) }
     }
 
     /// Returns the minimum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_version_min(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
@@ -735,9 +678,6 @@ impl SslContext {
     }
 
     /// Sets the minimum protocol version allowed by the session.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.0)) }
     }
@@ -783,9 +723,6 @@ impl SslContext {
         const kSSLSessionOptionBreakOnCertRequested: break_on_cert_requested & set_break_on_cert_requested,
         /// If enabled, the handshake process will pause and return instead of
         /// automatically validating a client's certificate.
-        ///
-        /// Requires the `OSX_10_8` (or greater) feature.
-        #[cfg(feature = "OSX_10_8")]
         const kSSLSessionOptionBreakOnClientAuth: break_on_client_auth & set_break_on_client_auth,
         /// If enabled, TLS false start will be performed if an appropriate
         /// cipher suite is negotiated.
@@ -1197,18 +1134,12 @@ impl ClientBuilder {
     }
 
     /// Configure the minimum protocol that this client will support.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_min(&mut self, min: SslProtocol) -> &mut Self {
         self.protocol_min = Some(min);
         self
     }
 
     /// Configure the minimum protocol that this client will support.
-    ///
-    /// Requires the `OSX_10_8` (or greater) feature.
-    #[cfg(feature = "OSX_10_8")]
     pub fn protocol_max(&mut self, max: SslProtocol) -> &mut Self {
         self.protocol_max = Some(max);
         self
@@ -1317,7 +1248,6 @@ impl ClientBuilder {
         stream.handshake()
     }
 
-    #[cfg(feature = "OSX_10_8")]
     fn configure_protocols(&self, ctx: &mut SslContext) -> Result<()> {
         if let Some(min) = self.protocol_min {
             try!(ctx.set_protocol_version_min(min));
@@ -1325,11 +1255,6 @@ impl ClientBuilder {
         if let Some(max) = self.protocol_max {
             try!(ctx.set_protocol_version_max(max));
         }
-        Ok(())
-    }
-
-    #[cfg(not(feature = "OSX_10_8"))]
-    fn configure_protocols(&self, _ctx: &mut SslContext) -> Result<()> {
         Ok(())
     }
 
