@@ -277,13 +277,13 @@ impl<S> MidHandshakeClientBuilder<S> {
                     result = stream.handshake();
                     continue;
                 }
-                let mut trust = try!(stream.context().peer_trust());
-                try!(trust.set_anchor_certificates(&certs));
-                try!(trust.set_trust_anchor_certificates_only(self.trust_certs_only));
+                let mut trust = stream.context().peer_trust()?;
+                trust.set_anchor_certificates(&certs)?;
+                trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
                 let policy =
                     SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
-                try!(trust.set_policy(&policy));
-                let trusted = try!(trust.evaluate());
+                trust.set_policy(&policy)?;
+                let trusted = trust.evaluate()?;
                 match trusted {
                     TrustResult::PROCEED | TrustResult::UNSPECIFIED => {
                         result = stream.handshake();
@@ -445,7 +445,7 @@ macro_rules! impl_options {
             $(#[$a])*
             pub fn $get(&self) -> Result<bool> {
                 let mut value = 0;
-                unsafe { try!(cvt(SSLGetSessionOption(self.0, $opt, &mut value))); }
+                unsafe { cvt(SSLGetSessionOption(self.0, $opt, &mut value))?; }
                 Ok(value != 0)
             }
         )*
@@ -485,13 +485,13 @@ impl SslContext {
     pub fn peer_domain_name(&self) -> Result<String> {
         unsafe {
             let mut len = 0;
-            try!(cvt(SSLGetPeerDomainNameLength(self.0, &mut len)));
+            cvt(SSLGetPeerDomainNameLength(self.0, &mut len))?;
             let mut buf = vec![0; len];
-            try!(cvt(SSLGetPeerDomainName(
+            cvt(SSLGetPeerDomainName(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
-                &mut len
-            )));
+                &mut len,
+            ))?;
             Ok(String::from_utf8(buf).unwrap())
         }
     }
@@ -536,7 +536,7 @@ impl SslContext {
         unsafe {
             let mut ptr = ptr::null();
             let mut len = 0;
-            try!(cvt(SSLGetPeerID(self.0, &mut ptr, &mut len)));
+            cvt(SSLGetPeerID(self.0, &mut ptr, &mut len))?;
             if ptr.is_null() {
                 Ok(None)
             } else {
@@ -549,13 +549,13 @@ impl SslContext {
     pub fn supported_ciphers(&self) -> Result<Vec<CipherSuite>> {
         unsafe {
             let mut num_ciphers = 0;
-            try!(cvt(SSLGetNumberSupportedCiphers(self.0, &mut num_ciphers)));
+            cvt(SSLGetNumberSupportedCiphers(self.0, &mut num_ciphers))?;
             let mut ciphers = vec![0; num_ciphers];
-            try!(cvt(SSLGetSupportedCiphers(
+            cvt(SSLGetSupportedCiphers(
                 self.0,
                 ciphers.as_mut_ptr(),
-                &mut num_ciphers
-            )));
+                &mut num_ciphers,
+            ))?;
             Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c)).collect())
         }
     }
@@ -565,13 +565,13 @@ impl SslContext {
     pub fn enabled_ciphers(&self) -> Result<Vec<CipherSuite>> {
         unsafe {
             let mut num_ciphers = 0;
-            try!(cvt(SSLGetNumberEnabledCiphers(self.0, &mut num_ciphers)));
+            cvt(SSLGetNumberEnabledCiphers(self.0, &mut num_ciphers))?;
             let mut ciphers = vec![0; num_ciphers];
-            try!(cvt(SSLGetEnabledCiphers(
+            cvt(SSLGetEnabledCiphers(
                 self.0,
                 ciphers.as_mut_ptr(),
-                &mut num_ciphers
-            )));
+                &mut num_ciphers,
+            ))?;
             Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c)).collect())
         }
     }
@@ -592,7 +592,7 @@ impl SslContext {
     pub fn negotiated_cipher(&self) -> Result<CipherSuite> {
         unsafe {
             let mut cipher = 0;
-            try!(cvt(SSLGetNegotiatedCipher(self.0, &mut cipher)));
+            cvt(SSLGetNegotiatedCipher(self.0, &mut cipher))?;
             Ok(CipherSuite::from_raw(cipher))
         }
     }
@@ -609,7 +609,7 @@ impl SslContext {
         let mut state = 0;
 
         unsafe {
-            try!(cvt(SSLGetClientCertificateState(self.0, &mut state)));
+            cvt(SSLGetClientCertificateState(self.0, &mut state))?;
         }
         Ok(SslClientCertificateState(state))
     }
@@ -621,13 +621,13 @@ impl SslContext {
     pub fn peer_trust(&self) -> Result<SecTrust> {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
-        if try!(self.state()) == SessionState::IDLE {
+        if self.state()? == SessionState::IDLE {
             return Err(Error::from_code(errSecBadReq));
         }
 
         unsafe {
             let mut trust = ptr::null_mut();
-            try!(cvt(SSLCopyPeerTrust(self.0, &mut trust)));
+            cvt(SSLCopyPeerTrust(self.0, &mut trust))?;
             Ok(SecTrust::wrap_under_create_rule(trust))
         }
     }
@@ -636,7 +636,7 @@ impl SslContext {
     pub fn state(&self) -> Result<SessionState> {
         unsafe {
             let mut state = 0;
-            try!(cvt(SSLGetSessionState(self.0, &mut state)));
+            cvt(SSLGetSessionState(self.0, &mut state))?;
             Ok(SessionState(state))
         }
     }
@@ -645,7 +645,7 @@ impl SslContext {
     pub fn negotiated_protocol_version(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
-            try!(cvt(SSLGetNegotiatedProtocolVersion(self.0, &mut version)));
+            cvt(SSLGetNegotiatedProtocolVersion(self.0, &mut version))?;
             Ok(SslProtocol(version))
         }
     }
@@ -654,7 +654,7 @@ impl SslContext {
     pub fn protocol_version_max(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
-            try!(cvt(SSLGetProtocolVersionMax(self.0, &mut version)));
+            cvt(SSLGetProtocolVersionMax(self.0, &mut version))?;
             Ok(SslProtocol(version))
         }
     }
@@ -668,7 +668,7 @@ impl SslContext {
     pub fn protocol_version_min(&self) -> Result<SslProtocol> {
         unsafe {
             let mut version = 0;
-            try!(cvt(SSLGetProtocolVersionMin(self.0, &mut version)));
+            cvt(SSLGetProtocolVersionMin(self.0, &mut version))?;
             Ok(SslProtocol(version))
         }
     }
@@ -705,7 +705,7 @@ impl SslContext {
     pub fn buffered_read_size(&self) -> Result<usize> {
         unsafe {
             let mut size = 0;
-            try!(cvt(SSLGetBufferedReadSize(self.0, &mut size)));
+            cvt(SSLGetBufferedReadSize(self.0, &mut size))?;
             Ok(size)
         }
     }
@@ -1180,7 +1180,7 @@ impl ClientBuilder {
         // the logic for trust validation is in MidHandshakeClientBuilder::connect, so run all
         // of the handshake logic through that.
         let stream = MidHandshakeSslStream {
-            stream: try!(self.ctx_into_stream(domain, stream)),
+            stream: self.ctx_into_stream(domain, stream)?,
             error: Error::from(errSecSuccess),
         };
 
@@ -1203,37 +1203,34 @@ impl ClientBuilder {
     where
         S: Read + Write,
     {
-        let mut ctx = try!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM)?;
 
         if self.use_sni {
-            try!(ctx.set_peer_domain_name(domain));
+            ctx.set_peer_domain_name(domain)?;
         }
         if let Some(ref identity) = self.identity {
-            try!(ctx.set_certificate(identity, &self.chain));
+            ctx.set_certificate(identity, &self.chain)?;
         }
-        try!(ctx.set_break_on_server_auth(true));
-        try!(self.configure_protocols(&mut ctx));
-        try!(self.configure_ciphers(&mut ctx));
+        ctx.set_break_on_server_auth(true)?;
+        self.configure_protocols(&mut ctx)?;
+        self.configure_ciphers(&mut ctx)?;
 
         ctx.into_stream(stream)
     }
 
     fn configure_protocols(&self, ctx: &mut SslContext) -> Result<()> {
         if let Some(min) = self.protocol_min {
-            try!(ctx.set_protocol_version_min(min));
+            ctx.set_protocol_version_min(min)?;
         }
         if let Some(max) = self.protocol_max {
-            try!(ctx.set_protocol_version_max(max));
+            ctx.set_protocol_version_max(max)?;
         }
         Ok(())
     }
 
     fn configure_ciphers(&self, ctx: &mut SslContext) -> Result<()> {
         let mut ciphers = if self.whitelisted_ciphers.is_empty() {
-            try!(ctx.enabled_ciphers())
+            ctx.enabled_ciphers()?
         } else {
             self.whitelisted_ciphers.clone()
         };
@@ -1242,7 +1239,7 @@ impl ClientBuilder {
             ciphers.retain(|cipher| !self.blacklisted_ciphers.contains(cipher));
         }
 
-        try!(ctx.set_enabled_ciphers(&ciphers));
+        ctx.set_enabled_ciphers(&ciphers)?;
         Ok(())
     }
 }
@@ -1269,11 +1266,8 @@ impl ServerBuilder {
     where
         S: Read + Write,
     {
-        let mut ctx = try!(SslContext::new(
-            SslProtocolSide::SERVER,
-            SslConnectionType::STREAM
-        ));
-        try!(ctx.set_certificate(&self.identity, &self.certs));
+        let mut ctx = SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM)?;
+        ctx.set_certificate(&self.identity, &self.certs)?;
         match ctx.handshake(stream) {
             Ok(stream) => Ok(stream),
             Err(HandshakeError::Interrupted(stream)) => Err(Error::from_code(stream.reason())),

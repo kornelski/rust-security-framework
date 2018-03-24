@@ -54,7 +54,7 @@ impl SecKeychain {
     pub fn default() -> Result<SecKeychain> {
         unsafe {
             let mut keychain = ptr::null_mut();
-            try!(cvt(SecKeychainCopyDefault(&mut keychain)));
+            cvt(SecKeychainCopyDefault(&mut keychain))?;
             Ok(SecKeychain::wrap_under_create_rule(keychain))
         }
     }
@@ -67,7 +67,7 @@ impl SecKeychain {
 
         unsafe {
             let mut keychain = ptr::null_mut();
-            try!(cvt(SecKeychainOpen(path_name.as_ptr(), &mut keychain)));
+            cvt(SecKeychainOpen(path_name.as_ptr(), &mut keychain))?;
             Ok(SecKeychain::wrap_under_create_rule(keychain))
         }
     }
@@ -82,17 +82,22 @@ impl SecKeychain {
         };
 
         unsafe {
-            cvt(SecKeychainUnlock(self.as_concrete_TypeRef(),
-                                  len as u32,
-                                  ptr,
-                                  use_password as Boolean))
+            cvt(SecKeychainUnlock(
+                self.as_concrete_TypeRef(),
+                len as u32,
+                ptr,
+                use_password as Boolean,
+            ))
         }
     }
 
     /// Sets settings of the keychain.
     pub fn set_settings(&mut self, settings: &KeychainSettings) -> Result<()> {
         unsafe {
-            cvt(SecKeychainSetSettings(self.as_concrete_TypeRef(), &settings.0))
+            cvt(SecKeychainSetSettings(
+                self.as_concrete_TypeRef(),
+                &settings.0,
+            ))
         }
     }
 }
@@ -148,12 +153,14 @@ impl CreateOptions {
             };
 
             let mut keychain = ptr::null_mut();
-            try!(cvt(SecKeychainCreate(path_name.as_ptr(),
-                                       password_len,
-                                       password,
-                                       self.prompt_user as Boolean,
-                                       access,
-                                       &mut keychain)));
+            cvt(SecKeychainCreate(
+                path_name.as_ptr(),
+                password_len,
+                password,
+                self.prompt_user as Boolean,
+                access,
+                &mut keychain,
+            ))?;
 
             Ok(SecKeychain::wrap_under_create_rule(keychain))
         }
