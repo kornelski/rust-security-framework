@@ -1056,7 +1056,9 @@ pub struct ClientBuilder {
     protocol_min: Option<SslProtocol>,
     protocol_max: Option<SslProtocol>,
     trust_certs_only: bool,
+    use_sni: bool,
     danger_accept_invalid_certs: bool,
+    danger_accept_invalid_hostnames: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
 }
@@ -1077,7 +1079,9 @@ impl ClientBuilder {
             protocol_min: None,
             protocol_max: None,
             trust_certs_only: false,
+            use_sni: true,
             danger_accept_invalid_certs: false,
+            danger_accept_invalid_hostnames: false,
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
         }
@@ -1107,6 +1111,27 @@ impl ClientBuilder {
     /// significant vulnerabilities, and should only be used as a last resort.
     pub fn danger_accept_invalid_certs(&mut self, noverify: bool) -> &mut Self {
         self.danger_accept_invalid_certs = noverify;
+        self
+    }
+
+    /// Specifies whether to use Server Name Indication (SNI).
+    pub fn use_sni(&mut self, use_sni: bool) -> &mut Self {
+        self.use_sni = use_sni;
+        self
+    }
+
+    /// Specifies whether to verify that the server's hostname matches its certificate.
+    ///
+    /// # Warning
+    ///
+    /// You should think very carefully before using this method. If hostnames are not verified,
+    /// *any* valid certificate for *any* site will be trusted for use. This introduces significant
+    /// vulnerabilities, and should only be used as a last resort.
+    pub fn danger_accept_invalid_hostnames(
+        &mut self,
+        danger_accept_invalid_hostnames: bool,
+    ) -> &mut Self {
+        self.danger_accept_invalid_hostnames = danger_accept_invalid_hostnames;
         self
     }
 
@@ -1141,86 +1166,12 @@ impl ClientBuilder {
         self
     }
 
-    /// Initiates a new SSL/TLS session over a stream connected to the specified
-    /// domain.
+    /// Initiates a new SSL/TLS session over a stream connected to the specified domain.
     ///
-    /// Note that this method assumes that the stream `S` is in *blocking* mode,
-    /// and it will return an error if the stream is set to nonblocking mode.
-    /// If the stream `S` is in asynchronous operation (or may be) then you may
-    /// use `handshake2` instead.
-    ///
-    /// Note that this method will likely be removed in the next major release
-    /// in favor of `handshake2`.
-    pub fn handshake<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
-    where
-        S: Read + Write,
-    {
-        match self.handshake_inner(Some(domain), stream) {
-            Ok(stream) => Ok(stream),
-            Err(ClientHandshakeError::Failure(e)) => Err(e),
-            Err(ClientHandshakeError::Interrupted(e)) => Err(e.error().clone()),
-        }
-    }
-
-    /// Initiates a new SSL/TLS session over a stream connected to the specified
-    /// domain.
-    pub fn handshake2<S>(
-        self,
-        domain: &str,
-        stream: S,
-    ) -> result::Result<SslStream<S>, ClientHandshakeError<S>>
-    where
-        S: Read + Write,
-    {
-        self.handshake_inner(Some(domain), stream)
-    }
-
-    /// Initiates a new SSL/TLS session over a stream without providing a
-    /// domain.
-    ///
-    /// # Warning
-    ///
-    /// You should think very carefully before using this method. If hostname
-    /// verification is not used, *any* valid certificate for *any* site will be
-    /// trusted for use from any other. This introduces a significant
-    /// vulnerability to man-in-the-middle attacks.
-    pub fn danger_handshake_without_providing_domain_for_certificate_validation_and_server_name_indication<
-        S,
-    >(
-        self,
-        stream: S,
-    ) -> result::Result<SslStream<S>, ClientHandshakeError<S>>
-    where
-        S: Read + Write,
-    {
-        self.handshake_inner(None, stream)
-    }
-
-    fn ctx_into_stream<S>(&self, domain: Option<&str>, stream: S) -> Result<SslStream<S>>
-    where
-        S: Read + Write,
-    {
-        let mut ctx = try!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
-
-        if let Some(domain) = domain {
-            try!(ctx.set_peer_domain_name(domain));
-        }
-        if let Some(ref identity) = self.identity {
-            try!(ctx.set_certificate(identity, &self.chain));
-        }
-        try!(ctx.set_break_on_server_auth(true));
-        try!(self.configure_protocols(&mut ctx));
-        try!(self.configure_ciphers(&mut ctx));
-
-        ctx.into_stream(stream)
-    }
-
-    fn handshake_inner<S>(
+    /// If both SNI and hostname verification are disabled, the value of `domain` will be ignored.
+    pub fn handshake<S>(
         &self,
-        domain: Option<&str>,
+        domain: &str,
         stream: S,
     ) -> result::Result<SslStream<S>, ClientHandshakeError<S>>
     where
@@ -1236,12 +1187,38 @@ impl ClientBuilder {
         let certs = self.certs.clone();
         let stream = MidHandshakeClientBuilder {
             stream: stream,
-            domain: domain.map(|s| s.to_string()),
+            domain: if self.danger_accept_invalid_hostnames {
+                None
+            } else {
+                Some(domain.to_string())
+            },
             certs: certs,
             trust_certs_only: self.trust_certs_only,
             danger_accept_invalid_certs: self.danger_accept_invalid_certs,
         };
         stream.handshake()
+    }
+
+    fn ctx_into_stream<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
+    where
+        S: Read + Write,
+    {
+        let mut ctx = try!(SslContext::new(
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
+        ));
+
+        if self.use_sni {
+            try!(ctx.set_peer_domain_name(domain));
+        }
+        if let Some(ref identity) = self.identity {
+            try!(ctx.set_certificate(identity, &self.chain));
+        }
+        try!(ctx.set_break_on_server_auth(true));
+        try!(self.configure_protocols(&mut ctx));
+        try!(self.configure_ciphers(&mut ctx));
+
+        ctx.into_stream(stream)
     }
 
     fn configure_protocols(&self, ctx: &mut SslContext) -> Result<()> {
@@ -1376,12 +1353,11 @@ mod test {
     }
 
     #[test]
-    fn client_no_domain() {
+    fn client_bad_domain_ignored() {
         let stream = p!(TcpStream::connect("google.com:443"));
         ClientBuilder::new()
-            .danger_handshake_without_providing_domain_for_certificate_validation_and_server_name_indication(
-                stream,
-            )
+            .danger_accept_invalid_hostnames(true)
+            .handshake("foobar.com", stream)
             .unwrap();
     }
 
@@ -1435,7 +1411,7 @@ mod test {
         let cipher = ciphers.first().unwrap();
         let stream = p!(ClientBuilder::new()
             .whitelist_ciphers(&[*cipher])
-            .ctx_into_stream(None, stream));
+            .ctx_into_stream("google.com", stream));
 
         assert_eq!(1, p!(stream.context().enabled_ciphers()).len());
     }
@@ -1456,7 +1432,7 @@ mod test {
         let cipher = ciphers.first().unwrap();
         let stream = p!(ClientBuilder::new()
             .blacklist_ciphers(&[*cipher])
-            .ctx_into_stream(None, stream));
+            .ctx_into_stream("google.com", stream));
 
         assert_eq!(num - 1, p!(stream.context().enabled_ciphers()).len());
     }
