@@ -70,9 +70,9 @@ mod test {
         let dir = p!(TempDir::new("find_certificate"));
         let keychain = keychain(dir.path());
         let results = p!(ItemSearchOptions::new()
-                             .keychains(&[keychain])
-                             .class(ItemClass::Certificate)
-                             .search());
+            .keychains(&[keychain])
+            .class(ItemClass::certificate())
+            .search());
         assert_eq!(1, results.len());
         let certificate = match results[0].reference {
             Some(Reference::Certificate(ref cert)) => cert,

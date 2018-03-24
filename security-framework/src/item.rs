@@ -6,7 +6,8 @@ use core_foundation::boolean::CFBoolean;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
-use core_foundation_sys::base::{CFTypeRef, CFGetTypeID, CFRelease};
+use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
+use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
 use std::fmt;
 use std::ptr;
@@ -21,31 +22,36 @@ use keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
-pub enum ItemClass {
-    /// Look for `SecKeychainItem`s corresponding to generic passwords.
-    GenericPassword,
-    /// Look for `SecKeychainItem`s corresponding to internet passwords.
-    InternetPassword,
-    /// Look for `SecCertificate`s.
-    Certificate,
-    /// Look for `SecKey`s.
-    Key,
-    /// Look for `SecIdentity`s.
-    Identity,
-}
+pub struct ItemClass(CFStringRef);
 
 impl ItemClass {
+    /// Look for `SecKeychainItem`s corresponding to generic passwords.
+    pub fn generic_password() -> ItemClass {
+        unsafe { ItemClass(kSecClassGenericPassword) }
+    }
+
+    /// Look for `SecKeychainItem`s corresponding to internet passwords.
+    pub fn internet_password() -> ItemClass {
+        unsafe { ItemClass(kSecClassInternetPassword) }
+    }
+
+    /// Look for `SecCertificate`s.
+    pub fn certificate() -> ItemClass {
+        unsafe { ItemClass(kSecClassCertificate) }
+    }
+
+    /// Look for `SecKey`s.
+    pub fn key() -> ItemClass {
+        unsafe { ItemClass(kSecClassKey) }
+    }
+
+    /// Look for `SecIdentity`s.
+    pub fn identity() -> ItemClass {
+        unsafe { ItemClass(kSecClassIdentity) }
+    }
+
     fn to_value(&self) -> CFType {
-        unsafe {
-            let raw = match *self {
-                ItemClass::GenericPassword => kSecClassGenericPassword,
-                ItemClass::InternetPassword => kSecClassInternetPassword,
-                ItemClass::Certificate => kSecClassCertificate,
-                ItemClass::Key => kSecClassKey,
-                ItemClass::Identity => kSecClassIdentity,
-            };
-            CFType::wrap_under_get_rule(raw as *const _)
-        }
+        unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
     }
 }
 
@@ -118,8 +124,10 @@ impl ItemSearchOptions {
             let mut params = vec![];
 
             if let Some(ref keychains) = self.keychains {
-                params.push((CFString::wrap_under_get_rule(kSecMatchSearchList),
-                             keychains.as_CFType()));
+                params.push((
+                    CFString::wrap_under_get_rule(kSecMatchSearchList),
+                    keychains.as_CFType(),
+                ));
             }
 
             if let Some(class) = self.class {
@@ -127,24 +135,33 @@ impl ItemSearchOptions {
             }
 
             if self.load_refs {
-                params.push((CFString::wrap_under_get_rule(kSecReturnRef),
-                             CFBoolean::true_value().as_CFType()));
+                params.push((
+                    CFString::wrap_under_get_rule(kSecReturnRef),
+                    CFBoolean::true_value().as_CFType(),
+                ));
             }
 
             if let Some(limit) = self.limit {
-                params.push((CFString::wrap_under_get_rule(kSecMatchLimit),
-                             CFNumber::from(limit).as_CFType()));
+                params.push((
+                    CFString::wrap_under_get_rule(kSecMatchLimit),
+                    CFNumber::from(limit).as_CFType(),
+                ));
             }
 
             if let Some(ref label) = self.label {
-                params.push((CFString::wrap_under_get_rule(kSecAttrLabel),
-                             label.as_CFType()));
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrLabel),
+                    label.as_CFType(),
+                ));
             }
 
             let params = CFDictionary::from_CFType_pairs(&params);
 
             let mut ret = ptr::null();
-            try!(cvt(SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret)));
+            try!(cvt(SecItemCopyMatching(
+                params.as_concrete_TypeRef(),
+                &mut ret
+            )));
             let type_id = CFGetTypeID(ret);
 
             let mut items = vec![];
@@ -224,6 +241,8 @@ pub enum Reference {
     /// Only defined on OSX
     #[cfg(target_os = "macos")]
     KeychainItem(::os::macos::keychain_item::SecKeychainItem),
+    #[doc(hidden)]
+    __NonExhaustive,
 }
 
 /// An individual search result.
@@ -236,8 +255,8 @@ pub struct SearchResult {
 impl fmt::Debug for SearchResult {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SearchResult")
-           .field("reference", &self.reference)
-           .finish()
+            .field("reference", &self.reference)
+            .finish()
     }
 }
 
@@ -253,10 +272,10 @@ mod test {
     #[test]
     fn limit_two() {
         let results = ItemSearchOptions::new()
-                          .class(ItemClass::Certificate)
-                          .limit(2)
-                          .search()
-                          .unwrap();
+            .class(ItemClass::certificate())
+            .limit(2)
+            .search()
+            .unwrap();
         assert_eq!(results.len(), 2);
     }
 }
