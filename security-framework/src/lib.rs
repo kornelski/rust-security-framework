@@ -57,11 +57,6 @@ pub mod random;
 pub mod secure_transport;
 pub mod trust;
 
-trait CipherSuiteInternals {
-    fn from_raw(raw: SSLCipherSuite) -> Option<CipherSuite>;
-    fn to_raw(&self) -> SSLCipherSuite;
-}
-
 #[cfg(target_os = "macos")]
 trait Pkcs12ImportOptionsInternals {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;

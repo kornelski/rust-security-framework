@@ -94,7 +94,7 @@ use std::ptr;
 use std::slice;
 use std::result;
 
-use {cvt, CipherSuiteInternals, AsInner};
+use {cvt, AsInner};
 use base::{Result, Error};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
@@ -601,7 +601,7 @@ impl SslContext {
             try!(cvt(SSLGetNumberSupportedCiphers(self.0, &mut num_ciphers)));
             let mut ciphers = vec![0; num_ciphers];
             try!(cvt(SSLGetSupportedCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
-            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
+            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c)).collect())
         }
     }
 
@@ -613,7 +613,7 @@ impl SslContext {
             try!(cvt(SSLGetNumberEnabledCiphers(self.0, &mut num_ciphers)));
             let mut ciphers = vec![0; num_ciphers];
             try!(cvt(SSLGetEnabledCiphers(self.0, ciphers.as_mut_ptr(), &mut num_ciphers)));
-            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c).unwrap()).collect())
+            Ok(ciphers.iter().map(|c| CipherSuite::from_raw(*c)).collect())
         }
     }
 
@@ -628,7 +628,7 @@ impl SslContext {
         unsafe {
             let mut cipher = 0;
             try!(cvt(SSLGetNegotiatedCipher(self.0, &mut cipher)));
-            Ok(CipherSuite::from_raw(cipher).unwrap())
+            Ok(CipherSuite::from_raw(cipher))
         }
     }
 
