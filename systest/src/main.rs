@@ -27,6 +27,7 @@ use security_framework_sys::keychain_item::*;
 use security_framework_sys::policy::*;
 use security_framework_sys::random::*;
 use security_framework_sys::secure_transport::*;
+use security_framework_sys::secure_transport_priv::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::transform::*;
 use security_framework_sys::trust::*;
