@@ -1,3 +1,8 @@
+use libc::{c_void, size_t};
+use core_foundation_sys::base::OSStatus;
+
+use secure_transport::SSLContextRef;
+
 #[cfg(feature = "OSX_10_11")]
 pub type SSLALPNFunc = unsafe extern "C" fn(ctx: SSLContextRef,
                                             info: *mut c_void,
