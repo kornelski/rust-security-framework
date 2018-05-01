@@ -23,7 +23,8 @@ fn main() {
             .header("Security/SecTransform.h");
     }
 
-    test.header("Security/SecBase.h")
+    test.include("priv-headers")
+        .header("Security/SecBase.h")
         .header("Security/SecCertificate.h")
         .header("Security/CipherSuite.h")
         .header("Security/SecIdentity.h")
@@ -34,6 +35,8 @@ fn main() {
         .header("Security/SecRandom.h")
         .header("Security/SecureTransport.h")
         .header("Security/SecTrust.h")
+        // Security.framework private headers
+        .header("SecureTransportPriv.h")
         .flag("-Wno-deprecated-declarations")
         .type_name(|name, _| name.to_string())
         .skip_signededness(|s| s.ends_with("Ref") || s.ends_with("Func"))

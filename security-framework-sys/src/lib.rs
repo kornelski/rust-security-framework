@@ -24,6 +24,7 @@ pub mod keychain_item;
 pub mod policy;
 pub mod random;
 pub mod secure_transport;
+pub mod secure_transport_priv;
 #[cfg(target_os = "macos")]
 pub mod transform;
 pub mod trust;
