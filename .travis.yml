@@ -36,9 +36,21 @@ matrix:
         env:
           - FEATURES="OSX_10_11"
           - TARGET=x86_64-apple-darwin
-      - osx_image: xcode7.3
+
+      # macOS 10.12
+      - osx_image: xcode8.3
+      - env:
+          - FEATURES="OSX_10_12"
+          - TARGET=x86_64-apple-darwin
+
+      # macOS 10.13
+      - osx_image: xcode9.3
         env:
-          - FEATURES="OSX_10_11"
+          - FEATURES="OSX_10_13"
+          - TARGET=x86_64-apple-darwin
+      - osx_image: xcode9.3
+        env:
+          - FEATURES="OSX_10_13"
           - TARGET=x86_64-apple-darwin
         rust: nightly
     allow_failures:

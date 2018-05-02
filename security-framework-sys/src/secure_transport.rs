@@ -239,4 +239,10 @@ extern "C" {
     pub fn SSLSetProtocolVersionEnabled(context: SSLContextRef,
                                         protocol: SSLProtocol,
                                         enable: Boolean) -> OSStatus;
+    #[cfg(feature = "OSX_10_13")]
+    pub fn SSLSetALPNProtocols(context: SSLContextRef,
+                               protocols: CFArrayRef) -> OSStatus;
+    #[cfg(feature = "OSX_10_13")]
+    pub fn SSLCopyALPNProtocols(context: SSLContextRef,
+                                protocols: *mut CFArrayRef) -> OSStatus;
 }
