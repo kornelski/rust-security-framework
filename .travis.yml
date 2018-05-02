@@ -39,7 +39,7 @@ matrix:
 
       # macOS 10.12
       - osx_image: xcode8.3
-      - env:
+        env:
           - FEATURES="OSX_10_12"
           - TARGET=x86_64-apple-darwin
 
