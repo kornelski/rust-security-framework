@@ -76,6 +76,7 @@
 use libc::{c_void, size_t};
 use core_foundation::array::CFArray;
 use core_foundation::base::{Boolean, TCFType};
+use core_foundation::string::CFString;
 use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess,
@@ -676,6 +677,33 @@ impl SslContext {
     /// Sets the minimum protocol version allowed by the session.
     pub fn set_protocol_version_min(&mut self, min_version: SslProtocol) -> Result<()> {
         unsafe { cvt(SSLSetProtocolVersionMin(self.0, min_version.0)) }
+    }
+
+    /// Returns the Application Layer Protocol Negotiation (ALPN) protocols list.
+    #[cfg(feature = "OSX_10_13")]
+    pub fn alpn_protocols(&self) -> Result<Vec<String>> {
+        let protocols: CFArray<CFString> = unsafe {
+            let mut protocols_ref = mem::zeroed();
+            cvt(SSLCopyALPNProtocols(self.0, &mut protocols_ref as *mut _))?;
+            CFArray::wrap_under_create_rule(protocols_ref)
+        };
+
+        Ok(protocols.into_iter().map(|proto| proto.to_string()).collect())
+    }
+
+    /// Sets the Application Layer Protocol Negotiation (ALPN) protocols list.
+    #[cfg(feature = "OSX_10_13")]
+    pub fn set_alpn_protocols(&mut self, protocols: &[&str]) -> Result<()> {
+        // When CFMutableArray is added to core-foundation and IntoIterator trait
+        // is implemented for CFMutableArray, the code below should directly collect
+        // into a CFMutableArray.
+        let protocols = CFArray::from_CFTypes(
+            &protocols.iter()
+                .map(|proto| CFString::new(proto))
+                .collect::<Vec<_>>()
+        );
+        
+        unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
     }
 
     /// Sets whether a protocol is enabled or not.
