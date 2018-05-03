@@ -112,19 +112,19 @@ impl Pkcs12ImportOptions {
                 options.as_concrete_TypeRef(),
                 &mut raw_items,
             ))?;
-            let raw_items = CFArray::<CFDictionary>::wrap_under_create_rule(raw_items);
+            let raw_items = CFArray::<CFDictionary<CFString, *const _>>::wrap_under_create_rule(raw_items);
 
             let mut items = vec![];
 
             for raw_item in &raw_items {
                 let label = raw_item
-                    .find(kSecImportItemLabel as *const _)
+                    .find(kSecImportItemLabel)
                     .map(|label| CFString::wrap_under_get_rule(*label as *const _).to_string());
                 let key_id = raw_item
-                    .find(kSecImportItemKeyID as *const _)
+                    .find(kSecImportItemKeyID)
                     .map(|key_id| CFData::wrap_under_get_rule(*key_id as *const _).to_vec());
                 let trust = raw_item
-                    .find(kSecImportItemTrust as *const _)
+                    .find(kSecImportItemTrust)
                     .map(|trust| SecTrust::wrap_under_get_rule(*trust as *mut _));
                 let cert_chain = raw_item.find(kSecImportItemCertChain as *const _).map(
                     |cert_chain| {
@@ -135,7 +135,7 @@ impl Pkcs12ImportOptions {
                     },
                 );
                 let identity = raw_item
-                    .find(kSecImportItemIdentity as *const _)
+                    .find(kSecImportItemIdentity)
                     .map(|identity| SecIdentity::wrap_under_get_rule(*identity as *mut _));
 
                 items.push(ImportedIdentity {
