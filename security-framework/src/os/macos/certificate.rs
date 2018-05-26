@@ -1,7 +1,7 @@
 //! OSX specific extensions to certificate functionality.
 
 use core_foundation::array::{CFArray, CFArrayIterator};
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::TCFType;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
@@ -127,7 +127,7 @@ impl CertificateProperty {
             } else if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeString) {
                 PropertyType::String(CFString::wrap_under_get_rule(value as *mut _))
             } else {
-                PropertyType::__Unknown(CFType::wrap_under_get_rule(value))
+                PropertyType::__Unknown
             }
         }
     }
@@ -176,7 +176,7 @@ pub enum PropertyType {
     /// A string.
     String(CFString),
     #[doc(hidden)]
-    __Unknown(CFType),
+    __Unknown,
 }
 
 #[cfg(test)]
