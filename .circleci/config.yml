@@ -41,8 +41,8 @@ job: &JOB
     - *SAVE_REGISTRY
     - run: rustc --version > ~/rust-version
     - *RESTORE_DEPS
-    - run: cargo test -p security-framework --features "$FEATURES" --target "$TARGET"
-    - run: cargo test -p security-framework --target "$TARGET"
+    - run: cargo test -p security-framework --features "$FEATURES" --target "$TARGET" $FLAGS
+    - run: cargo test -p security-framework --target "$TARGET" $FLAGS
 
 version: 2
 jobs:
@@ -52,6 +52,8 @@ jobs:
       xcode: "9.3.1"
     environment:
       <<: [*STABLE, *IOS]
+      FLAGS: --no-run
+      RUSTFLAGS: -Clink-arg=-mios-simulator-version-min=7.0
   osx-10.13-nightly:
     <<: *JOB
     macos:
