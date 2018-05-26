@@ -1,10 +1,11 @@
 //! OSX specific extensions.
 
-pub mod identity;
 pub mod access;
 pub mod certificate;
+pub mod certificate_oids;
 pub mod digest_transform;
 pub mod encrypt_transform;
+pub mod identity;
 pub mod import_export;
 pub mod item;
 pub mod key;
@@ -15,12 +16,12 @@ pub mod transform;
 
 #[cfg(test)]
 pub mod test {
-    use std::path::Path;
     use std::fs::File;
     use std::io::prelude::*;
+    use std::path::Path;
 
-    use item::{ItemClass, ItemSearchOptions, Reference};
     use identity::SecIdentity;
+    use item::{ItemClass, ItemSearchOptions, Reference};
     use os::macos::keychain::SecKeychain;
 
     pub fn identity(dir: &Path) -> SecIdentity {
