@@ -257,7 +257,7 @@ mod test {
         };
 
         assert!(stream.server_auth_completed());
-        let mut peer_trust = p!(stream.context().peer_trust());
+        let mut peer_trust = p!(stream.context().peer_trust2()).unwrap();
         p!(peer_trust.set_anchor_certificates(&[certificate()]));
         let result = p!(peer_trust.evaluate());
         assert!(result.success());
