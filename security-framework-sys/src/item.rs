@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{OSStatus, CFTypeRef};
+use core_foundation_sys::base::{CFTypeRef, OSStatus};
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 

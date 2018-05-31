@@ -1,8 +1,8 @@
 //! Randomness support.
 
+use libc::c_void;
 use security_framework_sys::random::*;
 use std::io;
-use libc::c_void;
 
 /// A source of random data.
 pub struct SecRandom(SecRandomRef);

@@ -114,10 +114,9 @@ impl CertificateProperty {
     /// Returns an enum of the underlying data for this property.
     pub fn get(&self) -> PropertyType {
         unsafe {
-            let type_ = CFString::wrap_under_get_rule(self
-                .0
-                .get(kSecPropertyKeyType as *const c_void)
-                as *mut _);
+            let type_ = CFString::wrap_under_get_rule(
+                self.0.get(kSecPropertyKeyType as *const c_void) as *mut _,
+            );
             let value = self.0.get(kSecPropertyKeyValue as *const c_void);
 
             if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeSection) {

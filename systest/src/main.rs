@@ -1,8 +1,8 @@
 #![allow(bad_style)]
 
-extern crate security_framework_sys;
 extern crate core_foundation_sys;
 extern crate libc;
+extern crate security_framework_sys;
 
 use core_foundation_sys::base::OSStatus;
 use libc::*;

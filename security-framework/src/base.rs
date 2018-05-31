@@ -1,7 +1,7 @@
 //! Support types for other modules.
 
-use core_foundation_sys::base::OSStatus;
 use core_foundation::string::CFString;
+use core_foundation_sys::base::OSStatus;
 use std::error;
 use std::fmt;
 use std::result;
@@ -37,8 +37,8 @@ impl Error {
 
     #[cfg(target_os = "macos")]
     fn inner_message(&self) -> Option<String> {
-        use security_framework_sys::base::SecCopyErrorMessageString;
         use core_foundation::base::TCFType;
+        use security_framework_sys::base::SecCopyErrorMessageString;
         use std::ptr;
 
         unsafe {

@@ -12,13 +12,12 @@ extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;
 
     #[cfg(target_os = "macos")]
-    pub fn SecKeyCreateFromData(parameters: CFDictionaryRef,
-                                keyData: CFDataRef,
-                                error: *mut CFErrorRef)
-                                -> SecKeyRef;
+    pub fn SecKeyCreateFromData(
+        parameters: CFDictionaryRef,
+        keyData: CFDataRef,
+        error: *mut CFErrorRef,
+    ) -> SecKeyRef;
 
     #[cfg(feature = "OSX_10_12")]
-    pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef,
-                                            error: *mut CFErrorRef)
-                                            -> CFDataRef;
+    pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
 }

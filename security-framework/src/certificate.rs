@@ -1,15 +1,14 @@
 //! Certificate support.
 
-use core_foundation_sys::base::kCFAllocatorDefault;
 use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
 use core_foundation::string::CFString;
+use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use std::fmt;
 
 use base::{Error, Result};
-
 
 declare_TCFType! {
     /// A type representing a certificate.
@@ -23,8 +22,8 @@ unsafe impl Send for SecCertificate {}
 impl fmt::Debug for SecCertificate {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("SecCertificate")
-           .field("subject", &self.subject_summary())
-           .finish()
+            .field("subject", &self.subject_summary())
+            .finish()
     }
 }
 
@@ -33,8 +32,8 @@ impl SecCertificate {
     pub fn from_der(der_data: &[u8]) -> Result<SecCertificate> {
         let der_data = CFData::from_buffer(der_data);
         unsafe {
-            let certificate = SecCertificateCreateWithData(kCFAllocatorDefault,
-                                                           der_data.as_concrete_TypeRef());
+            let certificate =
+                SecCertificateCreateWithData(kCFAllocatorDefault, der_data.as_concrete_TypeRef());
             if certificate.is_null() {
                 Err(Error::from_code(errSecParam))
             } else {

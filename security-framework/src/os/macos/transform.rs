@@ -18,14 +18,17 @@ unsafe impl Send for SecTransform {}
 impl SecTransform {
     /// Sets an attribute of the transform.
     pub fn set_attribute<T>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>
-        where T: TCFType
+    where
+        T: TCFType,
     {
         unsafe {
             let mut error = ptr::null_mut();
-            SecTransformSetAttribute(self.0,
-                                     key.as_concrete_TypeRef(),
-                                     value.as_CFTypeRef(),
-                                     &mut error);
+            SecTransformSetAttribute(
+                self.0,
+                key.as_concrete_TypeRef(),
+                value.as_CFTypeRef(),
+                &mut error,
+            );
             if !error.is_null() {
                 return Err(CFError::wrap_under_create_rule(error));
             }

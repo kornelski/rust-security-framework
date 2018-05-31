@@ -3,12 +3,12 @@
 use core_foundation::base::TCFType;
 use security_framework_sys::base::SecIdentityRef;
 use security_framework_sys::identity::*;
-use std::ptr;
 use std::fmt;
+use std::ptr;
 
-use cvt;
 use base::Result;
 use certificate::SecCertificate;
+use cvt;
 use key::SecKey;
 
 declare_TCFType! {

@@ -1,11 +1,11 @@
 use core_foundation_sys::array::CFArrayRef;
-use core_foundation_sys::base::{OSStatus, CFTypeRef};
+use core_foundation_sys::base::{CFTypeRef, OSStatus};
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 use libc::c_uint;
 
-use base::{SecKeychainRef, SecAccessRef};
+use base::{SecAccessRef, SecKeychainRef};
 
 #[cfg(target_os = "macos")]
 pub type SecExternalFormat = u32;
@@ -42,23 +42,25 @@ pub struct SecItemImportExportKeyParameters {
 
 extern "C" {
     #[cfg(target_os = "macos")]
-    pub fn SecItemImport(importedData: CFDataRef,
-                         fileNameOrExtension: CFStringRef,
-                         inputFormat: *mut SecExternalFormat,
-                         itemType: *mut SecExternalItemType,
-                         flags: SecItemImportExportFlags,
-                         keyParams: *const SecItemImportExportKeyParameters,
-                         importKeychain: SecKeychainRef,
-                         outItems: *mut CFArrayRef)
-                         -> OSStatus;
+    pub fn SecItemImport(
+        importedData: CFDataRef,
+        fileNameOrExtension: CFStringRef,
+        inputFormat: *mut SecExternalFormat,
+        itemType: *mut SecExternalItemType,
+        flags: SecItemImportExportFlags,
+        keyParams: *const SecItemImportExportKeyParameters,
+        importKeychain: SecKeychainRef,
+        outItems: *mut CFArrayRef,
+    ) -> OSStatus;
 
     #[cfg(target_os = "macos")]
-    pub fn SecItemExport(secItemOrArray: CFTypeRef,
-                         outputFormat: SecExternalFormat,
-                         flags: SecItemImportExportFlags,
-                         keyParams: *const SecItemImportExportKeyParameters,
-                         exportedData: *mut CFDataRef)
-                         -> OSStatus;
+    pub fn SecItemExport(
+        secItemOrArray: CFTypeRef,
+        outputFormat: SecExternalFormat,
+        flags: SecItemImportExportFlags,
+        keyParams: *const SecItemImportExportKeyParameters,
+        exportedData: *mut CFDataRef,
+    ) -> OSStatus;
 
     pub static kSecImportExportPassphrase: CFStringRef;
     #[cfg(target_os = "macos")]
@@ -72,8 +74,9 @@ extern "C" {
     pub static kSecImportItemCertChain: CFStringRef;
     pub static kSecImportItemIdentity: CFStringRef;
 
-    pub fn SecPKCS12Import(pkcs12_data: CFDataRef,
-                           options: CFDictionaryRef,
-                           items: *mut CFArrayRef)
-                           -> OSStatus;
+    pub fn SecPKCS12Import(
+        pkcs12_data: CFDataRef,
+        options: CFDictionaryRef,
+        items: *mut CFArrayRef,
+    ) -> OSStatus;
 }

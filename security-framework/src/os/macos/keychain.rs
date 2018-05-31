@@ -1,16 +1,16 @@
 //! Keychain support.
 
 use core_foundation::base::{Boolean, TCFType};
+use libc::c_void;
 use security_framework_sys::base::SecKeychainRef;
 use security_framework_sys::keychain::*;
+use std::ffi::CString;
+use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::ptr;
-use std::ffi::CString;
-use libc::c_void;
-use std::os::unix::ffi::OsStrExt;
 
-use cvt;
 use base::Result;
+use cvt;
 use os::macos::access::SecAccess;
 
 declare_TCFType! {
