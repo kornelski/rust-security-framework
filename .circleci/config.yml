@@ -60,14 +60,14 @@ jobs:
       xcode: "9.3.1"
     environment:
       <<: [*NIGHTLY, *OSX]
-      FEATURES: "OSX_10_12"
+      FEATURES: "OSX_10_13"
   osx-10.13:
     <<: *JOB
     macos:
       xcode: "9.3.1"
     environment:
       <<: [*STABLE, *OSX]
-      FEATURES: "OSX_10_12"
+      FEATURES: "OSX_10_13"
   osx-10.12:
     <<: *JOB
     macos:
