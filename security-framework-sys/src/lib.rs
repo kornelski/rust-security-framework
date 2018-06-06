@@ -8,6 +8,8 @@ extern crate libc;
 pub mod access;
 pub mod base;
 pub mod certificate;
+#[cfg(target_os = "macos")]
+pub mod certificate_oids;
 pub mod cipher_suite;
 #[cfg(target_os = "macos")]
 pub mod digest_transform;

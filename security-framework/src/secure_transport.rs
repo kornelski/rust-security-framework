@@ -73,34 +73,34 @@
 //!
 //! ```
 
-use libc::{c_void, size_t};
 use core_foundation::array::CFArray;
 use core_foundation::base::{Boolean, TCFType};
 use core_foundation::string::CFString;
-use core_foundation_sys::base::OSStatus;
-use core_foundation_sys::base::kCFAllocatorDefault;
-use security_framework_sys::base::{errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess,
-                                   errSecTrustSettingDeny};
+use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
+use libc::{c_void, size_t};
+use security_framework_sys::base::{
+    errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess, errSecTrustSettingDeny,
+};
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
 use std::cmp;
+use std::fmt;
 use std::io;
 use std::io::prelude::*;
-use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
 use std::panic::{self, AssertUnwindSafe};
 use std::ptr;
-use std::slice;
 use std::result;
+use std::slice;
 
-use {cvt, AsInner};
 use base::{Error, Result};
 use certificate::SecCertificate;
 use cipher_suite::CipherSuite;
 use identity::SecIdentity;
 use policy::SecPolicy;
 use trust::{SecTrust, TrustResult};
+use {cvt, AsInner};
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -278,7 +278,13 @@ impl<S> MidHandshakeClientBuilder<S> {
                     result = stream.handshake();
                     continue;
                 }
-                let mut trust = stream.context().peer_trust()?;
+                let mut trust = match stream.context().peer_trust2()? {
+                    Some(trust) => trust,
+                    None => {
+                        result = stream.handshake();
+                        continue;
+                    }
+                };
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
                 let policy =
@@ -619,7 +625,7 @@ impl SslContext {
     ///
     /// This can be used in conjunction with `set_break_on_server_auth` to
     /// validate certificates which do not have roots in the default set.
-    pub fn peer_trust(&self) -> Result<SecTrust> {
+    pub fn peer_trust2(&self) -> Result<Option<SecTrust>> {
         // Calling SSLCopyPeerTrust on an idle connection does not seem to be well defined,
         // so explicitly check for that
         if self.state()? == SessionState::IDLE {
@@ -629,7 +635,21 @@ impl SslContext {
         unsafe {
             let mut trust = ptr::null_mut();
             cvt(SSLCopyPeerTrust(self.0, &mut trust))?;
-            Ok(SecTrust::wrap_under_create_rule(trust))
+            if trust.is_null() {
+                Ok(None)
+            } else {
+                Ok(Some(SecTrust::wrap_under_create_rule(trust)))
+            }
+        }
+    }
+
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.2.1", note = "use peer_trust2 instead")]
+    pub fn peer_trust(&self) -> Result<SecTrust> {
+        match self.peer_trust2() {
+            Ok(Some(trust)) => Ok(trust),
+            Ok(None) => panic!("no trust available"),
+            Err(e) => Err(e),
         }
     }
 
@@ -688,7 +708,10 @@ impl SslContext {
             CFArray::wrap_under_create_rule(protocols_ref)
         };
 
-        Ok(protocols.into_iter().map(|proto| proto.to_string()).collect())
+        Ok(protocols
+            .into_iter()
+            .map(|proto| proto.to_string())
+            .collect())
     }
 
     /// Sets the Application Layer Protocol Negotiation (ALPN) protocols list.
@@ -697,12 +720,11 @@ impl SslContext {
         // When CFMutableArray is added to core-foundation and IntoIterator trait
         // is implemented for CFMutableArray, the code below should directly collect
         // into a CFMutableArray.
-        let protocols = CFArray::from_CFTypes(
-            &protocols.iter()
-                .map(|proto| CFString::new(proto))
-                .collect::<Vec<_>>()
-        );
-        
+        let protocols = CFArray::from_CFTypes(&protocols
+            .iter()
+            .map(|proto| CFString::new(proto))
+            .collect::<Vec<_>>());
+
         unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
     }
 
@@ -1465,7 +1487,7 @@ mod test {
             SslProtocolSide::SERVER,
             SslConnectionType::STREAM
         ));
-        assert!(ctx.peer_trust().is_err());
+        assert!(ctx.peer_trust2().is_err());
     }
 
     #[test]

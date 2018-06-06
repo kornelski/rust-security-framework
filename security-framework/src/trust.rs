@@ -1,15 +1,15 @@
 //! Trust evaluation support.
 
-use core_foundation_sys::base::{Boolean, CFIndex};
-use core_foundation::base::TCFType;
 use core_foundation::array::CFArray;
+use core_foundation::base::TCFType;
+use core_foundation_sys::base::{Boolean, CFIndex};
 
 use security_framework_sys::trust::*;
 use std::ptr;
 
-use cvt;
 use base::Result;
 use certificate::SecCertificate;
+use cvt;
 use policy::SecPolicy;
 
 /// The result of trust evaluation.
@@ -104,6 +104,7 @@ impl SecTrust {
     }
 
     /// Evaluates trust.
+    // FIXME should return &mut self
     pub fn evaluate(&self) -> Result<TrustResult> {
         unsafe {
             let mut result = kSecTrustResultInvalid;
@@ -136,10 +137,10 @@ impl SecTrust {
 
 #[cfg(test)]
 mod test {
-    use test::certificate;
-    use trust::SecTrust;
     use policy::SecPolicy;
     use secure_transport::SslProtocolSide;
+    use test::certificate;
+    use trust::SecTrust;
 
     #[test]
     fn create_with_certificates() {

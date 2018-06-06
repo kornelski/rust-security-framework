@@ -1,4 +1,3 @@
-
 #[cfg(not(target_os = "ios"))]
 pub type SSLCipherSuite = u32;
 
@@ -182,7 +181,6 @@ pub const TLS_RSA_PSK_WITH_AES_128_CBC_SHA256: SSLCipherSuite = 0x00B6;
 pub const TLS_RSA_PSK_WITH_AES_256_CBC_SHA384: SSLCipherSuite = 0x00B7;
 pub const TLS_RSA_PSK_WITH_NULL_SHA256: SSLCipherSuite = 0x00B8;
 pub const TLS_RSA_PSK_WITH_NULL_SHA384: SSLCipherSuite = 0x00B9;
-
 
 // Addenda from rfc 5289  Elliptic Curve Cipher Suites with
 // HMAC SHA-256/384.

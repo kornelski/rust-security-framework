@@ -1,4 +1,4 @@
-use libc::{c_void, size_t, c_int};
+use libc::{c_int, c_void, size_t};
 
 pub enum __SecRandom {}
 pub type SecRandomRef = *const __SecRandom;

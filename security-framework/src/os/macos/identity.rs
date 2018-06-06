@@ -1,12 +1,12 @@
 //! OSX specific extensions to identity functionality.
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
-use std::ptr;
 use security_framework_sys::identity::*;
+use std::ptr;
 
-use cvt;
 use base::Result;
 use certificate::SecCertificate;
+use cvt;
 use identity::SecIdentity;
 use os::macos::keychain::SecKeychain;
 
@@ -42,13 +42,13 @@ impl SecIdentityExt for SecIdentity {
 mod test {
     use tempdir::TempDir;
 
-    use identity::SecIdentity;
-    use os::macos::test::identity;
-    use os::macos::certificate::SecCertificateExt;
-    use os::macos::keychain::CreateOptions;
-    use os::macos::import_export::ImportOptions;
-    use test;
     use super::*;
+    use identity::SecIdentity;
+    use os::macos::certificate::SecCertificateExt;
+    use os::macos::import_export::ImportOptions;
+    use os::macos::keychain::CreateOptions;
+    use os::macos::test::identity;
+    use test;
 
     #[test]
     fn certificate() {

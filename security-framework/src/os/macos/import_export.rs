@@ -9,14 +9,14 @@ use security_framework_sys::import_export::*;
 use std::ptr;
 use std::str::FromStr;
 
-use Pkcs12ImportOptionsInternals;
-use os::macos::access::SecAccess;
 use base::{Error, Result};
 use certificate::SecCertificate;
 use identity::SecIdentity;
 use import_export::Pkcs12ImportOptions;
 use key::SecKey;
+use os::macos::access::SecAccess;
 use os::macos::keychain::SecKeychain;
+use Pkcs12ImportOptionsInternals;
 
 /// An extension trait adding OSX specific functionality to `Pkcs12ImportOptions`.
 pub trait Pkcs12ImportOptionsExt {
@@ -195,9 +195,9 @@ impl<'a> ImportOptions<'a> {
                             item.as_CFTypeRef() as *mut _,
                         ));
                     } else if type_id == SecIdentity::type_id() {
-                        items
-                            .identities
-                            .push(SecIdentity::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
+                        items.identities.push(SecIdentity::wrap_under_get_rule(
+                            item.as_CFTypeRef() as *mut _,
+                        ));
                     } else if type_id == SecKey::type_id() {
                         items
                             .keys
@@ -228,12 +228,12 @@ pub struct SecItems {
 
 #[cfg(test)]
 mod test {
-    use tempdir::TempDir;
     use hex::ToHex;
+    use tempdir::TempDir;
 
     use super::*;
-    use os::macos::keychain;
     use import_export::*;
+    use os::macos::keychain;
 
     #[test]
     fn certificate() {

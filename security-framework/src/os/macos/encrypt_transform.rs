@@ -10,8 +10,8 @@ use security_framework_sys::encrypt_transform::*;
 use security_framework_sys::transform::*;
 use std::ptr;
 
-use os::macos::transform::SecTransform;
 use key::SecKey;
+use os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
 /// The padding scheme to use for encryption.
@@ -168,20 +168,22 @@ impl Builder {
             transform.set_attribute(&key, data)?;
 
             let result = transform.execute()?;
-            Ok(CFData::wrap_under_get_rule(result.as_CFTypeRef() as CFDataRef))
+            Ok(CFData::wrap_under_get_rule(
+                result.as_CFTypeRef() as CFDataRef
+            ))
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use hex::FromHex;
     use core_foundation::data::CFData;
+    use hex::FromHex;
 
     use super::*;
     use key::SecKey;
-    use os::macos::key::SecKeyExt;
     use os::macos::item::KeyType;
+    use os::macos::key::SecKeyExt;
 
     #[test]
     fn cbc_mmt_256() {

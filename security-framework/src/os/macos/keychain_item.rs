@@ -9,7 +9,11 @@ declare_TCFType! {
     /// A type representing a keychain item.
     SecKeychainItem, SecKeychainItemRef
 }
-impl_TCFType!(SecKeychainItem, SecKeychainItemRef, SecKeychainItemGetTypeID);
+impl_TCFType!(
+    SecKeychainItem,
+    SecKeychainItemRef,
+    SecKeychainItemGetTypeID
+);
 
 unsafe impl Sync for SecKeychainItem {}
 unsafe impl Send for SecKeychainItem {}

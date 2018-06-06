@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{CFTypeRef, CFIndex};
+use core_foundation_sys::base::{CFIndex, CFTypeRef};
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
@@ -17,11 +17,12 @@ extern "C" {
     pub static kSecDigestSHA2: CFStringRef;
     pub static kSecDigestTypeAttribute: CFStringRef;
 
-    pub fn SecDigestTransformCreate(digestType: CFTypeRef,
-                                    digestLength: CFIndex,
-                                    error: *mut CFErrorRef)
-                                    -> SecTransformRef;
+    pub fn SecDigestTransformCreate(
+        digestType: CFTypeRef,
+        digestLength: CFIndex,
+        error: *mut CFErrorRef,
+    ) -> SecTransformRef;
 
-    // this symbol is apparently missing in 10.13.3?
-    // pub fn SecDigestTransformGetTypeID() -> CFTypeID;
+// this symbol is apparently missing in 10.13.3?
+// pub fn SecDigestTransformGetTypeID() -> CFTypeID;
 }

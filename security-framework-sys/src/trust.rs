@@ -1,6 +1,6 @@
-use core_foundation_sys::base::{Boolean, OSStatus, CFIndex, CFTypeID, CFTypeRef};
-use core_foundation_sys::array::CFArrayRef;
 use base::SecCertificateRef;
+use core_foundation_sys::array::CFArrayRef;
+use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
 
 pub type SecTrustResultType = u32;
 
@@ -20,16 +20,19 @@ extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
     pub fn SecTrustGetCertificateCount(trust: SecTrustRef) -> CFIndex;
     pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef, ix: CFIndex) -> SecCertificateRef;
-    pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef,
-                                         anchorCertificates: CFArrayRef)
-                                         -> OSStatus;
-    pub fn SecTrustSetAnchorCertificatesOnly(trust: SecTrustRef,
-                                             anchorCertificatesOnly: Boolean)
-                                             -> OSStatus;
+    pub fn SecTrustSetAnchorCertificates(
+        trust: SecTrustRef,
+        anchorCertificates: CFArrayRef,
+    ) -> OSStatus;
+    pub fn SecTrustSetAnchorCertificatesOnly(
+        trust: SecTrustRef,
+        anchorCertificatesOnly: Boolean,
+    ) -> OSStatus;
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
-    pub fn SecTrustCreateWithCertificates(certificates: CFTypeRef,
-                                          policies: CFTypeRef,
-                                          trust: *mut SecTrustRef)
-                                          -> OSStatus;
+    pub fn SecTrustCreateWithCertificates(
+        certificates: CFTypeRef,
+        policies: CFTypeRef,
+        trust: *mut SecTrustRef,
+    ) -> OSStatus;
     pub fn SecTrustSetPolicies(trust: SecTrustRef, policies: CFTypeRef) -> OSStatus;
 }

@@ -1,15 +1,15 @@
 //! OSX specific extensions to Secure Transport functionality.
 
-use security_framework_sys::secure_transport::*;
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
+use security_framework_sys::secure_transport::*;
 use std::ptr;
 use std::slice;
 
 use base::Result;
 use certificate::SecCertificate;
-use {cvt, AsInner};
 use secure_transport::{MidHandshakeSslStream, SslContext};
+use {cvt, AsInner};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
 /// type.
@@ -143,7 +143,7 @@ impl SslContextExt for SslContext {
             let mut raw_certs = ptr::null();
             cvt(SSLCopyCertificateAuthorities(
                 self.as_inner(),
-                &mut raw_certs
+                &mut raw_certs,
             ))?;
             if raw_certs.is_null() {
                 Ok(None)
@@ -215,10 +215,10 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use test::certificate;
-    use os::macos::test::identity;
     use cipher_suite::CipherSuite;
+    use os::macos::test::identity;
     use secure_transport::*;
+    use test::certificate;
 
     #[test]
     fn server_client() {
@@ -257,7 +257,7 @@ mod test {
         };
 
         assert!(stream.server_auth_completed());
-        let mut peer_trust = p!(stream.context().peer_trust());
+        let mut peer_trust = p!(stream.context().peer_trust2()).unwrap();
         p!(peer_trust.set_anchor_certificates(&[certificate()]));
         let result = p!(peer_trust.evaluate());
         assert!(result.success());

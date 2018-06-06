@@ -26,7 +26,7 @@ use os::macos::keychain::SecKeychain;
 
 #[cfg(test)]
 macro_rules! p {
-    ($e: expr) => {
+    ($e:expr) => {
         match $e {
             Ok(s) => s,
             Err(e) => panic!("{:?}", e),
