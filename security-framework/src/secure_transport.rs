@@ -842,6 +842,7 @@ fn translate_err(e: &io::Error) -> OSStatus {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
         io::ErrorKind::ConnectionReset => errSSLClosedAbort,
         io::ErrorKind::WouldBlock => errSSLWouldBlock,
+        io::ErrorKind::NotConnected => errSSLWouldBlock,
         _ => errSecIO,
     }
 }
