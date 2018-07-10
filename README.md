@@ -4,7 +4,7 @@
 
 [Documentation](https://sfackler.github.io/rust-security-framework/doc/v0.2/security_framework)
 
-Bindings to OSX's Security Framework.
+Bindings to the macOS Security Framework.
 
 ## License
 
