@@ -19,7 +19,7 @@ save_deps: &SAVE_DEPS
       - ~/.cargo/registry/cache
 
 stable: &STABLE
-  RUST_VERSION: "1.20.0"
+  RUST_VERSION: "1.26.2"
 
 nightly: &NIGHTLY
   RUST_VERSION: nightly
