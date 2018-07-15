@@ -3,6 +3,7 @@
 
 extern crate core_foundation_sys;
 extern crate libc;
+extern crate MacTypes_sys;
 
 #[cfg(target_os = "macos")]
 pub mod access;
