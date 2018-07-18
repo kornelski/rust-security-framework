@@ -1,8 +1,11 @@
 extern crate security_framework;
+#[cfg(target_os = "mac_os")]
 use security_framework::os::macos::keychain::SecKeychain;
+#[cfg(target_os = "mac_os")]
 use security_framework::os::macos::passwords::*;
 
 fn main() {
+    #[cfg(target_os = "mac_os")] {
     let hostname = "example.com";
     let username = "rusty";
     let password = b"oxidize";
@@ -28,4 +31,4 @@ fn main() {
             eprintln!("Could not set password: {:?}", err);
         }
     }
-}
+}}
