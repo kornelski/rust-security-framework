@@ -34,6 +34,10 @@ macro_rules! p {
     };
 }
 
+#[cfg(all(not(feature = "OSX_10_13"), feature = "alpn"))]
+#[macro_use]
+mod dlsym;
+
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;

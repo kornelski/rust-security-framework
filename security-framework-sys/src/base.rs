@@ -42,6 +42,7 @@ pub enum OpaqueSecPolicyRef {}
 pub type SecPolicyRef = *mut OpaqueSecPolicyRef;
 
 pub const errSecSuccess: OSStatus = 0;
+pub const errSecUnimplemented: OSStatus = -4;
 pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;

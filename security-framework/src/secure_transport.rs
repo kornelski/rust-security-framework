@@ -72,16 +72,19 @@
 //! }
 //!
 //! ```
+#[allow(unused_imports)]
+use core_foundation::array::{CFArray, CFArrayRef};
 
-use core_foundation::array::CFArray;
 use core_foundation::base::{Boolean, TCFType};
-#[cfg(feature = "OSX_10_13")]
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
 use libc::{c_void, size_t};
+
+#[allow(unused_imports)]
 use security_framework_sys::base::{
-    errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess, errSecTrustSettingDeny,
+    errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess, errSecTrustSettingDeny, errSecUnimplemented
 };
+
 use security_framework_sys::secure_transport::*;
 use std::any::Any;
 use std::cmp;
@@ -701,11 +704,25 @@ impl SslContext {
     }
 
     /// Returns the set of protocols selected via ALPN if it succeeded.
-    #[cfg(feature = "OSX_10_13")]
+    #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&self) -> Result<Vec<String>> {
+        let mut array = ptr::null();
         unsafe {
-            let mut array = ptr::null();
-            cvt(SSLCopyALPNProtocols(self.0, &mut array))?;
+            #[cfg(feature = "OSX_10_13")]
+            {
+                cvt(SSLCopyALPNProtocols(self.0, &mut array))?;
+            }
+
+            #[cfg(not(feature = "OSX_10_13"))]
+            {
+                dlsym! { fn SSLCopyALPNProtocols(SSLContextRef, *mut CFArrayRef) -> OSStatus }
+                if let Some(f) = SSLCopyALPNProtocols.get() {
+                    cvt(f(self.0, &mut array))?;
+                } else {
+                    return Err(Error::from_code(errSecUnimplemented))
+                }
+            }
+
             if array.is_null() {
                 return Ok(vec![]);
             }
@@ -718,7 +735,7 @@ impl SslContext {
     /// Configures the set of protocols use for ALPN.
     ///
     /// This is only used for client-side connections.
-    #[cfg(feature = "OSX_10_13")]
+    #[cfg(feature = "alpn")]
     pub fn set_alpn_protocols(&mut self, protocols: &[&str]) -> Result<()> {
         // When CFMutableArray is added to core-foundation and IntoIterator trait
         // is implemented for CFMutableArray, the code below should directly collect
@@ -730,7 +747,19 @@ impl SslContext {
                 .collect::<Vec<_>>(),
         );
 
-        unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
+        #[cfg(feature = "OSX_10_13")]
+        {
+            unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
+        }
+        #[cfg(not(feature = "OSX_10_13"))]
+        {
+            dlsym! { fn SSLSetALPNProtocols(SSLContextRef, CFArrayRef) -> OSStatus }
+            if let Some(f) = SSLSetALPNProtocols.get() {
+                unsafe { cvt(f(self.0, protocols.as_concrete_TypeRef())) }
+            } else {
+                Err(Error::from_code(errSecUnimplemented))
+            }
+        }
     }
 
     /// Sets whether a protocol is enabled or not.
@@ -1117,7 +1146,6 @@ pub struct ClientBuilder {
     danger_accept_invalid_hostnames: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
-    #[cfg(feature = "OSX_10_13")]
     alpn: Option<Vec<String>>,
 }
 
@@ -1142,7 +1170,6 @@ impl ClientBuilder {
             danger_accept_invalid_hostnames: false,
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
-            #[cfg(feature = "OSX_10_13")]
             alpn: None,
         }
     }
@@ -1227,7 +1254,7 @@ impl ClientBuilder {
     }
 
     /// Configures the set of protocols used for ALPN.
-    #[cfg(feature = "OSX_10_13")]
+    #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&mut self, protocols: &[&str]) -> &mut Self {
         self.alpn = Some(protocols.iter().map(|s| s.to_string()).collect());
         self
@@ -1278,7 +1305,7 @@ impl ClientBuilder {
         if let Some(ref identity) = self.identity {
             ctx.set_certificate(identity, &self.chain)?;
         }
-        #[cfg(feature = "OSX_10_13")]
+        #[cfg(feature = "alpn")]
         {
             if let Some(ref alpn) = self.alpn {
                 ctx.set_alpn_protocols(&alpn.iter().map(|s| &**s).collect::<Vec<_>>())?;
@@ -1396,6 +1423,34 @@ mod test {
         let mut buf = vec![];
         p!(stream.read_to_end(&mut buf));
         println!("{}", String::from_utf8_lossy(&buf));
+    }
+
+    #[test]
+    #[cfg(feature = "alpn")]
+    fn client_alpn_accept() {
+        let mut ctx = p!(SslContext::new(
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
+        ));
+        p!(ctx.set_peer_domain_name("google.com"));
+        p!(ctx.set_alpn_protocols(&vec!["h2"]));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let stream = ctx.handshake(stream).unwrap();
+        assert_eq!(vec!["h2"], stream.context().alpn_protocols().unwrap());
+    }
+
+    #[test]
+    #[cfg(feature = "alpn")]
+    fn client_alpn_reject() {
+        let mut ctx = p!(SslContext::new(
+            SslProtocolSide::CLIENT,
+            SslConnectionType::STREAM
+        ));
+        p!(ctx.set_peer_domain_name("google.com"));
+        p!(ctx.set_alpn_protocols(&vec!["h2c"]));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let stream = ctx.handshake(stream).unwrap();
+        assert!(stream.context().alpn_protocols().is_err());
     }
 
     #[test]
