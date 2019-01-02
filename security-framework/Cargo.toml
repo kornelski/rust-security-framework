@@ -31,3 +31,9 @@ nightly = []
 
 [[example]]
 name = "client"
+
+[[example]]
+name = "find_internet_password"
+
+[[example]]
+name = "set_internet_password"
