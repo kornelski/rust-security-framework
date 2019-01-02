@@ -76,6 +76,7 @@
 use core_foundation::array::{CFArray, CFArrayRef};
 
 use core_foundation::base::{Boolean, TCFType};
+#[cfg(feature = "alpn")]
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
 use libc::{c_void, size_t};
