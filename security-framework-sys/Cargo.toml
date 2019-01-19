@@ -1,10 +1,11 @@
 [package]
 name = "security-framework-sys"
-version = "0.2.2"
-authors = ["Steven Fackler <sfackler@gmail.com>"]
+version = "0.2.3"
+authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT/Apache-2.0"
-description = "Security Framework bindings"
+description = "Apple `Security.framework` low-level FFI bindings"
 repository = "https://github.com/kornelski/rust-security-framework"
+homepage = "https://crates.rs/crates/security-framework-sys"
 documentation = "https://kornelski.github.io/rust-security-framework/doc/v0.2/security_framework_sys"
 readme = "README.md"
 keywords = ["ffi", "iOS", "TLS", "SSL", "crypto"]
@@ -12,9 +13,9 @@ categories = ["os::macos-apis", "external-ffi-bindings"]
 build = "build.rs"
 
 [dependencies]
-libc = "0.2"
-MacTypes-sys = "1.1.0"
 core-foundation-sys = "0.5.1"
+libc = "0.2.47"
+MacTypes-sys = "2.1.0"
 
 [features]
 OSX_10_9 = []

@@ -228,9 +228,8 @@ pub struct SecItems {
 
 #[cfg(test)]
 mod test {
-    use hex::ToHex;
     use tempdir::TempDir;
-
+    use hex;
     use super::*;
     use import_export::*;
     use os::macos::keychain;
@@ -325,7 +324,7 @@ mod test {
             .import(data));
         assert_eq!(1, identities.len());
         assert_eq!(
-            identities[0].key_id.as_ref().unwrap().to_hex(),
+            hex::encode(identities[0].key_id.as_ref().unwrap()),
             "ed6492936dcc8907e397e573b36e633458dc33f1"
         );
     }

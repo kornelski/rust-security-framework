@@ -1,25 +1,26 @@
 [package]
 name = "security-framework"
-version = "0.2.1"
-authors = ["Steven Fackler <sfackler@gmail.com>"]
+version = "0.2.2"
+authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT/Apache-2.0"
-description = "Security Framework bindings"
-repository = "https://github.com/sfackler/rust-security-framework"
-documentation = "https://sfackler.github.io/rust-security-framework/doc/v0.2/security_framework"
-readme = "../README.md"
-keywords = ["OSX", "iOS", "TLS", "SSL", "crypto"]
+description = "Security.framework bindings for macOS and iOS"
+repository = "https://github.com/kornelski/rust-security-framework"
+documentation = "https://kornelski.github.io/rust-security-framework/doc/security_framework/"
+homepage = "https://crates.rs/crates/security_framework"
 categories = ["os::macos-apis", "cryptography", "api-bindings"]
+readme = "README.md"
+keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
 
 [dependencies]
-security-framework-sys = { version = "0.2.1", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.2.3", path = "../security-framework-sys" }
 core-foundation = "0.5.1"
 core-foundation-sys = "0.5.1"
 libc = "0.2"
 
 [dev-dependencies]
 tempdir = "0.3"
-hex = "0.2"
+hex = "0.3"
 
 [features]
 alpn = []

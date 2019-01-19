@@ -140,8 +140,7 @@ impl Builder {
 #[cfg(test)]
 mod test {
     use core_foundation::data::CFData;
-    use hex::ToHex;
-
+    use hex;
     use super::*;
 
     #[test]
@@ -151,7 +150,7 @@ mod test {
             .type_(DigestType::md5())
             .execute(&data)
             .unwrap();
-        assert_eq!(hash.bytes().to_hex(), "9e107d9d372bb6826bd81d3542a419d6");
+        assert_eq!(hex::encode(hash.bytes()), "9e107d9d372bb6826bd81d3542a419d6");
     }
 
     #[test]
@@ -164,7 +163,7 @@ mod test {
             .execute(&data)
             .unwrap();
         assert_eq!(
-            hash.bytes().to_hex(),
+            hex::encode(hash.bytes()),
             "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9"
         );
     }
