@@ -2,6 +2,7 @@
 
 use core_foundation::array::{CFArray, CFArrayIterator};
 use core_foundation::base::TCFType;
+use core_foundation::base::ToVoid;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
@@ -92,7 +93,7 @@ impl CertificateProperties {
     pub fn get(&self, oid: CertificateOid) -> Option<CertificateProperty> {
         unsafe {
             self.0.find(oid.as_ptr() as *const c_void).map(|value| {
-                CertificateProperty(CFDictionary::wrap_under_get_rule(value as *mut _))
+                CertificateProperty(CFDictionary::wrap_under_get_rule(*value as *mut _))
             })
         }
     }
@@ -105,9 +106,7 @@ impl CertificateProperty {
     /// Returns the label of this property.
     pub fn label(&self) -> CFString {
         unsafe {
-            CFString::wrap_under_get_rule(
-                self.0.get(kSecPropertyKeyLabel as *const c_void) as *mut _
-            )
+            CFString::wrap_under_get_rule(*self.0.get(kSecPropertyKeyLabel.to_void()) as *const _)
         }
     }
 
@@ -115,16 +114,16 @@ impl CertificateProperty {
     pub fn get(&self) -> PropertyType {
         unsafe {
             let type_ = CFString::wrap_under_get_rule(
-                self.0.get(kSecPropertyKeyType as *const c_void) as *mut _,
+                *self.0.get(kSecPropertyKeyType.to_void()) as *mut _,
             );
-            let value = self.0.get(kSecPropertyKeyValue as *const c_void);
+            let value = self.0.get(kSecPropertyKeyValue.to_void());
 
             if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeSection) {
                 PropertyType::Section(PropertySection(CFArray::wrap_under_get_rule(
-                    value as *mut _,
+                    *value as *const _,
                 )))
             } else if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeString) {
-                PropertyType::String(CFString::wrap_under_get_rule(value as *mut _))
+                PropertyType::String(CFString::wrap_under_get_rule(*value as *const _))
             } else {
                 PropertyType::__Unknown
             }

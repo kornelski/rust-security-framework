@@ -119,16 +119,16 @@ impl Pkcs12ImportOptions {
             for raw_item in &raw_items {
                 let label = raw_item
                     .find(kSecImportItemLabel as *const _)
-                    .map(|label| CFString::wrap_under_get_rule(label as *const _).to_string());
+                    .map(|label| CFString::wrap_under_get_rule(*label as *const _).to_string());
                 let key_id = raw_item
                     .find(kSecImportItemKeyID as *const _)
-                    .map(|key_id| CFData::wrap_under_get_rule(key_id as *const _).to_vec());
+                    .map(|key_id| CFData::wrap_under_get_rule(*key_id as *const _).to_vec());
                 let trust = raw_item
                     .find(kSecImportItemTrust as *const _)
-                    .map(|trust| SecTrust::wrap_under_get_rule(trust as usize as *mut _));
+                    .map(|trust| SecTrust::wrap_under_get_rule(*trust as *mut _));
                 let cert_chain = raw_item.find(kSecImportItemCertChain as *const _).map(
                     |cert_chain| {
-                        CFArray::<SecCertificate>::wrap_under_get_rule(cert_chain as *const _)
+                        CFArray::<SecCertificate>::wrap_under_get_rule(*cert_chain as *const _)
                             .iter()
                             .map(|c| c.clone())
                             .collect()
@@ -136,7 +136,7 @@ impl Pkcs12ImportOptions {
                 );
                 let identity = raw_item
                     .find(kSecImportItemIdentity as *const _)
-                    .map(|identity| SecIdentity::wrap_under_get_rule(identity as usize as *mut _));
+                    .map(|identity| SecIdentity::wrap_under_get_rule(*identity as *mut _));
 
                 items.push(ImportedIdentity {
                     label: label,
