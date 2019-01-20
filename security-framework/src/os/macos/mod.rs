@@ -22,7 +22,7 @@ pub mod test {
     use std::path::Path;
 
     use identity::SecIdentity;
-    use item::{ItemClass, ItemSearchOptions, Reference};
+    use item::{ItemClass, ItemSearchOptions, Reference, SearchResult};
     use os::macos::keychain::SecKeychain;
 
     pub fn identity(dir: &Path) -> SecIdentity {
@@ -32,8 +32,8 @@ pub mod test {
             .class(ItemClass::identity())
             .keychains(&[keychain])
             .search());
-        match items.pop().unwrap().reference {
-            Some(Reference::Identity(identity)) => identity,
+        match items.pop().unwrap() {
+            SearchResult::Ref(Reference::Identity(identity)) => identity,
             _ => panic!("expected identity"),
         }
     }
