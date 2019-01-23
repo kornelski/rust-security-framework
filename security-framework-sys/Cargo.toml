@@ -14,7 +14,6 @@ build = "build.rs"
 
 [dependencies]
 libc = "0.2.47"
-MacTypes-sys = "2.1.0"
 core-foundation-sys = "0.6.2"
 
 [features]
