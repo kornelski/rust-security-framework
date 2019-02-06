@@ -40,6 +40,14 @@ impl SecPolicy {
             SecPolicy::wrap_under_create_rule(policy)
         }
     }
+
+    /// Returns a policy object for the default X.509 policy.
+    pub fn create_x509() -> SecPolicy {
+        unsafe {
+            let policy = SecPolicyCreateBasicX509();
+            SecPolicy::wrap_under_create_rule(policy)
+        }
+    }
 }
 
 #[cfg(test)]

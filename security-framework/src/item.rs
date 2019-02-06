@@ -226,7 +226,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
         return SearchResult::Data(buf);
     }
 
-    if type_id == CFDictionary::type_id() {
+    if type_id == CFDictionary::<*const u8, *const u8>::type_id() {
         return SearchResult::Dict(CFDictionary::wrap_under_get_rule(item as *mut _));
     }
 

@@ -1,7 +1,7 @@
 use base::SecCertificateRef;
+use base::SecKeyRef;
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
-
 pub type SecTrustResultType = u32;
 
 pub const kSecTrustResultInvalid: SecTrustResultType = 0;
@@ -35,4 +35,5 @@ extern "C" {
         trust: *mut SecTrustRef,
     ) -> OSStatus;
     pub fn SecTrustSetPolicies(trust: SecTrustRef, policies: CFTypeRef) -> OSStatus;
+    pub fn SecTrustCopyPublicKey(trust: SecTrustRef) -> SecKeyRef;
 }

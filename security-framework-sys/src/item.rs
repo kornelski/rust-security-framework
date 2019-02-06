@@ -22,7 +22,9 @@ extern "C" {
     pub static kSecAttrKeyType: CFStringRef;
     pub static kSecAttrLabel: CFStringRef;
 
-    #[cfg(target_os = "macos")]
+    pub static kSecAttrKeySizeInBits: CFStringRef;
+
+    pub static kSecAttrKeyTypeECSECPrimeRandom: CFStringRef;
     pub static kSecAttrKeyTypeRSA: CFStringRef;
     #[cfg(target_os = "macos")]
     pub static kSecAttrKeyTypeDSA: CFStringRef;
