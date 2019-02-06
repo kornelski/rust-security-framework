@@ -1,7 +1,6 @@
 use core_foundation_sys::base::CFTypeID;
 #[cfg(target_os = "macos")]
 use core_foundation_sys::data::CFDataRef;
-#[cfg(target_os = "macos")]
 use core_foundation_sys::dictionary::CFDictionaryRef;
 #[cfg(target_os = "macos")]
 use core_foundation_sys::error::CFErrorRef;
@@ -20,4 +19,6 @@ extern "C" {
 
     #[cfg(feature = "OSX_10_12")]
     pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyCopyAttributes(key: SecKeyRef) -> CFDictionaryRef;
 }

@@ -10,6 +10,7 @@ use std::ptr;
 use base::Result;
 use certificate::SecCertificate;
 use cvt;
+use key::SecKey;
 use policy::SecPolicy;
 
 /// The result of trust evaluation.
@@ -101,6 +102,11 @@ impl SecTrust {
     /// Sets the policy used to evaluate trust.
     pub fn set_policy(&mut self, policy: &SecPolicy) -> Result<()> {
         unsafe { cvt(SecTrustSetPolicies(self.0, policy.as_CFTypeRef())) }
+    }
+
+    /// Returns the public key for a leaf certificate after it has been evaluated.
+    pub fn copy_public_key(&mut self) -> Result<SecKey> {
+        unsafe { Ok(SecKey::wrap_under_get_rule(SecTrustCopyPublicKey(self.0))) }
     }
 
     /// Evaluates trust.
