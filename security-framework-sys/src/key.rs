@@ -17,7 +17,7 @@ extern "C" {
         error: *mut CFErrorRef,
     ) -> SecKeyRef;
 
-    #[cfg(feature = "OSX_10_12", target_os = "ios")]
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCopyAttributes(key: SecKeyRef) -> CFDictionaryRef;
