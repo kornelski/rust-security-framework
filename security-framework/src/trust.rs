@@ -106,7 +106,11 @@ impl SecTrust {
 
     /// Returns the public key for a leaf certificate after it has been evaluated.
     pub fn copy_public_key(&mut self) -> Result<SecKey> {
-        unsafe { Ok(SecKey::wrap_under_get_rule(SecTrustCopyPublicKey(self.0))) }
+        unsafe {
+            Ok(SecKey::wrap_under_create_rule(SecTrustCopyPublicKey(
+                self.0,
+            )))
+        }
     }
 
     /// Evaluates trust.
