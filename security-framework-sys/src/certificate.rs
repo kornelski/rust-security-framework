@@ -39,7 +39,6 @@ extern "C" {
     ) -> SecCertificateRef;
     pub fn SecCertificateCopyData(certificate: SecCertificateRef) -> CFDataRef;
     pub fn SecCertificateCopySubjectSummary(certificate: SecCertificateRef) -> CFStringRef;
-    #[cfg(target_os = "macos")]
     pub fn SecCertificateCopyCommonName(
         certificate: SecCertificateRef,
         common_name: *mut CFStringRef,
