@@ -1,8 +1,6 @@
 use core_foundation_sys::base::CFTypeID;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
 use core_foundation_sys::error::CFErrorRef;
 
 use base::SecKeyRef;

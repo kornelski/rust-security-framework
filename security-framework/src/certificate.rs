@@ -12,25 +12,18 @@ use std::ptr;
 
 use base::{Error, Result};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use core_foundation::base::FromVoid;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+// use core_foundation_sys::number::{kCFNumberSInt32Type, CFNumberGetValue};
+use core_foundation::number::CFNumber;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation_sys::base::{CFComparisonResult, CFRelease};
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::data::{CFDataGetBytePtr, CFDataGetLength};
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::dictionary::CFDictionaryGetValueIfPresent;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::error::CFErrorRef;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::number::{kCFNumberSInt32Type, CFNumberGetValue};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation_sys::string::{CFStringCompareFlags, CFStringRef};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use cvt;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use security_framework_sys::base::{SecKeyRef, SecPolicyRef};
+use security_framework_sys::base::SecPolicyRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::item::*;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use security_framework_sys::key::{SecKeyCopyAttributes, SecKeyCopyExternalRepresentation};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::policy::SecPolicyCreateBasicX509;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -38,6 +31,10 @@ use security_framework_sys::trust::{
     SecTrustCopyPublicKey, SecTrustCreateWithCertificates, SecTrustEvaluate, SecTrustRef,
     SecTrustResultType,
 };
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use std::ops::Deref;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use {cvt, key};
 
 declare_TCFType! {
     /// A type representing a certificate.
@@ -93,72 +90,43 @@ impl SecCertificate {
     pub fn public_key_info_der(&self) -> Result<Option<Vec<u8>>> {
         // Imported from TrustKit
         // https://github.com/datatheorem/TrustKit/blob/master/TrustKit/Pinning/TSKSPKIHashCache.m
-        unsafe {
-            let public_key = self.copy_public_key_from_certificate()?;
-            let mut error: CFErrorRef = ptr::null_mut();
-            let public_key_attributes = SecKeyCopyAttributes(public_key);
-
-            let mut public_key_type: *const std::os::raw::c_void = ptr::null();
-            let mut have_vals = true;
-            have_vals = have_vals
-                && CFDictionaryGetValueIfPresent(
-                    public_key_attributes,
-                    kSecAttrKeyType as _,
-                    &mut public_key_type as _,
-                ) > 0;
-            let mut public_keysize: *const std::os::raw::c_void = ptr::null();
-            have_vals = have_vals
-                && CFDictionaryGetValueIfPresent(
-                    public_key_attributes,
-                    kSecAttrKeySizeInBits as _,
-                    &mut public_keysize as *mut *const std::os::raw::c_void,
-                ) > 0;
-            CFRelease(public_key_attributes as _);
-            if !have_vals {
-                CFRelease(public_key as _);
-                return Ok(None);
-            }
-
-            let mut public_keysize_val: u32 = 0;
-            let public_keysize_val_ptr: *mut u32 = &mut public_keysize_val;
-            have_vals = CFNumberGetValue(
-                public_keysize as _,
-                kCFNumberSInt32Type,
-                public_keysize_val_ptr as _,
-            );
-            if !have_vals {
-                CFRelease(public_key as _);
-                return Ok(None);
-            }
-            let hdr_bytes = get_asn1_header_bytes(public_key_type as _, public_keysize_val);
-            if hdr_bytes.len() == 0 {
-                CFRelease(public_key as _);
-                return Ok(None);
-            }
-
-            let public_key_data = SecKeyCopyExternalRepresentation(public_key, &mut error);
-            if public_key_data == ptr::null() {
-                CFRelease(public_key as _);
-                return Ok(None);
-            }
-
-            let key_data_len = CFDataGetLength(public_key_data) as usize;
-            let key_data_slice = std::slice::from_raw_parts(
-                CFDataGetBytePtr(public_key_data) as *const u8,
-                key_data_len,
-            );
-            let mut out = Vec::with_capacity(hdr_bytes.len() + key_data_len);
-            out.extend_from_slice(hdr_bytes);
-            out.extend_from_slice(key_data_slice);
-
-            CFRelease(public_key_data as _);
-            CFRelease(public_key as _);
-            Ok(Some(out))
+        let public_key = self.public_key()?;
+        let public_key_attributes = public_key.attributes();
+        let public_key_type =
+            public_key_attributes.find(unsafe { kSecAttrKeyType } as *const std::os::raw::c_void);
+        let public_keysize = public_key_attributes
+            .find(unsafe { kSecAttrKeySizeInBits } as *const std::os::raw::c_void);
+        if public_key_type.is_none() || public_keysize.is_none() {
+            return Ok(None);
         }
+        let public_key_type = public_key_type.unwrap();
+        let public_keysize = unsafe { CFNumber::from_void(*public_keysize.unwrap().deref()) };
+        let public_keysize_val = if let Some(v) = public_keysize.to_i64() {
+            v as u32
+        } else {
+            return Ok(None);
+        };
+        let hdr_bytes =
+            get_asn1_header_bytes(*public_key_type.deref() as CFStringRef, public_keysize_val);
+        if hdr_bytes.is_none() {
+            return Ok(None);
+        }
+        let hdr_bytes = hdr_bytes.unwrap();
+        let public_key_data = public_key.external_representation();
+        if public_key_data.is_none() {
+            return Ok(None);
+        }
+        let public_key_data = public_key_data.unwrap();
+        let mut out = Vec::with_capacity(hdr_bytes.len() + public_key_data.len() as usize);
+        out.extend_from_slice(hdr_bytes);
+        out.extend_from_slice(public_key_data.bytes());
+
+        Ok(Some(out))
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    fn copy_public_key_from_certificate(&self) -> Result<SecKeyRef> {
+    /// Get public key from certificate
+    pub fn public_key(&self) -> Result<key::SecKey> {
         unsafe {
             // Create an X509 trust using the using the certificate
             let mut trust: SecTrustRef = ptr::null_mut();
@@ -175,28 +143,29 @@ impl SecCertificate {
             let public_key = SecTrustCopyPublicKey(trust);
             CFRelease(policy as _);
             CFRelease(trust as _);
-            Ok(public_key)
+
+            Ok(key::SecKey::wrap_under_create_rule(public_key))
         }
     }
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-fn get_asn1_header_bytes(pkt: CFStringRef, ksz: u32) -> &'static [u8] {
+fn get_asn1_header_bytes(pkt: CFStringRef, ksz: u32) -> Option<&'static [u8]> {
     unsafe {
         if CFStringCompare(pkt, kSecAttrKeyTypeRSA, 0) as i64 == 0 && ksz == 2048 {
-            return &RSA_2048_ASN1_HEADER;
+            return Some(&RSA_2048_ASN1_HEADER);
         }
         if CFStringCompare(pkt, kSecAttrKeyTypeRSA, 0) as i64 == 0 && ksz == 4096 {
-            return &RSA_4096_ASN1_HEADER;
+            return Some(&RSA_4096_ASN1_HEADER);
         }
         if CFStringCompare(pkt, kSecAttrKeyTypeECSECPrimeRandom, 0) as i64 == 0 && ksz == 256 {
-            return &EC_DSA_SECP_256_R1_ASN1_HEADER;
+            return Some(&EC_DSA_SECP_256_R1_ASN1_HEADER);
         }
         if CFStringCompare(pkt, kSecAttrKeyTypeECSECPrimeRandom, 0) as i64 == 0 && ksz == 384 {
-            return &EC_DSA_SECP_384_R1_ASN1_HEADER;
+            return Some(&EC_DSA_SECP_384_R1_ASN1_HEADER);
         }
     }
-    &[]
+    None
 }
 
 extern "C" {
