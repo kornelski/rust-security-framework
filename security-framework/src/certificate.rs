@@ -14,12 +14,9 @@ use base::{Error, Result};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::FromVoid;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-// use core_foundation_sys::number::{kCFNumberSInt32Type, CFNumberGetValue};
 use core_foundation::number::CFNumber;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::base::{CFComparisonResult, CFRelease};
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::string::{CFStringCompareFlags, CFStringRef};
+use core_foundation_sys::base::CFRelease;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::base::SecPolicyRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -106,8 +103,10 @@ impl SecCertificate {
         } else {
             return Ok(None);
         };
-        let hdr_bytes =
-            get_asn1_header_bytes(*public_key_type.deref() as CFStringRef, public_keysize_val);
+        let hdr_bytes = get_asn1_header_bytes(
+            unsafe { CFString::wrap_under_get_rule(*public_key_type.deref() as _) },
+            public_keysize_val,
+        );
         if hdr_bytes.is_none() {
             return Ok(None);
         }
@@ -150,31 +149,24 @@ impl SecCertificate {
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-fn get_asn1_header_bytes(pkt: CFStringRef, ksz: u32) -> Option<&'static [u8]> {
-    unsafe {
-        if CFStringCompare(pkt, kSecAttrKeyTypeRSA, 0) as i64 == 0 && ksz == 2048 {
-            return Some(&RSA_2048_ASN1_HEADER);
-        }
-        if CFStringCompare(pkt, kSecAttrKeyTypeRSA, 0) as i64 == 0 && ksz == 4096 {
-            return Some(&RSA_4096_ASN1_HEADER);
-        }
-        if CFStringCompare(pkt, kSecAttrKeyTypeECSECPrimeRandom, 0) as i64 == 0 && ksz == 256 {
-            return Some(&EC_DSA_SECP_256_R1_ASN1_HEADER);
-        }
-        if CFStringCompare(pkt, kSecAttrKeyTypeECSECPrimeRandom, 0) as i64 == 0 && ksz == 384 {
-            return Some(&EC_DSA_SECP_384_R1_ASN1_HEADER);
-        }
+fn get_asn1_header_bytes(pkt: CFString, ksz: u32) -> Option<&'static [u8]> {
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeRSA) } && ksz == 2048 {
+        return Some(&RSA_2048_ASN1_HEADER);
+    }
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeRSA) } && ksz == 4096 {
+        return Some(&RSA_4096_ASN1_HEADER);
+    }
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) }
+        && ksz == 256
+    {
+        return Some(&EC_DSA_SECP_256_R1_ASN1_HEADER);
+    }
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) }
+        && ksz == 384
+    {
+        return Some(&EC_DSA_SECP_384_R1_ASN1_HEADER);
     }
     None
-}
-
-extern "C" {
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    pub fn CFStringCompare(
-        theString1: CFStringRef,
-        theString2: CFStringRef,
-        compareOptions: CFStringCompareFlags,
-    ) -> CFComparisonResult;
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
