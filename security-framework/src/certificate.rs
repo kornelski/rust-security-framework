@@ -88,39 +88,27 @@ impl SecCertificate {
         // Imported from TrustKit
         // https://github.com/datatheorem/TrustKit/blob/master/TrustKit/Pinning/TSKSPKIHashCache.m
         let public_key = self.public_key()?;
+        Ok(self.pk_to_der(public_key))
+    }
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    fn pk_to_der(&self, public_key: key::SecKey) -> Option<Vec<u8>> {
         let public_key_attributes = public_key.attributes();
         let public_key_type =
-            public_key_attributes.find(unsafe { kSecAttrKeyType } as *const std::os::raw::c_void);
+            public_key_attributes.find(unsafe { kSecAttrKeyType } as *const std::os::raw::c_void)?;
         let public_keysize = public_key_attributes
-            .find(unsafe { kSecAttrKeySizeInBits } as *const std::os::raw::c_void);
-        if public_key_type.is_none() || public_keysize.is_none() {
-            return Ok(None);
-        }
-        let public_key_type = public_key_type.unwrap();
-        let public_keysize = unsafe { CFNumber::from_void(*public_keysize.unwrap().deref()) };
-        let public_keysize_val = if let Some(v) = public_keysize.to_i64() {
-            v as u32
-        } else {
-            return Ok(None);
-        };
+            .find(unsafe { kSecAttrKeySizeInBits } as *const std::os::raw::c_void)?;
+        let public_keysize = unsafe { CFNumber::from_void(*public_keysize.deref()) };
+        let public_keysize_val = public_keysize.to_i64()? as u32;
         let hdr_bytes = get_asn1_header_bytes(
             unsafe { CFString::wrap_under_get_rule(*public_key_type.deref() as _) },
             public_keysize_val,
-        );
-        if hdr_bytes.is_none() {
-            return Ok(None);
-        }
-        let hdr_bytes = hdr_bytes.unwrap();
-        let public_key_data = public_key.external_representation();
-        if public_key_data.is_none() {
-            return Ok(None);
-        }
-        let public_key_data = public_key_data.unwrap();
+        )?;
+        let public_key_data = public_key.external_representation()?;
         let mut out = Vec::with_capacity(hdr_bytes.len() + public_key_data.len() as usize);
         out.extend_from_slice(hdr_bytes);
         out.extend_from_slice(public_key_data.bytes());
-
-        Ok(Some(out))
+        Some(out)
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
