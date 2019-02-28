@@ -94,10 +94,10 @@ impl SecCertificate {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     fn pk_to_der(&self, public_key: key::SecKey) -> Option<Vec<u8>> {
         let public_key_attributes = public_key.attributes();
-        let public_key_type =
-            public_key_attributes.find(unsafe { kSecAttrKeyType } as *const std::os::raw::c_void)?;
+        let public_key_type = public_key_attributes
+            .find(unsafe { kSecAttrKeyType } as *const ::std::os::raw::c_void)?;
         let public_keysize = public_key_attributes
-            .find(unsafe { kSecAttrKeySizeInBits } as *const std::os::raw::c_void)?;
+            .find(unsafe { kSecAttrKeySizeInBits } as *const ::std::os::raw::c_void)?;
         let public_keysize = unsafe { CFNumber::from_void(*public_keysize.deref()) };
         let public_keysize_val = public_keysize.to_i64()? as u32;
         let hdr_bytes = get_asn1_header_bytes(
