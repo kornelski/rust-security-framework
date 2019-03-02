@@ -20,6 +20,7 @@ fn main() {
             .header("Security/SecEncryptTransform.h")
             .header("Security/SecKeychain.h")
             .header("Security/SecKeychainItem.h")
+            .header("Security/SecCertificateOIDs.h")
             .header("Security/SecTransform.h");
     }
 
@@ -35,7 +36,7 @@ fn main() {
         .header("Security/SecureTransport.h")
         .header("Security/SecTrust.h")
         .flag("-Wno-deprecated-declarations")
-        .type_name(|name, _| name.to_string())
+        .type_name(|name, _, _| name.to_string())
         .skip_signededness(|s| s.ends_with("Ref") || s.ends_with("Func"))
         .skip_fn(|s| s == "SecRandomCopyBytes") // varies between macOS versions
         .generate("../security-framework-sys/src/lib.rs", "all.rs");
