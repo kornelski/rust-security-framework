@@ -1,6 +1,5 @@
 //! Wrappers around the OSX Security Framework.
 
-#![doc(html_root_url = "https://sfackler.github.io/rust-security-framework/doc/v0.2")]
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 

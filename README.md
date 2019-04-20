@@ -1,6 +1,6 @@
 # rust-security-framework
 
-[![Latest Version](https://img.shields.io/crates/v/security-framework.svg)](https://crates.rs/crates/security-framework)
+[![Latest Version](https://img.shields.io/crates/v/security-framework.svg)](https://lib.rs/crates/security-framework)
 
 [Documentation](https://kornelski.github.io/rust-security-framework/doc/security_framework/)
 
