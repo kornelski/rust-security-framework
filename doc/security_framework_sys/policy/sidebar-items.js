@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["SecPolicyCreateSSL",""],["SecPolicyGetTypeID",""]]});
+initSidebarItems({"fn":[["SecPolicyCreateBasicX509",""],["SecPolicyCreateSSL",""],["SecPolicyGetTypeID",""]]});

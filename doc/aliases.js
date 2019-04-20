@@ -1,4 +1,7 @@
 var ALIASES = {};
+ALIASES["security_framework"] = {};
+ALIASES["security_framework_sys"] = {};
+ALIASES["systest"] = {};
 ALIASES['MacTypes_sys'] = {};
 ALIASES['MacTypes_sys'] = {};
 ALIASES['core_foundation'] = {};

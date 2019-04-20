@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["SecKeyCreateFromData",""],["SecKeyGetTypeID",""]]});
+initSidebarItems({"fn":[["SecKeyCopyAttributes",""],["SecKeyCopyExternalRepresentation",""],["SecKeyCreateFromData",""],["SecKeyGetTypeID",""]]});

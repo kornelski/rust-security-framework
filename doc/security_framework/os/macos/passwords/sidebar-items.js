@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["SecAuthenticationType",""],["SecProtocolType",""]],"fn":[["find_generic_password","Find a generic password."],["find_internet_password","`keychains``server``security_domain``account``path``port``protocol``authentication_type`"]],"struct":[["SecKeychainItemPassword","Password slice. Use `.as_ref()` to get `&[u8]` or `.to_owned()` to get `Vec<u8>`"]]});
