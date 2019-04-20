@@ -4,6 +4,9 @@
 extern crate core_foundation_sys;
 extern crate libc;
 
+#[cfg_attr(any(target_os = "macos", target_os = "ios"), link(name = "Security", kind = "framework"))]
+extern "C" {}
+
 #[cfg(target_os = "macos")]
 pub mod access;
 pub mod base;
