@@ -1,7 +1,7 @@
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::CFAllocatorRef;
 use core_foundation_sys::base::{Boolean, CFTypeRef, OSStatus};
-use libc::{c_char, c_int, c_void, size_t};
+use std::os::raw::{c_char, c_int, c_void};
 
 use cipher_suite::SSLCipherSuite;
 use trust::SecTrustRef;
@@ -46,13 +46,13 @@ pub const kSSLClosed: SSLSessionState = 3;
 pub const kSSLAborted: SSLSessionState = 4;
 
 pub type SSLReadFunc =
-    unsafe extern "C" fn(connection: SSLConnectionRef, data: *mut c_void, dataLength: *mut size_t)
+    unsafe extern "C" fn(connection: SSLConnectionRef, data: *mut c_void, dataLength: *mut usize)
         -> OSStatus;
 
 pub type SSLWriteFunc = unsafe extern "C" fn(
     connection: SSLConnectionRef,
     data: *const c_void,
-    dataLength: *mut size_t,
+    dataLength: *mut usize,
 ) -> OSStatus;
 
 pub type SSLProtocolSide = c_int;
@@ -148,26 +148,26 @@ extern "C" {
     pub fn SSLRead(
         context: SSLContextRef,
         data: *mut c_void,
-        dataLen: size_t,
-        processed: *mut size_t,
+        dataLen: usize,
+        processed: *mut usize,
     ) -> OSStatus;
     pub fn SSLWrite(
         context: SSLContextRef,
         data: *const c_void,
-        dataLen: size_t,
-        processed: *mut size_t,
+        dataLen: usize,
+        processed: *mut usize,
     ) -> OSStatus;
     pub fn SSLSetPeerDomainName(
         context: SSLContextRef,
         peerName: *const c_char,
-        peerNameLen: size_t,
+        peerNameLen: usize,
     ) -> OSStatus;
-    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut size_t)
+    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut usize)
         -> OSStatus;
     pub fn SSLGetPeerDomainName(
         context: SSLContextRef,
         peerName: *mut c_char,
-        peerNameLen: *mut size_t,
+        peerNameLen: *mut usize,
     ) -> OSStatus;
     pub fn SSLSetCertificate(context: SSLContextRef, certRefs: CFArrayRef) -> OSStatus;
     #[cfg(target_os = "macos")]
@@ -196,22 +196,22 @@ extern "C" {
     pub fn SSLGetSupportedCiphers(
         context: SSLContextRef,
         ciphers: *mut SSLCipherSuite,
-        numCiphers: *mut size_t,
+        numCiphers: *mut usize,
     ) -> OSStatus;
     pub fn SSLGetNumberSupportedCiphers(
         context: SSLContextRef,
-        numCiphers: *mut size_t,
+        numCiphers: *mut usize,
     ) -> OSStatus;
     pub fn SSLGetEnabledCiphers(
         context: SSLContextRef,
         ciphers: *mut SSLCipherSuite,
-        numCiphers: *mut size_t,
+        numCiphers: *mut usize,
     ) -> OSStatus;
-    pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut size_t) -> OSStatus;
+    pub fn SSLGetNumberEnabledCiphers(context: SSLContextRef, numCiphers: *mut usize) -> OSStatus;
     pub fn SSLSetEnabledCiphers(
         context: SSLContextRef,
         ciphers: *const SSLCipherSuite,
-        numCiphers: size_t,
+        numCiphers: usize,
     ) -> OSStatus;
     pub fn SSLGetNegotiatedCipher(context: SSLContextRef, cipher: *mut SSLCipherSuite) -> OSStatus;
     pub fn SSLSetClientSideAuthenticate(context: SSLContextRef, auth: SSLAuthenticate) -> OSStatus;
@@ -219,25 +219,25 @@ extern "C" {
     pub fn SSLSetDiffieHellmanParams(
         context: SSLContextRef,
         dhParams: *const c_void,
-        dhParamsLen: size_t,
+        dhParamsLen: usize,
     ) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SSLGetDiffieHellmanParams(
         context: SSLContextRef,
         dhParams: *mut *const c_void,
-        dhParamsLen: *mut size_t,
+        dhParamsLen: *mut usize,
     ) -> OSStatus;
     pub fn SSLSetPeerID(
         context: SSLContextRef,
         peerID: *const c_void,
-        peerIDLen: size_t,
+        peerIDLen: usize,
     ) -> OSStatus;
     pub fn SSLGetPeerID(
         context: SSLContextRef,
         peerID: *mut *const c_void,
-        peerIDLen: *mut size_t,
+        peerIDLen: *mut usize,
     ) -> OSStatus;
-    pub fn SSLGetBufferedReadSize(context: SSLContextRef, bufSize: *mut size_t) -> OSStatus;
+    pub fn SSLGetBufferedReadSize(context: SSLContextRef, bufSize: *mut usize) -> OSStatus;
     pub fn SSLGetClientCertificateState(
         context: SSLContextRef,
         clientState: *mut SSLClientCertificateState,

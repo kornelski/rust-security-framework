@@ -1,5 +1,5 @@
 use core_foundation_sys::base::{Boolean, CFTypeID, CFTypeRef, OSStatus};
-use libc::{c_char, c_uint, c_void};
+use std::os::raw::{c_char, c_uint, c_void};
 
 use base::{SecAccessRef, SecKeychainItemRef, SecKeychainRef};
 

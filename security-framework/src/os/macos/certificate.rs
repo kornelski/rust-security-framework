@@ -6,7 +6,7 @@ use core_foundation::base::ToVoid;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
-use libc::c_void;
+use std::os::raw::c_void;
 use security_framework_sys::certificate::*;
 use std::ptr;
 

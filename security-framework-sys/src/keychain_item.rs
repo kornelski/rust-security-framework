@@ -1,7 +1,7 @@
 use base::{SecKeychainAttributeList, SecKeychainItemRef};
 use core_foundation_sys::base::{CFTypeID, OSStatus};
 use core_foundation_sys::dictionary::CFDictionaryRef;
-use libc::c_void;
+use std::os::raw::c_void;
 
 extern "C" {
     pub fn SecKeychainItemGetTypeID() -> CFTypeID;

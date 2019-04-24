@@ -79,7 +79,7 @@ use core_foundation::base::{Boolean, TCFType};
 #[cfg(feature = "alpn")]
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
-use libc::{c_void, size_t};
+use std::os::raw::c_void;
 
 #[allow(unused_imports)]
 use security_framework_sys::base::{
@@ -880,7 +880,7 @@ fn translate_err(e: &io::Error) -> OSStatus {
 unsafe extern "C" fn read_func<S>(
     connection: SSLConnectionRef,
     data: *mut c_void,
-    data_length: *mut size_t,
+    data_length: *mut usize,
 ) -> OSStatus
 where
     S: Read,
@@ -917,7 +917,7 @@ where
 unsafe extern "C" fn write_func<S>(
     connection: SSLConnectionRef,
     data: *const c_void,
-    data_length: *mut size_t,
+    data_length: *mut usize,
 ) -> OSStatus
 where
     S: Write,

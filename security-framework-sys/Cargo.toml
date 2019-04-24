@@ -12,7 +12,6 @@ keywords = ["ffi", "iOS", "TLS", "SSL", "crypto"]
 categories = ["os::macos-apis", "external-ffi-bindings"]
 
 [dependencies]
-libc = "0.2.47"
 core-foundation-sys = "0.6.2"
 
 [features]

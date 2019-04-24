@@ -6,7 +6,7 @@ extern crate security_framework_sys;
 
 use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::string::CFStringRef;
-use libc::*;
+use std::os::raw::*;
 
 #[cfg(target_os = "macos")]
 use security_framework_sys::access::*;
