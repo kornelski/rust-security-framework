@@ -20,7 +20,7 @@ impl KeyType {
     }
 
     pub fn dsa() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeDES) }
+        unsafe { KeyType(kSecAttrKeyTypeDSA) }
     }
 
     pub fn aes() -> KeyType {
