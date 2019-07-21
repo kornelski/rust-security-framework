@@ -51,7 +51,7 @@ impl Error {
         }
     }
 
-    #[cfg(target_os = "ios")]
+    #[cfg(not(target_os = "macos"))]
     fn inner_message(&self) -> Option<String> {
         None
     }
