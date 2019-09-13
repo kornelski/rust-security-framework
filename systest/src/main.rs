@@ -33,5 +33,6 @@ use security_framework_sys::transform::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::certificate_oids::*;
 use security_framework_sys::trust::*;
+use security_framework_sys::trust_settings::*;
 
 include!(concat!(env!("OUT_DIR"), "/all.rs"));
