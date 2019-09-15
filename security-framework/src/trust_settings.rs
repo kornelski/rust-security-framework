@@ -13,6 +13,7 @@ use security_framework_sys::base::errSecNoTrustSettings;
 use std::ptr;
 use std::convert::TryFrom;
 
+use cvt;
 use base::Result;
 use base::Error;
 use certificate::SecCertificate;
@@ -121,15 +122,10 @@ impl TrustSettings {
         let trust_settings = unsafe {
             let mut array_ptr: CFArrayRef = ptr::null_mut();
             let cert_ptr = cert.as_CFTypeRef() as *mut _;
-            match SecTrustSettingsCopyTrustSettings(cert_ptr, self.domain.into(), &mut array_ptr) {
-                errSecNoTrustSettings => {
-                    Ok(CFArray::from_CFTypes(&[]))
-                },
-                errSecSuccess => {
-                    Ok(CFArray::<CFDictionary>::wrap_under_create_rule(array_ptr))
-                },
-                err => Err(Error::from_code(err)),
-            }?
+            cvt(SecTrustSettingsCopyTrustSettings(cert_ptr,
+                                                  self.domain.into(),
+                                                  &mut array_ptr))?;
+            CFArray::<CFDictionary>::wrap_under_create_rule(array_ptr)
         };
 
         for settings in trust_settings.iter() {
@@ -204,6 +200,7 @@ impl Iterator for TrustSettingsIter {
 #[cfg(test)]
 mod test {
     use super::*;
+    use test::certificate;
 
     fn list_for_domain(domain: Domain) {
         println!("--- domain: {:?}", domain);
@@ -254,5 +251,15 @@ mod test {
                  ts.tls_trust_settings_for_certificate(&cert).unwrap() ==
                  TrustSettingsForCertificate::TrustRoot));
     }
+
+    #[test]
+    fn test_unknown_cert_is_not_trusted() {
+        let ts = TrustSettings::new(Domain::System);
+        let cert = certificate();
+        assert_eq!(ts.tls_trust_settings_for_certificate(&cert)
+                   .err()
+                   .unwrap()
+                   .message(),
+                   Some("The specified item could not be found in the keychain.".into()));
     }
 }
