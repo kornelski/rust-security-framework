@@ -117,8 +117,16 @@ impl TrustSettings {
     ///
     /// This tells you whether the certificate should be trusted as a TLS
     /// root certificate.
+    ///
+    /// If the certificate has no trust settings in the given domain, the
+    /// `errSecItemNotFound` error is returned.
+    ///
+    /// If the certificate has no specific trust settings for TLS in the
+    /// given domain `None` is returned.
+    ///
+    /// Otherwise, the specific trust settings are aggregated and returned.
     pub fn tls_trust_settings_for_certificate(&self, cert: &SecCertificate)
-        -> Result<TrustSettingsForCertificate> {
+        -> Result<Option<TrustSettingsForCertificate>> {
         let trust_settings = unsafe {
             let mut array_ptr: CFArrayRef = ptr::null_mut();
             let cert_ptr = cert.as_CFTypeRef() as *mut _;
@@ -161,12 +169,14 @@ impl TrustSettings {
             match trust_result {
                 TrustSettingsForCertificate::Unspecified => { continue; },
                 TrustSettingsForCertificate::Invalid => { continue; },
-                _ => return Ok(trust_result),
+                _ => return Ok(Some(trust_result)),
             }
         }
 
-        // There were no more specific settings, and trust is the default.
-        Ok(TrustSettingsForCertificate::TrustRoot)
+        // There were no more specific settings.  This might mean the certificate
+        // is to be trusted anyway (since, eg, it's in system store), but leave
+        // the caller to make this decision.
+        Ok(None)
     }
 }
 
@@ -242,14 +252,18 @@ mod test {
     }
 
     #[test]
-    fn test_isrg_root_exists() {
+    fn test_isrg_root_exists_and_is_trusted() {
         let ts = TrustSettings::new(Domain::System);
-        assert!(ts
+        assert_eq!(ts
             .iter()
             .unwrap()
-            .any(|cert| cert.subject_summary() == "ISRG Root X1" &&
-                 ts.tls_trust_settings_for_certificate(&cert).unwrap() ==
-                 TrustSettingsForCertificate::TrustRoot));
+            .find(|cert| cert.subject_summary() == "ISRG Root X1")
+            .and_then(|cert| ts.tls_trust_settings_for_certificate(&cert).unwrap()),
+            None);
+        // ^ this is a case where None means "always trust", according to Apple docs:
+        //
+        // "Note that an empty Trust Settings array means "always trust this cert,
+        //  with a resulting kSecTrustSettingsResult of kSecTrustSettingsResultTrustRoot"."
     }
 
     #[test]
