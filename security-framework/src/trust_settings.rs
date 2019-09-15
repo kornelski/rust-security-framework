@@ -97,13 +97,13 @@ impl TrustSettings {
             // that to an empty TrustSettings iterator.
             match SecTrustSettingsCopyCertificates(self.domain.into(), &mut array_ptr) {
                 errSecNoTrustSettings => {
-                    Ok(CFArray::from_CFTypes(&[]))
+                    CFArray::from_CFTypes(&[])
                 },
                 errSecSuccess => {
-                    Ok(CFArray::<SecCertificate>::wrap_under_create_rule(array_ptr))
+                    CFArray::<SecCertificate>::wrap_under_create_rule(array_ptr)
                 },
-                err => Err(Error::from_code(err)),
-            }?
+                err => return Err(Error::from_code(err)),
+            }
         };
 
         Ok(TrustSettingsIter {
