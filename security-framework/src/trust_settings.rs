@@ -219,35 +219,40 @@ mod test {
     }
 
     #[test]
-    fn test_list_for_user() {
+    fn list_for_user() {
         list_for_domain(Domain::User);
     }
 
     #[test]
-    fn test_list_for_system() {
+    fn list_for_system() {
         list_for_domain(Domain::System);
     }
 
     #[test]
-    fn test_list_for_admin() {
+    fn list_for_admin() {
         list_for_domain(Domain::Admin);
     }
 
     #[test]
-    fn test_any_certs_available() {
-        let user = TrustSettings::new(Domain::User)
-            .iter()
-            .unwrap()
-            .count();
-        let admin = TrustSettings::new(Domain::Admin)
-            .iter()
-            .unwrap()
-            .count();
+    fn test_system_certs_are_present() {
         let system = TrustSettings::new(Domain::System)
             .iter()
             .unwrap()
             .count();
 
-        assert!(user + admin + system > 0);
+        // 168 at the time of writing
+        assert!(system > 100);
+    }
+
+    #[test]
+    fn test_isrg_root_exists() {
+        let ts = TrustSettings::new(Domain::System);
+        assert!(ts
+            .iter()
+            .unwrap()
+            .any(|cert| cert.subject_summary() == "ISRG Root X1" &&
+                 ts.tls_trust_settings_for_certificate(&cert).unwrap() ==
+                 TrustSettingsForCertificate::TrustRoot));
+    }
     }
 }
