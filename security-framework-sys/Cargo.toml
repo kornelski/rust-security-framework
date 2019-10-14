@@ -13,6 +13,7 @@ categories = ["os::macos-apis", "external-ffi-bindings"]
 
 [dependencies]
 core-foundation-sys = "0.7"
+libc = "0.2.47"
 
 [features]
 OSX_10_9 = []

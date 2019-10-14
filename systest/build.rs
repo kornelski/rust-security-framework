@@ -36,6 +36,8 @@ fn main() {
         .header("Security/SecureTransport.h")
         .header("Security/SecTrust.h")
         .header("Security/SecTrustSettings.h")
+        .header("Security/Authorization.h")
+        .header("Security/AuthorizationDB.h")
         .flag("-Wno-deprecated-declarations")
         .type_name(|name, _, _| name.to_string())
         .skip_signededness(|s| s.ends_with("Ref") || s.ends_with("Func"))

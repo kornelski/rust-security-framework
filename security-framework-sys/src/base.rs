@@ -47,6 +47,7 @@ pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;
 pub const errSecAuthFailed: OSStatus = -25293;
+pub const errSecConversionError: OSStatus = -67594;
 pub const errSecTrustSettingDeny: OSStatus = -67654;
 pub const errSecNotTrusted: OSStatus = -67843;
 pub const errSecNoTrustSettings: OSStatus = -25263;
