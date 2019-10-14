@@ -8,6 +8,9 @@ extern crate security_framework_sys;
 extern crate core_foundation;
 extern crate core_foundation_sys;
 extern crate libc;
+#[cfg(target_os = "macos")]
+#[macro_use]
+extern crate bitflags;
 
 #[cfg(test)]
 extern crate hex;
@@ -37,6 +40,8 @@ macro_rules! p {
 #[macro_use]
 mod dlsym;
 
+#[cfg(target_os = "macos")]
+pub mod authorization;
 pub mod base;
 pub mod certificate;
 pub mod cipher_suite;

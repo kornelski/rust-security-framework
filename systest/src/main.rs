@@ -10,6 +10,7 @@ use std::os::raw::*;
 
 #[cfg(target_os = "macos")]
 use security_framework_sys::access::*;
+use security_framework_sys::authorization::*;
 use security_framework_sys::base::*;
 use security_framework_sys::certificate::*;
 use security_framework_sys::cipher_suite::*;
