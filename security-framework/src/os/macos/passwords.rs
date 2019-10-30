@@ -352,7 +352,7 @@ mod test {
         (dir, keychain)
     }
 
-    fn temp_keychain_teardown(dir: TempDir) -> () {
+    fn temp_keychain_teardown(dir: TempDir) {
         dir.close().expect("temp dir close");
     }
 

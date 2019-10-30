@@ -269,11 +269,11 @@ impl<S> MidHandshakeClientBuilder<S> {
 
             if stream.would_block() {
                 let ret = MidHandshakeClientBuilder {
-                    stream: stream,
-                    domain: domain,
-                    certs: certs,
-                    trust_certs_only: trust_certs_only,
-                    danger_accept_invalid_certs: danger_accept_invalid_certs,
+                    stream,
+                    domain,
+                    certs,
+                    trust_certs_only,
+                    danger_accept_invalid_certs,
                 };
                 return Err(ClientHandshakeError::Interrupted(ret));
             }
@@ -830,7 +830,7 @@ impl SslContext {
             }
 
             let stream = Connection {
-                stream: stream,
+                stream,
                 err: None,
                 panic: None,
             };
@@ -1073,7 +1073,7 @@ impl<S: Read + Write> Read for SslStream<S> {
         // zero-length buffer might cause us to erroneously interpret this
         // request as an error. Instead short-circuit that logic and return
         // `Ok(0)` instead.
-        if buf.len() == 0 {
+        if buf.is_empty() {
             return Ok(0);
         }
 
@@ -1107,7 +1107,7 @@ impl<S: Read + Write> Read for SslStream<S> {
 impl<S: Read + Write> Write for SslStream<S> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // Like above in read, short circuit a 0-length write
-        if buf.len() == 0 {
+        if buf.is_empty() {
             return Ok(0);
         }
         unsafe {
@@ -1281,13 +1281,13 @@ impl ClientBuilder {
 
         let certs = self.certs.clone();
         let stream = MidHandshakeClientBuilder {
-            stream: stream,
+            stream,
             domain: if self.danger_accept_invalid_hostnames {
                 None
             } else {
                 Some(domain.to_string())
             },
-            certs: certs,
+            certs,
             trust_certs_only: self.trust_certs_only,
             danger_accept_invalid_certs: self.danger_accept_invalid_certs,
         };

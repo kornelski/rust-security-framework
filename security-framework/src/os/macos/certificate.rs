@@ -187,7 +187,7 @@ mod test {
     #[test]
     fn common_name() {
         let certificate = certificate();
-        assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
+        assert_eq!("foobar.com", p!(certificate.common_name()));
     }
 
     #[test]

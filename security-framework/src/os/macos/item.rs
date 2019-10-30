@@ -88,6 +88,6 @@ mod test {
             SearchResult::Ref(Reference::Certificate(ref cert)) => cert,
             _ => panic!("expected certificate"),
         };
-        assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
+        assert_eq!("foobar.com", p!(certificate.common_name()));
     }
 }

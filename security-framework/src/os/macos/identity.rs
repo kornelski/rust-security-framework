@@ -55,7 +55,7 @@ mod test {
         let dir = p!(TempDir::new("certificate"));
         let identity = identity(dir.path());
         let certificate = p!(identity.certificate());
-        assert_eq!("foobar.com", p!(certificate.common_name()).to_string());
+        assert_eq!("foobar.com", p!(certificate.common_name()));
     }
 
     #[test]

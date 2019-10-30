@@ -156,7 +156,7 @@ mod test {
     #[test]
     fn hmac_sha1() {
         let data = CFData::from_buffer("The quick brown fox jumps over the lazy dog".as_bytes());
-        let key = CFData::from_buffer("key".as_bytes());
+        let key = CFData::from_buffer(b"key");
         let hash = Builder::new()
             .type_(DigestType::hmac_sha1())
             .hmac_key(key)
