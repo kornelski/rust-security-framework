@@ -1,10 +1,10 @@
 //! Keychain support.
 
 use core_foundation::base::{Boolean, TCFType};
-use std::os::raw::c_void;
 use security_framework_sys::base::SecKeychainRef;
 use security_framework_sys::keychain::*;
 use std::ffi::CString;
+use std::os::raw::c_void;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::ptr;

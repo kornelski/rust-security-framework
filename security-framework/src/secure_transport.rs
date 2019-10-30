@@ -83,7 +83,8 @@ use std::os::raw::c_void;
 
 #[allow(unused_imports)]
 use security_framework_sys::base::{
-    errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess, errSecTrustSettingDeny, errSecUnimplemented
+    errSecBadReq, errSecIO, errSecNotTrusted, errSecSuccess, errSecTrustSettingDeny,
+    errSecUnimplemented,
 };
 
 use security_framework_sys::secure_transport::*;
@@ -264,7 +265,9 @@ impl<S> MidHandshakeClientBuilder<S> {
             let stream = match result {
                 Ok(stream) => return Ok(stream),
                 Err(HandshakeError::Interrupted(stream)) => stream,
-                Err(HandshakeError::Failure(err)) => return Err(ClientHandshakeError::Failure(err)),
+                Err(HandshakeError::Failure(err)) => {
+                    return Err(ClientHandshakeError::Failure(err))
+                }
             };
 
             if stream.would_block() {
@@ -720,7 +723,7 @@ impl SslContext {
                 if let Some(f) = SSLCopyALPNProtocols.get() {
                     cvt(f(self.0, &mut array))?;
                 } else {
-                    return Err(Error::from_code(errSecUnimplemented))
+                    return Err(Error::from_code(errSecUnimplemented));
                 }
             }
 
@@ -1457,22 +1460,18 @@ mod test {
     #[test]
     fn client_no_anchor_certs() {
         let stream = p!(TcpStream::connect("google.com:443"));
-        assert!(
-            ClientBuilder::new()
-                .trust_anchor_certificates_only(true)
-                .handshake("google.com", stream)
-                .is_err()
-        );
+        assert!(ClientBuilder::new()
+            .trust_anchor_certificates_only(true)
+            .handshake("google.com", stream)
+            .is_err());
     }
 
     #[test]
     fn client_bad_domain() {
         let stream = p!(TcpStream::connect("google.com:443"));
-        assert!(
-            ClientBuilder::new()
-                .handshake("foobar.com", stream)
-                .is_err()
-        );
+        assert!(ClientBuilder::new()
+            .handshake("foobar.com", stream)
+            .is_err());
     }
 
     #[test]

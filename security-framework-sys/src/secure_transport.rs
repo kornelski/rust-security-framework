@@ -162,8 +162,7 @@ extern "C" {
         peerName: *const c_char,
         peerNameLen: usize,
     ) -> OSStatus;
-    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut usize)
-        -> OSStatus;
+    pub fn SSLGetPeerDomainNameLength(context: SSLContextRef, peerNameLen: *mut usize) -> OSStatus;
     pub fn SSLGetPeerDomainName(
         context: SSLContextRef,
         peerName: *mut c_char,

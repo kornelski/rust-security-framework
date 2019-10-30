@@ -6,8 +6,8 @@ use core_foundation::base::ToVoid;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
-use std::os::raw::c_void;
 use security_framework_sys::certificate::*;
+use std::os::raw::c_void;
 use std::ptr;
 
 use crate::base::Error;
@@ -113,9 +113,8 @@ impl CertificateProperty {
     /// Returns an enum of the underlying data for this property.
     pub fn get(&self) -> PropertyType {
         unsafe {
-            let type_ = CFString::wrap_under_get_rule(
-                *self.0.get(kSecPropertyKeyType.to_void()) as *mut _,
-            );
+            let type_ =
+                CFString::wrap_under_get_rule(*self.0.get(kSecPropertyKeyType.to_void()) as *mut _);
             let value = self.0.get(kSecPropertyKeyValue.to_void());
 
             if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeSection) {
@@ -181,8 +180,8 @@ pub enum PropertyType {
 mod test {
     use super::*;
     use crate::os::macos::certificate_oids::CertificateOid;
-    use std::collections::HashMap;
     use crate::test::certificate;
+    use std::collections::HashMap;
 
     #[test]
     fn common_name() {

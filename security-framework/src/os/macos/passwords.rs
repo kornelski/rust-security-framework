@@ -1,9 +1,9 @@
 //! Password support.
 
-use core_foundation::array::CFArray;
-use core_foundation::base::TCFType;
 use crate::os::macos::keychain::SecKeychain;
 use crate::os::macos::keychain_item::SecKeychainItem;
+use core_foundation::array::CFArray;
+use core_foundation::base::TCFType;
 pub use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 use security_framework_sys::keychain::{
     SecKeychainAddGenericPassword, SecKeychainAddInternetPassword, SecKeychainFindGenericPassword,

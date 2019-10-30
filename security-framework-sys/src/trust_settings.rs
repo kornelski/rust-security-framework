@@ -24,6 +24,6 @@ extern "C" {
     pub fn SecTrustSettingsCopyTrustSettings(
         certificateRef: SecCertificateRef,
         domain: SecTrustSettingsDomain,
-        trustSettings: *mut CFArrayRef
+        trustSettings: *mut CFArrayRef,
     ) -> OSStatus;
 }

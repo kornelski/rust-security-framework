@@ -228,11 +228,11 @@ pub struct SecItems {
 
 #[cfg(test)]
 mod test {
-    use tempdir::TempDir;
-    use hex;
     use super::*;
     use crate::import_export::*;
     use crate::os::macos::keychain;
+    use hex;
+    use tempdir::TempDir;
 
     #[test]
     fn certificate() {

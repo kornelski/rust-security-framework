@@ -1,22 +1,22 @@
 //! Querying trust settings.
 
 use core_foundation::array::{CFArray, CFArrayRef};
+use core_foundation::base::{CFIndex, TCFType};
 use core_foundation::dictionary::CFDictionary;
-use core_foundation::string::CFString;
 use core_foundation::number::CFNumber;
-use core_foundation::base::{TCFType, CFIndex};
+use core_foundation::string::CFString;
 
-use security_framework_sys::trust_settings::*;
-use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::base::errSecNoTrustSettings;
+use security_framework_sys::base::errSecSuccess;
+use security_framework_sys::trust_settings::*;
 
-use std::ptr;
 use std::convert::TryFrom;
+use std::ptr;
 
-use crate::cvt;
-use crate::base::Result;
 use crate::base::Error;
+use crate::base::Result;
 use crate::certificate::SecCertificate;
+use crate::cvt;
 
 /// Which set of trust settings to query
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -26,7 +26,7 @@ pub enum Domain {
     /// Locally administered, system-wide trust settings
     Admin,
     /// System trust settings
-    System
+    System,
 }
 
 impl Into<SecTrustSettingsDomain> for Domain {
@@ -56,7 +56,7 @@ pub enum TrustSettingsForCertificate {
     Deny,
 
     /// Neither trusted nor distrusted.
-    Unspecified
+    Unspecified,
 }
 
 impl TrustSettingsForCertificate {
@@ -97,20 +97,13 @@ impl TrustSettings {
             // if no items have trust settings in the given domain.  We map
             // that to an empty TrustSettings iterator.
             match SecTrustSettingsCopyCertificates(self.domain.into(), &mut array_ptr) {
-                errSecNoTrustSettings => {
-                    CFArray::from_CFTypes(&[])
-                },
-                errSecSuccess => {
-                    CFArray::<SecCertificate>::wrap_under_create_rule(array_ptr)
-                },
+                errSecNoTrustSettings => CFArray::from_CFTypes(&[]),
+                errSecSuccess => CFArray::<SecCertificate>::wrap_under_create_rule(array_ptr),
                 err => return Err(Error::from_code(err)),
             }
         };
 
-        Ok(TrustSettingsIter {
-            index: 0,
-            array,
-        })
+        Ok(TrustSettingsIter { index: 0, array })
     }
 
     /// Returns the aggregate trust setting for the given certificate.
@@ -142,21 +135,25 @@ impl TrustSettings {
                 let policy_name_key = CFString::from_static_string("kSecTrustSettingsPolicyName");
                 let ssl_policy_name = CFString::from_static_string("sslServer");
 
-                let maybe_name: Option<CFString> = settings.find(policy_name_key.as_CFTypeRef() as *const _)
+                let maybe_name: Option<CFString> = settings
+                    .find(policy_name_key.as_CFTypeRef() as *const _)
                     .map(|name| unsafe { CFString::wrap_under_get_rule(*name as *const _) });
 
                 match maybe_name {
                     Some(ref name) if name != &ssl_policy_name => true,
-                    _ => false
+                    _ => false,
                 }
             };
 
-            if is_not_ssl_policy { continue; }
+            if is_not_ssl_policy {
+                continue;
+            }
 
             // Evaluate "effective trust settings" for this usage constraint.
             let maybe_trust_result = {
                 let settings_result_key = CFString::from_static_string("kSecTrustSettingsResult");
-                settings.find(settings_result_key.as_CFTypeRef() as *const _)
+                settings
+                    .find(settings_result_key.as_CFTypeRef() as *const _)
                     .map(|num| unsafe { CFNumber::wrap_under_get_rule(*num as *const _) })
                     .and_then(|num| num.to_i64())
             };
@@ -201,8 +198,7 @@ impl Iterator for TrustSettingsIter {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let left = (self.array.len() as usize)
-            .saturating_sub(self.index as usize);
+        let left = (self.array.len() as usize).saturating_sub(self.index as usize);
         (left, Some(left))
     }
 }
@@ -242,10 +238,7 @@ mod test {
 
     #[test]
     fn test_system_certs_are_present() {
-        let system = TrustSettings::new(Domain::System)
-            .iter()
-            .unwrap()
-            .count();
+        let system = TrustSettings::new(Domain::System).iter().unwrap().count();
 
         // 168 at the time of writing
         assert!(system > 100);
