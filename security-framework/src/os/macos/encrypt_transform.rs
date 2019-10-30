@@ -10,8 +10,8 @@ use security_framework_sys::encrypt_transform::*;
 use security_framework_sys::transform::*;
 use std::ptr;
 
-use key::SecKey;
-use os::macos::transform::SecTransform;
+use crate::key::SecKey;
+use crate::os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
 /// The padding scheme to use for encryption.
@@ -181,9 +181,9 @@ mod test {
     use hex::FromHex;
 
     use super::*;
-    use key::SecKey;
-    use os::macos::item::KeyType;
-    use os::macos::key::SecKeyExt;
+    use crate::key::SecKey;
+    use crate::os::macos::item::KeyType;
+    use crate::os::macos::key::SecKeyExt;
 
     #[test]
     fn cbc_mmt_256() {

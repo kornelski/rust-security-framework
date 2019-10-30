@@ -6,10 +6,10 @@ use security_framework_sys::secure_transport::*;
 use std::ptr;
 use std::slice;
 
-use base::Result;
-use certificate::SecCertificate;
-use secure_transport::{MidHandshakeSslStream, SslContext};
-use {cvt, AsInner};
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::secure_transport::{MidHandshakeSslStream, SslContext};
+use crate::{cvt, AsInner};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
 /// type.
@@ -215,10 +215,10 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use cipher_suite::CipherSuite;
-    use os::macos::test::identity;
-    use secure_transport::*;
-    use test::certificate;
+    use crate::cipher_suite::CipherSuite;
+    use crate::os::macos::test::identity;
+    use crate::secure_transport::*;
+    use crate::test::certificate;
 
     #[test]
     fn server_client() {

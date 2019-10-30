@@ -6,7 +6,7 @@ use security_framework_sys::policy::*;
 use std::fmt;
 use std::ptr;
 
-use secure_transport::SslProtocolSide;
+use crate::secure_transport::SslProtocolSide;
 
 declare_TCFType! {
     /// A type representing a certificate validation policy.
@@ -52,8 +52,8 @@ impl SecPolicy {
 
 #[cfg(test)]
 mod test {
-    use policy::SecPolicy;
-    use secure_transport::SslProtocolSide;
+    use crate::policy::SecPolicy;
+    use crate::secure_transport::SslProtocolSide;
 
     #[test]
     fn create_ssl() {

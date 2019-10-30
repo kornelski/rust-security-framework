@@ -21,9 +21,9 @@ pub mod test {
     use std::io::prelude::*;
     use std::path::Path;
 
-    use identity::SecIdentity;
-    use item::{ItemClass, ItemSearchOptions, Reference, SearchResult};
-    use os::macos::keychain::SecKeychain;
+    use crate::identity::SecIdentity;
+    use crate::item::{ItemClass, ItemSearchOptions, Reference, SearchResult};
+    use crate::os::macos::keychain::SecKeychain;
 
     pub fn identity(dir: &Path) -> SecIdentity {
         // FIXME https://github.com/rust-lang/rust/issues/30018

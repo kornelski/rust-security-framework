@@ -10,7 +10,7 @@ use std::fmt;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use std::ptr;
 
-use base::{Error, Result};
+use crate::base::{Error, Result};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::FromVoid;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -183,7 +183,7 @@ const EC_DSA_SECP_384_R1_ASN1_HEADER: [u8; 23] = [
 
 #[cfg(test)]
 mod test {
-    use test::certificate;
+    use crate::test::certificate;
 
     #[test]
     fn subject_summary() {

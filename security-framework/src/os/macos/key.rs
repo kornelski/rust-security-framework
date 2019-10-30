@@ -8,8 +8,8 @@ use security_framework_sys::item::kSecAttrKeyType;
 use security_framework_sys::key::*;
 use std::ptr;
 
-use key::SecKey;
-use os::macos::item::KeyType;
+use crate::key::SecKey;
+use crate::os::macos::item::KeyType;
 
 /// An extension trait adding OSX specific functionality to `SecKey`.
 pub trait SecKeyExt {

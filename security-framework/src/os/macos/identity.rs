@@ -4,11 +4,11 @@ use core_foundation::base::TCFType;
 use security_framework_sys::identity::*;
 use std::ptr;
 
-use base::Result;
-use certificate::SecCertificate;
-use cvt;
-use identity::SecIdentity;
-use os::macos::keychain::SecKeychain;
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::identity::SecIdentity;
+use crate::os::macos::keychain::SecKeychain;
 
 /// An extension trait adding OSX specific functionality to `SecIdentity`.
 pub trait SecIdentityExt {
@@ -43,12 +43,12 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use identity::SecIdentity;
-    use os::macos::certificate::SecCertificateExt;
-    use os::macos::import_export::ImportOptions;
-    use os::macos::keychain::CreateOptions;
-    use os::macos::test::identity;
-    use test;
+    use crate::identity::SecIdentity;
+    use crate::os::macos::certificate::SecCertificateExt;
+    use crate::os::macos::import_export::ImportOptions;
+    use crate::os::macos::keychain::CreateOptions;
+    use crate::os::macos::test::identity;
+    use crate::test;
 
     #[test]
     fn certificate() {

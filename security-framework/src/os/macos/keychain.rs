@@ -9,9 +9,9 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::ptr;
 
-use base::Result;
-use cvt;
-use os::macos::access::SecAccess;
+use crate::base::Result;
+use crate::cvt;
+use crate::os::macos::access::SecAccess;
 
 declare_TCFType! {
     /// A type representing a keychain.

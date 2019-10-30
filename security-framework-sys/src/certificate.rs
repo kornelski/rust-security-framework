@@ -5,7 +5,7 @@ use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
-use base::{SecCertificateRef, SecKeyRef};
+use crate::base::{SecCertificateRef, SecKeyRef};
 
 extern "C" {
     #[cfg(target_os = "macos")]

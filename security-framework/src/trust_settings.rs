@@ -13,10 +13,10 @@ use security_framework_sys::base::errSecNoTrustSettings;
 use std::ptr;
 use std::convert::TryFrom;
 
-use cvt;
-use base::Result;
-use base::Error;
-use certificate::SecCertificate;
+use crate::cvt;
+use crate::base::Result;
+use crate::base::Error;
+use crate::certificate::SecCertificate;
 
 /// Which set of trust settings to query
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -210,7 +210,7 @@ impl Iterator for TrustSettingsIter {
 #[cfg(test)]
 mod test {
     use super::*;
-    use test::certificate;
+    use crate::test::certificate;
 
     fn list_for_domain(domain: Domain) {
         println!("--- domain: {:?}", domain);

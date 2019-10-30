@@ -6,10 +6,10 @@ use security_framework_sys::identity::*;
 use std::fmt;
 use std::ptr;
 
-use base::Result;
-use certificate::SecCertificate;
-use cvt;
-use key::SecKey;
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::key::SecKey;
 
 declare_TCFType! {
     /// A type representing an identity.

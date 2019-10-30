@@ -15,13 +15,13 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
 
-use base::Result;
-use certificate::SecCertificate;
-use cvt;
-use identity::SecIdentity;
-use key::SecKey;
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::identity::SecIdentity;
+use crate::key::SecKey;
 #[cfg(target_os = "macos")]
-use os::macos::keychain::SecKeychain;
+use crate::os::macos::keychain::SecKeychain;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
@@ -74,7 +74,7 @@ pub struct ItemSearchOptions {
 }
 
 #[cfg(target_os = "macos")]
-impl ::ItemSearchOptionsInternals for ItemSearchOptions {
+impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
@@ -215,7 +215,7 @@ impl ItemSearchOptions {
 
 #[cfg(target_os = "macos")]
 unsafe fn get_item(item: CFTypeRef) -> SearchResult {
-    use os::macos::keychain_item::SecKeychainItem;
+    use crate::os::macos::keychain_item::SecKeychainItem;
 
     let type_id = CFGetTypeID(item);
 
@@ -275,7 +275,7 @@ pub enum Reference {
     ///
     /// Only defined on OSX
     #[cfg(target_os = "macos")]
-    KeychainItem(::os::macos::keychain_item::SecKeychainItem),
+    KeychainItem(crate::os::macos::keychain_item::SecKeychainItem),
     #[doc(hidden)]
     __NonExhaustive,
 }

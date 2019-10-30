@@ -11,7 +11,7 @@ use security_framework_sys::digest_transform::*;
 use security_framework_sys::transform::*;
 use std::ptr;
 
-use os::macos::transform::SecTransform;
+use crate::os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
 /// A type of digest.

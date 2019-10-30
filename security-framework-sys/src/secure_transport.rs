@@ -3,8 +3,8 @@ use core_foundation_sys::base::CFAllocatorRef;
 use core_foundation_sys::base::{Boolean, CFTypeRef, OSStatus};
 use std::os::raw::{c_char, c_int, c_void};
 
-use cipher_suite::SSLCipherSuite;
-use trust::SecTrustRef;
+use crate::cipher_suite::SSLCipherSuite;
+use crate::trust::SecTrustRef;
 
 pub enum SSLContext {}
 pub type SSLContextRef = *mut SSLContext;

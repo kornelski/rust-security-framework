@@ -10,11 +10,11 @@ use std::os::raw::c_void;
 use security_framework_sys::certificate::*;
 use std::ptr;
 
-use base::Error;
-use certificate::SecCertificate;
-use cvt;
-use key::SecKey;
-use os::macos::certificate_oids::CertificateOid;
+use crate::base::Error;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::key::SecKey;
+use crate::os::macos::certificate_oids::CertificateOid;
 
 /// An extension trait adding OSX specific functionality to `SecCertificate`.
 pub trait SecCertificateExt {
@@ -180,9 +180,9 @@ pub enum PropertyType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use os::macos::certificate_oids::CertificateOid;
+    use crate::os::macos::certificate_oids::CertificateOid;
     use std::collections::HashMap;
-    use test::certificate;
+    use crate::test::certificate;
 
     #[test]
     fn common_name() {

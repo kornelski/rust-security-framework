@@ -5,9 +5,9 @@ use core_foundation::string::CFString;
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
 
-use item::ItemSearchOptions;
-use os::macos::keychain::SecKeychain;
-use ItemSearchOptionsInternals;
+use crate::item::ItemSearchOptions;
+use crate::os::macos::keychain::SecKeychain;
+use crate::ItemSearchOptionsInternals;
 
 /// Types of `SecKey`s.
 #[derive(Debug, Copy, Clone)]
@@ -71,9 +71,9 @@ impl ItemSearchOptionsExt for ItemSearchOptions {
 mod test {
     use tempdir::TempDir;
 
-    use item::*;
-    use os::macos::certificate::SecCertificateExt;
-    use os::macos::test::keychain;
+    use crate::item::*;
+    use crate::os::macos::certificate::SecCertificateExt;
+    use crate::os::macos::test::keychain;
 
     #[test]
     fn find_certificate() {

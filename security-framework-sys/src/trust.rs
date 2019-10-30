@@ -1,5 +1,5 @@
-use base::SecCertificateRef;
-use base::SecKeyRef;
+use crate::base::SecCertificateRef;
+use crate::base::SecKeyRef;
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
 pub type SecTrustResultType = u32;

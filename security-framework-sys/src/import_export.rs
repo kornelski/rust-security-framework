@@ -5,7 +5,7 @@ use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 use std::os::raw::c_uint;
 
-use base::{SecAccessRef, SecKeychainRef};
+use crate::base::{SecAccessRef, SecKeychainRef};
 
 #[cfg(target_os = "macos")]
 pub type SecExternalFormat = u32;

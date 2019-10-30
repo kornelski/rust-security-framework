@@ -99,13 +99,13 @@ use std::ptr;
 use std::result;
 use std::slice;
 
-use base::{Error, Result};
-use certificate::SecCertificate;
-use cipher_suite::CipherSuite;
-use identity::SecIdentity;
-use policy::SecPolicy;
-use trust::{SecTrust, TrustResult};
-use {cvt, AsInner};
+use crate::base::{Error, Result};
+use crate::certificate::SecCertificate;
+use crate::cipher_suite::CipherSuite;
+use crate::identity::SecIdentity;
+use crate::policy::SecPolicy;
+use crate::trust::{SecTrust, TrustResult};
+use crate::{cvt, AsInner};
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -862,7 +862,7 @@ impl SslContext {
 struct Connection<S> {
     stream: S,
     err: Option<io::Error>,
-    panic: Option<Box<Any + Send>>,
+    panic: Option<Box<dyn Any + Send>>,
 }
 
 // the logic here is based off of libcurl's

@@ -2,8 +2,8 @@
 
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
-use os::macos::keychain::SecKeychain;
-use os::macos::keychain_item::SecKeychainItem;
+use crate::os::macos::keychain::SecKeychain;
+use crate::os::macos::keychain_item::SecKeychainItem;
 pub use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 use security_framework_sys::keychain::{
     SecKeychainAddGenericPassword, SecKeychainAddInternetPassword, SecKeychainFindGenericPassword,
@@ -18,8 +18,8 @@ use std::ops::Deref;
 use std::ptr;
 use std::slice;
 
-use base::Result;
-use cvt;
+use crate::base::Result;
+use crate::cvt;
 
 /// Password slice. Use `.as_ref()` to get `&[u8]` or `.to_owned()` to get `Vec<u8>`
 pub struct SecKeychainItemPassword {
@@ -339,7 +339,7 @@ impl SecKeychain {
 #[cfg(test)]
 mod test {
     use super::*;
-    use os::macos::keychain::{CreateOptions, SecKeychain};
+    use crate::os::macos::keychain::{CreateOptions, SecKeychain};
     use tempdir::TempDir;
 
     fn temp_keychain_setup(name: &str) -> (TempDir, SecKeychain) {

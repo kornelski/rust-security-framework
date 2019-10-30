@@ -7,11 +7,11 @@ use core_foundation_sys::base::{Boolean, CFIndex};
 use security_framework_sys::trust::*;
 use std::ptr;
 
-use base::Result;
-use certificate::SecCertificate;
-use cvt;
-use key::SecKey;
-use policy::SecPolicy;
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::key::SecKey;
+use crate::policy::SecPolicy;
 
 /// The result of trust evaluation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -147,10 +147,10 @@ impl SecTrust {
 
 #[cfg(test)]
 mod test {
-    use policy::SecPolicy;
-    use secure_transport::SslProtocolSide;
-    use test::certificate;
-    use trust::SecTrust;
+    use crate::policy::SecPolicy;
+    use crate::secure_transport::SslProtocolSide;
+    use crate::test::certificate;
+    use crate::trust::SecTrust;
 
     #[test]
     fn create_with_certificates() {

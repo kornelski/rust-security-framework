@@ -2,7 +2,7 @@ use core_foundation_sys::base::{CFIndex, CFTypeRef};
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
-use transform::SecTransformRef;
+use crate::transform::SecTransformRef;
 
 extern "C" {
     pub static kSecDigestHMACKeyAttribute: CFStringRef;

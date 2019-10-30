@@ -3,7 +3,7 @@ use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::error::CFErrorRef;
 
-use base::SecKeyRef;
+use crate::base::SecKeyRef;
 
 extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;

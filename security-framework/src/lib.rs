@@ -17,11 +17,11 @@ extern crate tempdir;
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 
-use base::{Error, Result};
+use crate::base::{Error, Result};
 #[cfg(target_os = "macos")]
-use os::macos::access::SecAccess;
+use crate::os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
-use os::macos::keychain::SecKeychain;
+use crate::os::macos::keychain::SecKeychain;
 
 #[cfg(test)]
 macro_rules! p {
@@ -76,7 +76,7 @@ fn cvt(err: OSStatus) -> Result<()> {
 
 #[cfg(test)]
 mod test {
-    use certificate::SecCertificate;
+    use crate::certificate::SecCertificate;
 
     pub fn certificate() -> SecCertificate {
         let certificate = include_bytes!("../test/server.der");

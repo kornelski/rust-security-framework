@@ -8,15 +8,15 @@ use core_foundation::string::CFString;
 use security_framework_sys::import_export::*;
 use std::ptr;
 
-use base::Result;
-use certificate::SecCertificate;
-use cvt;
-use identity::SecIdentity;
+use crate::base::Result;
+use crate::certificate::SecCertificate;
+use crate::cvt;
+use crate::identity::SecIdentity;
 #[cfg(target_os = "macos")]
-use os::macos::access::SecAccess;
+use crate::os::macos::access::SecAccess;
 #[cfg(target_os = "macos")]
-use os::macos::keychain::SecKeychain;
-use trust::SecTrust;
+use crate::os::macos::keychain::SecKeychain;
+use crate::trust::SecTrust;
 
 /// Information about an imported identity.
 pub struct ImportedIdentity {
@@ -44,7 +44,7 @@ pub struct Pkcs12ImportOptions {
 }
 
 #[cfg(target_os = "macos")]
-impl ::Pkcs12ImportOptionsInternals for Pkcs12ImportOptions {
+impl crate::Pkcs12ImportOptionsInternals for Pkcs12ImportOptions {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
         self

@@ -9,14 +9,14 @@ use security_framework_sys::import_export::*;
 use std::ptr;
 use std::str::FromStr;
 
-use base::{Error, Result};
-use certificate::SecCertificate;
-use identity::SecIdentity;
-use import_export::Pkcs12ImportOptions;
-use key::SecKey;
-use os::macos::access::SecAccess;
-use os::macos::keychain::SecKeychain;
-use Pkcs12ImportOptionsInternals;
+use crate::base::{Error, Result};
+use crate::certificate::SecCertificate;
+use crate::identity::SecIdentity;
+use crate::import_export::Pkcs12ImportOptions;
+use crate::key::SecKey;
+use crate::os::macos::access::SecAccess;
+use crate::os::macos::keychain::SecKeychain;
+use crate::Pkcs12ImportOptionsInternals;
 
 /// An extension trait adding OSX specific functionality to `Pkcs12ImportOptions`.
 pub trait Pkcs12ImportOptionsExt {
@@ -231,8 +231,8 @@ mod test {
     use tempdir::TempDir;
     use hex;
     use super::*;
-    use import_export::*;
-    use os::macos::keychain;
+    use crate::import_export::*;
+    use crate::os::macos::keychain;
 
     #[test]
     fn certificate() {
