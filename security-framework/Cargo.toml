@@ -20,7 +20,7 @@ libc = "0.2.47"
 
 [dev-dependencies]
 tempdir = "0.3"
-hex = "0.3"
+hex = "0.4"
 
 [features]
 alpn = []
