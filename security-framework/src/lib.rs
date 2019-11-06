@@ -49,6 +49,7 @@ pub mod policy;
 pub mod random;
 pub mod secure_transport;
 pub mod trust;
+#[cfg(target_os = "macos")]
 pub mod trust_settings;
 
 #[cfg(target_os = "macos")]

@@ -30,4 +30,5 @@ pub mod secure_transport;
 #[cfg(target_os = "macos")]
 pub mod transform;
 pub mod trust;
+#[cfg(target_os = "macos")]
 pub mod trust_settings;
