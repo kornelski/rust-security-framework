@@ -10,7 +10,6 @@ use security_framework_sys::base::errSecNoTrustSettings;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::trust_settings::*;
 
-use std::convert::TryFrom;
 use std::ptr;
 
 use crate::base::Error;
@@ -60,13 +59,17 @@ pub enum TrustSettingsForCertificate {
 }
 
 impl TrustSettingsForCertificate {
+    /// Create from `kSecTrustSettingsResult*` constant
     fn new(value: i64) -> TrustSettingsForCertificate {
-        match u32::try_from(value).ok() {
-            Some(kSecTrustSettingsResultTrustRoot) => TrustSettingsForCertificate::TrustRoot,
-            Some(kSecTrustSettingsResultTrustAsRoot) => TrustSettingsForCertificate::TrustAsRoot,
-            Some(kSecTrustSettingsResultDeny) => TrustSettingsForCertificate::Deny,
-            Some(kSecTrustSettingsResultUnspecified) => TrustSettingsForCertificate::Unspecified,
-            Some(_) | None => TrustSettingsForCertificate::Invalid,
+        if value < 0 || value > u32::max_value() as i64 {
+            return TrustSettingsForCertificate::Invalid;
+        }
+        match value as u32 {
+            kSecTrustSettingsResultTrustRoot => TrustSettingsForCertificate::TrustRoot,
+            kSecTrustSettingsResultTrustAsRoot => TrustSettingsForCertificate::TrustAsRoot,
+            kSecTrustSettingsResultDeny => TrustSettingsForCertificate::Deny,
+            kSecTrustSettingsResultUnspecified => TrustSettingsForCertificate::Unspecified,
+            _ => TrustSettingsForCertificate::Invalid,
         }
     }
 }
