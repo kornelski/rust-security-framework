@@ -43,8 +43,8 @@ impl TrustResult {
 
 impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
-    pub fn success(&self) -> bool {
-        match *self {
+    pub fn success(self) -> bool {
+        match self {
             TrustResult::PROCEED | TrustResult::UNSPECIFIED => true,
             _ => false,
         }

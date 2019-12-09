@@ -43,7 +43,7 @@ impl Padding {
         unsafe { Padding(kSecPaddingOAEPKey) }
     }
 
-    fn to_str(&self) -> CFString {
+    fn to_str(self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }
@@ -76,7 +76,7 @@ impl Mode {
         unsafe { Mode(kSecModeOFBKey) }
     }
 
-    fn to_str(&self) -> CFString {
+    fn to_str(self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }

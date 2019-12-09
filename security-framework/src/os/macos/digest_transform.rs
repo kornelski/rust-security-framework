@@ -51,7 +51,7 @@ impl DigestType {
         unsafe { DigestType(kSecDigestSHA2) }
     }
 
-    fn to_type(&self) -> CFTypeRef {
+    fn to_type(self) -> CFTypeRef {
         self.0 as CFTypeRef
     }
 }

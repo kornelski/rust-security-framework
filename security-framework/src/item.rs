@@ -53,7 +53,7 @@ impl ItemClass {
         unsafe { ItemClass(kSecClassIdentity) }
     }
 
-    fn to_value(&self) -> CFType {
+    fn to_value(self) -> CFType {
         unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
     }
 }

@@ -48,7 +48,7 @@ impl KeyType {
         unsafe { KeyType(kSecAttrKeyTypeEC) }
     }
 
-    pub(crate) fn to_str(&self) -> CFString {
+    pub(crate) fn to_str(self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }
