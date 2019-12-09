@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Steven Fackler <sfackler@palantir.com>"]
 
 [dependencies]
-core-foundation-sys = "0.6"
+core-foundation-sys = "0.7"
 security-framework-sys = { path = "../security-framework-sys" }
 libc = "0.2"
 
