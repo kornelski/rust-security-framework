@@ -26,8 +26,8 @@ impl fmt::Debug for Error {
 
 impl Error {
     /// Creates a new `Error` from a status code.
-    pub fn from_code(code: OSStatus) -> Error {
-        Error(code)
+    pub fn from_code(code: OSStatus) -> Self {
+        Self(code)
     }
 
     /// Returns a string describing the current error, if available.
@@ -63,8 +63,8 @@ impl Error {
 }
 
 impl From<OSStatus> for Error {
-    fn from(code: OSStatus) -> Error {
-        Error::from_code(code)
+    fn from(code: OSStatus) -> Self {
+        Self::from_code(code)
     }
 }
 

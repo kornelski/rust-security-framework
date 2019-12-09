@@ -18,7 +18,7 @@ pub trait SecKeyExt {
 }
 
 impl SecKeyExt for SecKey {
-    fn from_data(key_type: KeyType, key_data: &CFData) -> Result<SecKey, CFError> {
+    fn from_data(key_type: KeyType, key_data: &CFData) -> Result<Self, CFError> {
         unsafe {
             let key = CFString::wrap_under_get_rule(kSecAttrKeyType);
             let dict = CFDictionary::from_CFType_pairs(&[(key, key_type.to_str())]);
@@ -32,7 +32,7 @@ impl SecKeyExt for SecKey {
             if key.is_null() {
                 Err(CFError::wrap_under_create_rule(err))
             } else {
-                Ok(SecKey::wrap_under_create_rule(key))
+                Ok(Self::wrap_under_create_rule(key))
             }
         }
     }

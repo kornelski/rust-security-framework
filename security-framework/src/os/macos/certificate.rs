@@ -137,7 +137,7 @@ pub struct PropertySection(CFArray<CFDictionary>);
 
 impl PropertySection {
     /// Returns an iterator over the properties in this section.
-    pub fn iter<'a>(&'a self) -> PropertySectionIter<'a> {
+    pub fn iter(&self) -> PropertySectionIter<'_> {
         PropertySectionIter(self.0.iter())
     }
 }

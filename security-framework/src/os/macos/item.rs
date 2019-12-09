@@ -15,37 +15,37 @@ pub struct KeyType(CFStringRef);
 
 #[allow(missing_docs)]
 impl KeyType {
-    pub fn rsa() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeRSA) }
+    pub fn rsa() -> Self {
+        unsafe { Self(kSecAttrKeyTypeRSA) }
     }
 
-    pub fn dsa() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeDSA) }
+    pub fn dsa() -> Self {
+        unsafe { Self(kSecAttrKeyTypeDSA) }
     }
 
-    pub fn aes() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeAES) }
+    pub fn aes() -> Self {
+        unsafe { Self(kSecAttrKeyTypeAES) }
     }
 
-    pub fn des() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeDES) }
+    pub fn des() -> Self {
+        unsafe { Self(kSecAttrKeyTypeDES) }
     }
 
-    pub fn triple_des() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyType3DES) }
+    pub fn triple_des() -> Self {
+        unsafe { Self(kSecAttrKeyType3DES) }
     }
 
-    pub fn rc4() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeRC4) }
+    pub fn rc4() -> Self {
+        unsafe { Self(kSecAttrKeyTypeRC4) }
     }
 
-    pub fn cast() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeCAST) }
+    pub fn cast() -> Self {
+        unsafe { Self(kSecAttrKeyTypeCAST) }
     }
 
     #[cfg(feature = "OSX_10_9")]
-    pub fn ec() -> KeyType {
-        unsafe { KeyType(kSecAttrKeyTypeEC) }
+    pub fn ec() -> Self {
+        unsafe { Self(kSecAttrKeyTypeEC) }
     }
 
     pub(crate) fn to_str(self) -> CFString {
@@ -62,7 +62,7 @@ pub trait ItemSearchOptionsExt {
 }
 
 impl ItemSearchOptionsExt for ItemSearchOptions {
-    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         ItemSearchOptionsInternals::keychains(self, keychains)
     }
 }

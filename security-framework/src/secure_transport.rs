@@ -114,10 +114,10 @@ pub struct SslProtocolSide(SSLProtocolSide);
 
 impl SslProtocolSide {
     /// The server side of the session.
-    pub const SERVER: SslProtocolSide = SslProtocolSide(kSSLServerSide);
+    pub const SERVER: Self = Self(kSSLServerSide);
 
     /// The client side of the session.
-    pub const CLIENT: SslProtocolSide = SslProtocolSide(kSSLClientSide);
+    pub const CLIENT: Self = Self(kSSLClientSide);
 }
 
 /// Specifies the type of TLS session.
@@ -126,10 +126,10 @@ pub struct SslConnectionType(SSLConnectionType);
 
 impl SslConnectionType {
     /// A traditional TLS stream.
-    pub const STREAM: SslConnectionType = SslConnectionType(kSSLStreamType);
+    pub const STREAM: Self = Self(kSSLStreamType);
 
     /// A DTLS session.
-    pub const DATAGRAM: SslConnectionType = SslConnectionType(kSSLDatagramType);
+    pub const DATAGRAM: Self = Self(kSSLDatagramType);
 }
 
 /// An error or intermediate state after a TLS handshake attempt.
@@ -142,8 +142,8 @@ pub enum HandshakeError<S> {
 }
 
 impl<S> From<Error> for HandshakeError<S> {
-    fn from(err: Error) -> HandshakeError<S> {
-        HandshakeError::Failure(err)
+    fn from(err: Error) -> Self {
+        Self::Failure(err)
     }
 }
 
@@ -157,8 +157,8 @@ pub enum ClientHandshakeError<S> {
 }
 
 impl<S> From<Error> for ClientHandshakeError<S> {
-    fn from(err: Error) -> ClientHandshakeError<S> {
-        ClientHandshakeError::Failure(err)
+    fn from(err: Error) -> Self {
+        Self::Failure(err)
     }
 }
 
@@ -331,19 +331,19 @@ pub struct SessionState(SSLSessionState);
 
 impl SessionState {
     /// The session has not yet started.
-    pub const IDLE: SessionState = SessionState(kSSLIdle);
+    pub const IDLE: Self = Self(kSSLIdle);
 
     /// The session is in the handshake process.
-    pub const HANDSHAKE: SessionState = SessionState(kSSLHandshake);
+    pub const HANDSHAKE: Self = Self(kSSLHandshake);
 
     /// The session is connected.
-    pub const CONNECTED: SessionState = SessionState(kSSLConnected);
+    pub const CONNECTED: Self = Self(kSSLConnected);
 
     /// The session has been terminated.
-    pub const CLOSED: SessionState = SessionState(kSSLClosed);
+    pub const CLOSED: Self = Self(kSSLClosed);
 
     /// The session has been aborted due to an error.
-    pub const ABORTED: SessionState = SessionState(kSSLAborted);
+    pub const ABORTED: Self = Self(kSSLAborted);
 }
 
 /// Specifies a server's requirement for client certificates.
@@ -352,13 +352,13 @@ pub struct SslAuthenticate(SSLAuthenticate);
 
 impl SslAuthenticate {
     /// Do not request a client certificate.
-    pub const NEVER: SslAuthenticate = SslAuthenticate(kNeverAuthenticate);
+    pub const NEVER: Self = Self(kNeverAuthenticate);
 
     /// Require a client certificate.
-    pub const ALWAYS: SslAuthenticate = SslAuthenticate(kAlwaysAuthenticate);
+    pub const ALWAYS: Self = Self(kAlwaysAuthenticate);
 
     /// Request but do not require a client certificate.
-    pub const TRY: SslAuthenticate = SslAuthenticate(kTryAuthenticate);
+    pub const TRY: Self = Self(kTryAuthenticate);
 }
 
 /// Specifies the state of client certificate processing.
@@ -367,19 +367,15 @@ pub struct SslClientCertificateState(SSLClientCertificateState);
 
 impl SslClientCertificateState {
     /// A client certificate has not been requested or sent.
-    pub const NONE: SslClientCertificateState = SslClientCertificateState(kSSLClientCertNone);
+    pub const NONE: Self = Self(kSSLClientCertNone);
 
     /// A client certificate has been requested but not recieved.
-    pub const REQUESTED: SslClientCertificateState =
-        SslClientCertificateState(kSSLClientCertRequested);
-
+    pub const REQUESTED: Self = Self(kSSLClientCertRequested);
     /// A client certificate has been received and successfully validated.
-    pub const SENT: SslClientCertificateState = SslClientCertificateState(kSSLClientCertSent);
+    pub const SENT: Self = Self(kSSLClientCertSent);
 
     /// A client certificate has been received but has failed to validate.
-    pub const REJECTED: SslClientCertificateState =
-        SslClientCertificateState(kSSLClientCertRejected);
-}
+    pub const REJECTED: Self = Self(kSSLClientCertRejected); }
 
 /// Specifies protocol versions.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -387,38 +383,38 @@ pub struct SslProtocol(SSLProtocol);
 
 impl SslProtocol {
     /// No protocol has been or should be negotiated or specified; use the default.
-    pub const UNKNOWN: SslProtocol = SslProtocol(kSSLProtocolUnknown);
+    pub const UNKNOWN: Self = Self(kSSLProtocolUnknown);
 
     /// The SSL 3.0 protocol is preferred, though SSL 2.0 may be used if the peer does not support
     /// SSL 3.0.
-    pub const SSL3: SslProtocol = SslProtocol(kSSLProtocol3);
+    pub const SSL3: Self = Self(kSSLProtocol3);
 
     /// The TLS 1.0 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.0.
-    pub const TLS1: SslProtocol = SslProtocol(kTLSProtocol1);
+    pub const TLS1: Self = Self(kTLSProtocol1);
 
     /// The TLS 1.1 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.1.
-    pub const TLS11: SslProtocol = SslProtocol(kTLSProtocol11);
+    pub const TLS11: Self = Self(kTLSProtocol11);
 
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
-    pub const TLS12: SslProtocol = SslProtocol(kTLSProtocol12);
+    pub const TLS12: Self = Self(kTLSProtocol12);
 
     /// Only the SSL 2.0 protocol is accepted.
-    pub const SSL2: SslProtocol = SslProtocol(kSSLProtocol2);
+    pub const SSL2: Self = Self(kSSLProtocol2);
 
     /// The DTLSv1 protocol is preferred.
-    pub const DTLS1: SslProtocol = SslProtocol(kDTLSProtocol1);
+    pub const DTLS1: Self = Self(kDTLSProtocol1);
 
     /// Only the SSL 3.0 protocol is accepted.
-    pub const SSL3_ONLY: SslProtocol = SslProtocol(kSSLProtocol3Only);
+    pub const SSL3_ONLY: Self = Self(kSSLProtocol3Only);
 
     /// Only the TLS 1.0 protocol is accepted.
-    pub const TLS1_ONLY: SslProtocol = SslProtocol(kTLSProtocol1Only);
+    pub const TLS1_ONLY: Self = Self(kTLSProtocol1Only);
 
     /// All supported TLS/SSL versions are accepted.
-    pub const ALL: SslProtocol = SslProtocol(kSSLProtocolAll);
+    pub const ALL: Self = Self(kSSLProtocolAll);
 }
 
 declare_TCFType! {
@@ -470,10 +466,10 @@ macro_rules! impl_options {
 impl SslContext {
     /// Creates a new `SslContext` for the specified side and type of SSL
     /// connection.
-    pub fn new(side: SslProtocolSide, type_: SslConnectionType) -> Result<SslContext> {
+    pub fn new(side: SslProtocolSide, type_: SslConnectionType) -> Result<Self> {
         unsafe {
             let ctx = SSLCreateContext(kCFAllocatorDefault, side.0, type_.0);
-            Ok(SslContext(ctx))
+            Ok(Self(ctx))
         }
     }
 
@@ -874,7 +870,7 @@ fn translate_err(e: &io::Error) -> OSStatus {
     match e.kind() {
         io::ErrorKind::NotFound => errSSLClosedGraceful,
         io::ErrorKind::ConnectionReset => errSSLClosedAbort,
-        io::ErrorKind::WouldBlock => errSSLWouldBlock,
+        io::ErrorKind::WouldBlock |
         io::ErrorKind::NotConnected => errSSLWouldBlock,
         _ => errSecIO,
     }
@@ -981,7 +977,7 @@ impl<S> Drop for SslStream<S> {
 }
 
 impl<S> SslStream<S> {
-    fn handshake(mut self) -> result::Result<SslStream<S>, HandshakeError<S>> {
+    fn handshake(mut self) -> result::Result<Self, HandshakeError<S>> {
         match unsafe { SSLHandshake(self.ctx.0) } {
             errSecSuccess => Ok(self),
             reason @ errSSLPeerAuthCompleted
@@ -1085,10 +1081,11 @@ impl<S: Read + Write> Read for SslStream<S> {
         // no more data but the socket is remaining open (e.g HTTPS with
         // Connection: keep-alive).
         let buffered = self.context().buffered_read_size().unwrap_or(0);
-        let mut to_read = buf.len();
-        if buffered > 0 {
-            to_read = cmp::min(buffered, buf.len());
-        }
+        let to_read = if buffered > 0 {
+            cmp::min(buffered, buf.len())
+        } else {
+            buf.len()
+        };
 
         unsafe {
             let mut nread = 0;
@@ -1154,15 +1151,15 @@ pub struct ClientBuilder {
 }
 
 impl Default for ClientBuilder {
-    fn default() -> ClientBuilder {
-        ClientBuilder::new()
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl ClientBuilder {
     /// Creates a new builder with default options.
     pub fn new() -> Self {
-        ClientBuilder {
+        Self {
             identity: None,
             certs: Vec::new(),
             chain: Vec::new(),
@@ -1358,8 +1355,8 @@ pub struct ServerBuilder {
 impl ServerBuilder {
     /// Creates a new `ServerBuilder` which will use the specified identity
     /// and certificate chain for handshakes.
-    pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> ServerBuilder {
-        ServerBuilder {
+    pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> Self {
+        Self {
             identity: identity.clone(),
             certs: certs.to_owned(),
         }

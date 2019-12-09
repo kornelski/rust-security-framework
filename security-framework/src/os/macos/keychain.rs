@@ -35,32 +35,32 @@ pub trait SecKeychainExt {
 }
 
 impl SecKeychainExt for SecKeychain {
-    fn default() -> Result<SecKeychain> {
-        SecKeychain::default()
+    fn default() -> Result<Self> {
+        Self::default()
     }
 
-    fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
-        SecKeychain::open(path)
+    fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+        Self::open(path)
     }
 
     fn unlock(&mut self, password: Option<&str>) -> Result<()> {
-        SecKeychain::unlock(self, password)
+        Self::unlock(self, password)
     }
 }
 
 impl SecKeychain {
     /// Creates a `SecKeychain` object corresponding to the user's default
     /// keychain.
-    pub fn default() -> Result<SecKeychain> {
+    pub fn default() -> Result<Self> {
         unsafe {
             let mut keychain = ptr::null_mut();
             cvt(SecKeychainCopyDefault(&mut keychain))?;
-            Ok(SecKeychain::wrap_under_create_rule(keychain))
+            Ok(Self::wrap_under_create_rule(keychain))
         }
     }
 
     /// Opens a keychain from a file.
-    pub fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain> {
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path_name = path.as_ref().as_os_str().as_bytes();
         // FIXME
         let path_name = CString::new(path_name).unwrap();
@@ -68,7 +68,7 @@ impl SecKeychain {
         unsafe {
             let mut keychain = ptr::null_mut();
             cvt(SecKeychainOpen(path_name.as_ptr(), &mut keychain))?;
-            Ok(SecKeychain::wrap_under_create_rule(keychain))
+            Ok(Self::wrap_under_create_rule(keychain))
         }
     }
 
@@ -112,25 +112,25 @@ pub struct CreateOptions {
 
 impl CreateOptions {
     /// Creates a new builder with default options.
-    pub fn new() -> CreateOptions {
-        CreateOptions::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Sets the password to be used to protect the keychain.
-    pub fn password(&mut self, password: &str) -> &mut CreateOptions {
+    pub fn password(&mut self, password: &str) -> &mut Self {
         self.password = Some(password.into());
         self
     }
 
     /// If set, the user will be prompted to provide a password used to
     /// protect the keychain.
-    pub fn prompt_user(&mut self, prompt_user: bool) -> &mut CreateOptions {
+    pub fn prompt_user(&mut self, prompt_user: bool) -> &mut Self {
         self.prompt_user = prompt_user;
         self
     }
 
     /// Sets the access control applied to the keychain.
-    pub fn access(&mut self, access: SecAccess) -> &mut CreateOptions {
+    pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self
     }
@@ -172,8 +172,8 @@ pub struct KeychainSettings(SecKeychainSettings);
 
 impl KeychainSettings {
     /// Creates a new `KeychainSettings` with default settings.
-    pub fn new() -> KeychainSettings {
-        KeychainSettings(SecKeychainSettings {
+    pub fn new() -> Self {
+        Self(SecKeychainSettings {
             version: SEC_KEYCHAIN_SETTINGS_VERS1,
             lockOnSleep: 0,
             useLockInterval: 0,

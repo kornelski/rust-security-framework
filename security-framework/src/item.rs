@@ -29,28 +29,28 @@ pub struct ItemClass(CFStringRef);
 
 impl ItemClass {
     /// Look for `SecKeychainItem`s corresponding to generic passwords.
-    pub fn generic_password() -> ItemClass {
-        unsafe { ItemClass(kSecClassGenericPassword) }
+    pub fn generic_password() -> Self {
+        unsafe { Self(kSecClassGenericPassword) }
     }
 
     /// Look for `SecKeychainItem`s corresponding to internet passwords.
-    pub fn internet_password() -> ItemClass {
-        unsafe { ItemClass(kSecClassInternetPassword) }
+    pub fn internet_password() -> Self {
+        unsafe { Self(kSecClassInternetPassword) }
     }
 
     /// Look for `SecCertificate`s.
-    pub fn certificate() -> ItemClass {
-        unsafe { ItemClass(kSecClassCertificate) }
+    pub fn certificate() -> Self {
+        unsafe { Self(kSecClassCertificate) }
     }
 
     /// Look for `SecKey`s.
-    pub fn key() -> ItemClass {
-        unsafe { ItemClass(kSecClassKey) }
+    pub fn key() -> Self {
+        unsafe { Self(kSecClassKey) }
     }
 
     /// Look for `SecIdentity`s.
-    pub fn identity() -> ItemClass {
-        unsafe { ItemClass(kSecClassIdentity) }
+    pub fn identity() -> Self {
+        unsafe { Self(kSecClassIdentity) }
     }
 
     fn to_value(self) -> CFType {
@@ -75,7 +75,7 @@ pub struct ItemSearchOptions {
 
 #[cfg(target_os = "macos")]
 impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
-    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
+    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
@@ -83,12 +83,12 @@ impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
 
 impl ItemSearchOptions {
     /// Creates a new builder with default options.
-    pub fn new() -> ItemSearchOptions {
-        ItemSearchOptions::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Search only for items of the specified class.
-    pub fn class(&mut self, class: ItemClass) -> &mut ItemSearchOptions {
+    pub fn class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
         self
     }
@@ -97,28 +97,28 @@ impl ItemSearchOptions {
     ///
     /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
     #[cfg(target_os = "macos")]
-    pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut ItemSearchOptions {
+    pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
 
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
-    pub fn load_refs(&mut self, load_refs: bool) -> &mut ItemSearchOptions {
+    pub fn load_refs(&mut self, load_refs: bool) -> &mut Self {
         self.load_refs = load_refs;
         self
     }
 
     /// Load Security Framework object attributes for
     /// the results.
-    pub fn load_attributes(&mut self, load_attributes: bool) -> &mut ItemSearchOptions {
+    pub fn load_attributes(&mut self, load_attributes: bool) -> &mut Self {
         self.load_attributes = load_attributes;
         self
     }
 
     /// Load Security Framework objects data for
     /// the results.
-    pub fn load_data(&mut self, load_data: bool) -> &mut ItemSearchOptions {
+    pub fn load_data(&mut self, load_data: bool) -> &mut Self {
         self.load_data = load_data;
         self
     }
@@ -126,13 +126,13 @@ impl ItemSearchOptions {
     /// Limit the number of search results.
     ///
     /// If this is not called, the default limit is 1.
-    pub fn limit(&mut self, limit: i64) -> &mut ItemSearchOptions {
+    pub fn limit(&mut self, limit: i64) -> &mut Self {
         self.limit = Some(limit);
         self
     }
 
     /// Search for an item with the given label.
-    pub fn label(&mut self, label: &str) -> &mut ItemSearchOptions {
+    pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
         self
     }
@@ -295,22 +295,22 @@ pub enum SearchResult {
 impl fmt::Debug for SearchResult {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            SearchResult::Ref(ref reference) => fmt
+            Self::Ref(ref reference) => fmt
                 .debug_struct("SearchResult::Ref")
                 .field("reference", reference)
                 .finish(),
-            SearchResult::Data(ref buf) => fmt
+            Self::Data(ref buf) => fmt
                 .debug_struct("SearchResult::Data")
                 .field("data", buf)
                 .finish(),
-            SearchResult::Dict(_) => {
+            Self::Dict(_) => {
                 let mut debug = fmt.debug_struct("SearchResult::Dict");
                 for (k, v) in self.simplify_dict().unwrap() {
                     debug.field(&k, &v);
                 }
                 debug.finish()
             }
-            SearchResult::Other => write!(fmt, "SearchResult::Other"),
+            Self::Other => write!(fmt, "SearchResult::Other"),
         }
     }
 }
@@ -322,7 +322,7 @@ impl SearchResult {
     /// value types.
     pub fn simplify_dict(&self) -> Option<HashMap<String, String>> {
         match *self {
-            SearchResult::Dict(ref d) => unsafe {
+            Self::Dict(ref d) => unsafe {
                 let mut retmap = HashMap::new();
                 let (keys, values) = d.get_keys_and_values();
                 for (k, v) in keys.iter().zip(values.iter()) {

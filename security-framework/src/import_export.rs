@@ -58,7 +58,7 @@ impl crate::Pkcs12ImportOptionsInternals for Pkcs12ImportOptions {
 
 impl Pkcs12ImportOptions {
     /// Creates a new builder with default options.
-    pub fn new() -> Pkcs12ImportOptions {
+    pub fn new() -> Self {
         Self::default()
     }
 
@@ -139,11 +139,11 @@ impl Pkcs12ImportOptions {
                     .map(|identity| SecIdentity::wrap_under_get_rule(*identity as *mut _));
 
                 items.push(ImportedIdentity {
-                    label: label,
-                    key_id: key_id,
-                    trust: trust,
-                    cert_chain: cert_chain,
-                    identity: identity,
+                    label,
+                    key_id,
+                    trust,
+                    cert_chain,
+                    identity,
                     _p: (),
                 });
             }

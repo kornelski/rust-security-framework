@@ -11,11 +11,11 @@ macro_rules! make_suites {
         #[allow(missing_docs)]
         impl CipherSuite {
             $(
-                pub const $suite: CipherSuite = CipherSuite($suite);
+                pub const $suite: Self = Self($suite);
             )+
 
-            pub fn from_raw(raw: SSLCipherSuite) -> CipherSuite {
-                CipherSuite(raw)
+            pub fn from_raw(raw: SSLCipherSuite) -> Self {
+                Self(raw)
             }
 
             pub fn to_raw(&self) -> SSLCipherSuite {

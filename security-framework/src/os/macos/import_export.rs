@@ -178,7 +178,7 @@ impl<'a> ImportOptions<'a> {
                 ptr::null_mut(),
                 ptr::null_mut(),
                 0,
-                &mut key_params,
+                &key_params,
                 keychain,
                 items_ref,
             );

@@ -28,7 +28,7 @@ impl SecPolicy {
     ///
     /// The side which you are evaluating should be provided (i.e. pass `SslSslProtocolSide::SERVER` if
     /// you are a client looking to validate a server's certificate chain).
-    pub fn create_ssl(protocol_side: SslProtocolSide, hostname: Option<&str>) -> SecPolicy {
+    pub fn create_ssl(protocol_side: SslProtocolSide, hostname: Option<&str>) -> Self {
         let hostname = hostname.map(CFString::new);
         let hostname = hostname
             .as_ref()
@@ -37,15 +37,15 @@ impl SecPolicy {
         let is_server = protocol_side == SslProtocolSide::SERVER;
         unsafe {
             let policy = SecPolicyCreateSSL(is_server as _, hostname);
-            SecPolicy::wrap_under_create_rule(policy)
+            Self::wrap_under_create_rule(policy)
         }
     }
 
     /// Returns a policy object for the default X.509 policy.
-    pub fn create_x509() -> SecPolicy {
+    pub fn create_x509() -> Self {
         unsafe {
             let policy = SecPolicyCreateBasicX509();
-            SecPolicy::wrap_under_create_rule(policy)
+            Self::wrap_under_create_rule(policy)
         }
     }
 }

@@ -31,9 +31,9 @@ pub enum Domain {
 impl Into<SecTrustSettingsDomain> for Domain {
     fn into(self) -> SecTrustSettingsDomain {
         match self {
-            Domain::User => kSecTrustSettingsDomainUser,
-            Domain::Admin => kSecTrustSettingsDomainAdmin,
-            Domain::System => kSecTrustSettingsDomainSystem,
+            Self::User => kSecTrustSettingsDomainUser,
+            Self::Admin => kSecTrustSettingsDomainAdmin,
+            Self::System => kSecTrustSettingsDomainSystem,
         }
     }
 }
@@ -60,16 +60,16 @@ pub enum TrustSettingsForCertificate {
 
 impl TrustSettingsForCertificate {
     /// Create from `kSecTrustSettingsResult*` constant
-    fn new(value: i64) -> TrustSettingsForCertificate {
-        if value < 0 || value > u32::max_value() as i64 {
-            return TrustSettingsForCertificate::Invalid;
+    fn new(value: i64) -> Self {
+        if value < 0 || value > i64::from(u32::max_value()) {
+            return Self::Invalid;
         }
         match value as u32 {
-            kSecTrustSettingsResultTrustRoot => TrustSettingsForCertificate::TrustRoot,
-            kSecTrustSettingsResultTrustAsRoot => TrustSettingsForCertificate::TrustAsRoot,
-            kSecTrustSettingsResultDeny => TrustSettingsForCertificate::Deny,
-            kSecTrustSettingsResultUnspecified => TrustSettingsForCertificate::Unspecified,
-            _ => TrustSettingsForCertificate::Invalid,
+            kSecTrustSettingsResultTrustRoot => Self::TrustRoot,
+            kSecTrustSettingsResultTrustAsRoot => Self::TrustAsRoot,
+            kSecTrustSettingsResultDeny => Self::Deny,
+            kSecTrustSettingsResultUnspecified => Self::Unspecified,
+            _ => Self::Invalid,
         }
     }
 }
@@ -86,8 +86,8 @@ impl TrustSettings {
     ///
     /// Then you can call `tls_trust_settings_for_certificate()` with a given certificate
     /// to learn what the aggregate trust setting for that certificate within this domain.
-    pub fn new(domain: Domain) -> TrustSettings {
-        TrustSettings { domain }
+    pub fn new(domain: Domain) -> Self {
+        Self { domain }
     }
 
     /// Create an iterator over the certificates with settings in this domain.
@@ -164,10 +164,10 @@ impl TrustSettings {
             // "Note that an empty Trust Settings array means "always trust this cert,
             //  with a resulting kSecTrustSettingsResult of kSecTrustSettingsResultTrustRoot"."
             let trust_result = TrustSettingsForCertificate::new(maybe_trust_result
-                .unwrap_or(kSecTrustSettingsResultTrustRoot as i64));
+                .unwrap_or(i64::from(kSecTrustSettingsResultTrustRoot)));
 
             match trust_result {
-                TrustSettingsForCertificate::Unspecified => { continue; },
+                TrustSettingsForCertificate::Unspecified |
                 TrustSettingsForCertificate::Invalid => { continue; },
                 _ => return Ok(Some(trust_result)),
             }

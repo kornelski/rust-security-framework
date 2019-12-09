@@ -52,7 +52,7 @@ impl fmt::Debug for SecCertificate {
 
 impl SecCertificate {
     /// Creates a `SecCertificate` from DER encoded certificate data.
-    pub fn from_der(der_data: &[u8]) -> Result<SecCertificate> {
+    pub fn from_der(der_data: &[u8]) -> Result<Self> {
         let der_data = CFData::from_buffer(der_data);
         unsafe {
             let certificate =
@@ -60,7 +60,7 @@ impl SecCertificate {
             if certificate.is_null() {
                 Err(Error::from_code(errSecParam))
             } else {
-                Ok(SecCertificate::wrap_under_create_rule(certificate))
+                Ok(Self::wrap_under_create_rule(certificate))
             }
         }
     }

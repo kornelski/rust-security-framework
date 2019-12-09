@@ -19,33 +19,33 @@ pub struct TrustResult(SecTrustResultType);
 
 impl TrustResult {
     /// An invalid setting or result.
-    pub const INVALID: TrustResult = TrustResult(kSecTrustResultInvalid);
+    pub const INVALID: Self = Self(kSecTrustResultInvalid);
 
     /// You may proceed.
-    pub const PROCEED: TrustResult = TrustResult(kSecTrustResultProceed);
+    pub const PROCEED: Self = Self(kSecTrustResultProceed);
 
     /// Indicates a denial by the user, do not proceed.
-    pub const DENY: TrustResult = TrustResult(kSecTrustResultDeny);
+    pub const DENY: Self = Self(kSecTrustResultDeny);
 
     /// The certificate is implicitly trusted.
-    pub const UNSPECIFIED: TrustResult = TrustResult(kSecTrustResultUnspecified);
+    pub const UNSPECIFIED: Self = Self(kSecTrustResultUnspecified);
 
     /// Indicates a trust policy failure that the user can override.
-    pub const RECOVERABLE_TRUST_FAILURE: TrustResult =
-        TrustResult(kSecTrustResultRecoverableTrustFailure);
+    pub const RECOVERABLE_TRUST_FAILURE: Self =
+        Self(kSecTrustResultRecoverableTrustFailure);
 
     /// Indicates a trust policy failure that the user cannot override.
-    pub const FATAL_TRUST_FAILURE: TrustResult = TrustResult(kSecTrustResultFatalTrustFailure);
+    pub const FATAL_TRUST_FAILURE: Self = Self(kSecTrustResultFatalTrustFailure);
 
     /// An error not related to trust validation.
-    pub const OTHER_ERROR: TrustResult = TrustResult(kSecTrustResultOtherError);
+    pub const OTHER_ERROR: Self = Self(kSecTrustResultOtherError);
 }
 
 impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
     pub fn success(self) -> bool {
         match self {
-            TrustResult::PROCEED | TrustResult::UNSPECIFIED => true,
+            Self::PROCEED | Self::UNSPECIFIED => true,
             _ => false,
         }
     }
@@ -66,7 +66,7 @@ impl SecTrust {
     pub fn create_with_certificates(
         certs: &[SecCertificate],
         policies: &[SecPolicy],
-    ) -> Result<SecTrust> {
+    ) -> Result<Self> {
         let cert_array = CFArray::from_CFTypes(&certs);
         let policy_array = CFArray::from_CFTypes(&policies);
         let mut trust = ptr::null_mut();
@@ -76,7 +76,7 @@ impl SecTrust {
                 policy_array.as_CFTypeRef(),
                 &mut trust,
             ))?;
-            Ok(SecTrust(trust))
+            Ok(Self(trust))
         }
     }
 

@@ -161,10 +161,9 @@ pub fn find_internet_password(
             keychains_or_null,
             server.len() as u32,
             server.as_ptr() as *const _,
-            security_domain.map(|s| s.len() as u32).unwrap_or(0),
+            security_domain.map_or(0, |s| s.len() as u32),
             security_domain
-                .map(|s| s.as_ptr() as *const _)
-                .unwrap_or(ptr::null()),
+                .map_or(ptr::null(), |s| s.as_ptr() as *const _),
             account.len() as u32,
             account.as_ptr() as *const _,
             path.len() as u32,
@@ -316,10 +315,9 @@ impl SecKeychain {
                 self.as_CFTypeRef() as *mut _,
                 server.len() as u32,
                 server.as_ptr() as *const _,
-                security_domain.map(|s| s.len() as u32).unwrap_or(0),
+                security_domain.map_or(0, |s| s.len() as u32),
                 security_domain
-                    .map(|s| s.as_ptr() as *const _)
-                    .unwrap_or(ptr::null()),
+                    .map_or(ptr::null(), |s| s.as_ptr() as *const _),
                 account.len() as u32,
                 account.as_ptr() as *const _,
                 path.len() as u32,

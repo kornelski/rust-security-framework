@@ -24,7 +24,7 @@ impl SecIdentityExt for SecIdentity {
     fn with_certificate(
         keychains: &[SecKeychain],
         certificate: &SecCertificate,
-    ) -> Result<SecIdentity> {
+    ) -> Result<Self> {
         let keychains = CFArray::from_CFTypes(keychains);
         unsafe {
             let mut identity = ptr::null_mut();
@@ -33,7 +33,7 @@ impl SecIdentityExt for SecIdentity {
                 certificate.as_concrete_TypeRef(),
                 &mut identity,
             ))?;
-            Ok(SecIdentity::wrap_under_create_rule(identity))
+            Ok(Self::wrap_under_create_rule(identity))
         }
     }
 }

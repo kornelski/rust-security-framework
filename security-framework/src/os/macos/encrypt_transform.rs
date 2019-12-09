@@ -19,28 +19,28 @@ pub struct Padding(CFStringRef);
 
 impl Padding {
     /// Do not pad.
-    pub fn none() -> Padding {
-        unsafe { Padding(kSecPaddingNoneKey) }
+    pub fn none() -> Self {
+        unsafe { Self(kSecPaddingNoneKey) }
     }
 
     /// Use PKCS#1 padding.
-    pub fn pkcs1() -> Padding {
-        unsafe { Padding(kSecPaddingPKCS1Key) }
+    pub fn pkcs1() -> Self {
+        unsafe { Self(kSecPaddingPKCS1Key) }
     }
 
     /// Use PKCS#5 padding.
-    pub fn pkcs5() -> Padding {
-        unsafe { Padding(kSecPaddingPKCS5Key) }
+    pub fn pkcs5() -> Self {
+        unsafe { Self(kSecPaddingPKCS5Key) }
     }
 
     /// Use PKCS#7 padding.
-    pub fn pkcs7() -> Padding {
-        unsafe { Padding(kSecPaddingPKCS7Key) }
+    pub fn pkcs7() -> Self {
+        unsafe { Self(kSecPaddingPKCS7Key) }
     }
 
     /// Use OAEP padding.
-    pub fn oaep() -> Padding {
-        unsafe { Padding(kSecPaddingOAEPKey) }
+    pub fn oaep() -> Self {
+        unsafe { Self(kSecPaddingOAEPKey) }
     }
 
     fn to_str(self) -> CFString {
@@ -56,24 +56,24 @@ pub struct Mode(CFStringRef);
 
 #[allow(missing_docs)]
 impl Mode {
-    pub fn none() -> Mode {
-        unsafe { Mode(kSecModeNoneKey) }
+    pub fn none() -> Self {
+        unsafe { Self(kSecModeNoneKey) }
     }
 
-    pub fn ecb() -> Mode {
-        unsafe { Mode(kSecModeECBKey) }
+    pub fn ecb() -> Self {
+        unsafe { Self(kSecModeECBKey) }
     }
 
-    pub fn cbc() -> Mode {
-        unsafe { Mode(kSecModeCBCKey) }
+    pub fn cbc() -> Self {
+        unsafe { Self(kSecModeCBCKey) }
     }
 
-    pub fn cfb() -> Mode {
-        unsafe { Mode(kSecModeCFBKey) }
+    pub fn cfb() -> Self {
+        unsafe { Self(kSecModeCFBKey) }
     }
 
-    pub fn ofb() -> Mode {
-        unsafe { Mode(kSecModeOFBKey) }
+    pub fn ofb() -> Self {
+        unsafe { Self(kSecModeOFBKey) }
     }
 
     fn to_str(self) -> CFString {
@@ -91,14 +91,14 @@ pub struct Builder {
 
 impl Builder {
     /// Creates a new `Builder` with a default configuration.
-    pub fn new() -> Builder {
-        Builder::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Selects the padding scheme to use.
     ///
     /// If not set, an appropriate scheme will be selected for you.
-    pub fn padding(&mut self, padding: Padding) -> &mut Builder {
+    pub fn padding(&mut self, padding: Padding) -> &mut Self {
         self.padding = Some(padding);
         self
     }
@@ -106,7 +106,7 @@ impl Builder {
     /// Selects the encryption mode to use.
     ///
     /// If not set, an appropriate mode will be selected for you.
-    pub fn mode(&mut self, mode: Mode) -> &mut Builder {
+    pub fn mode(&mut self, mode: Mode) -> &mut Self {
         self.mode = Some(mode);
         self
     }
@@ -114,7 +114,7 @@ impl Builder {
     /// Sets the initialization vector to use.
     ///
     /// If not set, an appropriate value will be supplied for you.
-    pub fn iv(&mut self, iv: CFData) -> &mut Builder {
+    pub fn iv(&mut self, iv: CFData) -> &mut Self {
         self.iv = Some(iv);
         self
     }
