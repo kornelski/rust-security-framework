@@ -18,6 +18,7 @@ pub const kTLSProtocol1: SSLProtocol = 4;
 pub const kTLSProtocol11: SSLProtocol = 7;
 pub const kTLSProtocol12: SSLProtocol = 8;
 pub const kDTLSProtocol1: SSLProtocol = 9;
+pub const kTLSProtocol13: SSLProtocol = 10;
 pub const kSSLProtocol2: SSLProtocol = 1;
 pub const kSSLProtocol3Only: SSLProtocol = 3;
 pub const kTLSProtocol1Only: SSLProtocol = 5;
