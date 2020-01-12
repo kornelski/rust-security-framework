@@ -401,6 +401,10 @@ impl SslProtocol {
     /// if the peer does not support TLS 1.2.
     pub const TLS12: Self = Self(kTLSProtocol12);
 
+    /// The TLS 1.3 protocol is preferred, though lower versions may be used
+    /// if the peer does not support TLS 1.3.
+    pub const TLS13: Self = Self(kTLSProtocol13);
+
     /// Only the SSL 2.0 protocol is accepted.
     pub const SSL2: Self = Self(kSSLProtocol2);
 
