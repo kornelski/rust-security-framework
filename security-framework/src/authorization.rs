@@ -101,16 +101,13 @@ impl AuthorizationItem {
 #[repr(C)]
 pub struct AuthorizationItemSet<'a> {
     inner: *const sys::AuthorizationItemSet,
-    is_owned: bool,
-    phantom: PhantomData<&'a ()>,
+    phantom: PhantomData<&'a sys::AuthorizationItemSet>,
 }
 
 impl<'a> Drop for AuthorizationItemSet<'a> {
     fn drop(&mut self) {
-        if self.is_owned {
-            unsafe {
-                sys::AuthorizationFreeItemSet(self.inner as *mut sys::AuthorizationItemSet);
-            }
+        unsafe {
+            sys::AuthorizationFreeItemSet(self.inner as *mut sys::AuthorizationItemSet);
         }
     }
 }
@@ -464,7 +461,6 @@ impl<'a> Authorization {
 
         let set = AuthorizationItemSet {
             inner: unsafe { inner.assume_init() },
-            is_owned: false,
             phantom: PhantomData,
         };
 
