@@ -7,7 +7,6 @@ extern crate security_framework_sys;
 #[macro_use]
 extern crate core_foundation;
 extern crate core_foundation_sys;
-extern crate libc;
 #[cfg(target_os = "macos")]
 #[macro_use]
 extern crate bitflags;

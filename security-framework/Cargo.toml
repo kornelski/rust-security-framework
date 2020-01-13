@@ -16,7 +16,6 @@ exclude = ["test/*"]
 security-framework-sys = { version = "0.4", path = "../security-framework-sys" }
 core-foundation = "0.7"
 core-foundation-sys = "0.7"
-libc = "0.2.47"
 bitflags = "1"
 
 [dev-dependencies]
