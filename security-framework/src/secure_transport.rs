@@ -1176,7 +1176,7 @@ pub struct ClientBuilder {
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
     alpn: Option<Vec<String>>,
-    session_ticket_key: Option<Vec<u8>>,
+    enable_session_tickets: bool,
 }
 
 impl Default for ClientBuilder {
@@ -1201,7 +1201,7 @@ impl ClientBuilder {
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
             alpn: None,
-            session_ticket_key: None,
+            enable_session_tickets: false,
         }
     }
 
@@ -1293,11 +1293,10 @@ impl ClientBuilder {
 
     /// Configures the use of the RFC 5077 `SessionTicket` extension.
     ///
-    /// The given `address` should be the peer address of the underlying stream, and uniquely
-    /// identify the server that is being communicated with (e.g. an IP address).
+    /// Defaults to `false`.
     #[cfg(feature = "session-tickets")]
-    pub fn enable_session_tickets(&mut self, address: &[u8]) -> &mut Self {
-        self.session_ticket_key = Some(address.to_vec());
+    pub fn enable_session_tickets(&mut self, enable: bool) -> &mut Self {
+        self.enable_session_tickets = enable;
         self
     }
 
@@ -1354,17 +1353,10 @@ impl ClientBuilder {
         }
         #[cfg(feature = "session-tickets")]
         {
-            if let Some(address) = &self.session_ticket_key {
-                // We must use both the domain and underlying peer address here -- if the domain
-                // changes, then we want to go through certificate validation again rather than
-                // resuming the session, and if we resolve to a different server for the same
-                // domain, we shouldn't try to reuse our ticket.
-                let mut peer_id = vec![];
-                if self.use_sni {
-                    peer_id.extend(domain.as_bytes());
-                }
-                peer_id.extend(address);
-                ctx.set_peer_id(&peer_id)?;
+            if self.enable_session_tickets {
+                // We must use the domain here to ensure that we go through certificate validation
+                // again rather than resuming the session if the domain changes.
+                ctx.set_peer_id(domain.as_bytes())?;
                 ctx.set_session_tickets_enabled(true)?;
             }
         }
@@ -1516,7 +1508,7 @@ mod test {
         for i in 0..2 {
             let stream = p!(TcpStream::connect("google.com:443"));
             let mut builder = ClientBuilder::new();
-            builder.enable_session_tickets(stream.peer_addr().unwrap().to_string().as_bytes());
+            builder.enable_session_tickets(true);
 
             // Manually handshake here.
             let stream = MidHandshakeSslStream {
