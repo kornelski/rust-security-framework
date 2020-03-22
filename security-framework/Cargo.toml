@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "0.4.1"
+version = "0.4.2-alpha.1"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT/Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
@@ -13,14 +13,14 @@ keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
 
 [dependencies]
-security-framework-sys = { version = "0.4.1", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.4.2-alpha.1", path = "../security-framework-sys" }
 core-foundation = "0.7"
 core-foundation-sys = "0.7"
-bitflags = "1"
+bitflags = "1.2.1"
 
 [dev-dependencies]
-tempdir = "0.3"
-hex = "0.4"
+tempdir = "0.3.7"
+hex = "0.4.2"
 
 [features]
 alpn = []
