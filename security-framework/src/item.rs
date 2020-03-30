@@ -293,7 +293,7 @@ pub enum SearchResult {
 }
 
 impl fmt::Debug for SearchResult {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Ref(ref reference) => fmt
                 .debug_struct("SearchResult::Ref")

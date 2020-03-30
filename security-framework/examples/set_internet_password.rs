@@ -1,4 +1,3 @@
-extern crate security_framework;
 #[cfg(target_os = "mac_os")]
 use security_framework::os::macos::keychain::SecKeychain;
 #[cfg(target_os = "mac_os")]

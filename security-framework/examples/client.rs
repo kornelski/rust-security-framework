@@ -1,4 +1,3 @@
-extern crate security_framework;
 use security_framework::secure_transport::ClientBuilder;
 use std::io::{Read, Write};
 use std::net::TcpStream;

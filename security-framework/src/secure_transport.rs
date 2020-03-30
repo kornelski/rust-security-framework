@@ -429,7 +429,7 @@ declare_TCFType! {
 impl_TCFType!(SslContext, SSLContextRef, SSLContextGetTypeID);
 
 impl fmt::Debug for SslContext {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut builder = fmt.debug_struct("SslContext");
         if let Ok(state) = self.state() {
             builder.field("state", &state);
@@ -985,7 +985,7 @@ pub struct SslStream<S> {
 }
 
 impl<S: fmt::Debug> fmt::Debug for SslStream<S> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("SslStream")
             .field("context", &self.ctx)
             .field("stream", self.get_ref())
