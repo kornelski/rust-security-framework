@@ -10,6 +10,8 @@ extern crate core_foundation_sys;
 #[cfg(target_os = "macos")]
 #[macro_use]
 extern crate bitflags;
+#[cfg(all(not(feature = "OSX_10_13"), any(feature = "alpn", feature = "session-tickets")))]
+extern crate libc;
 
 #[cfg(test)]
 extern crate hex;
