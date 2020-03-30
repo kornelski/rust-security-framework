@@ -14,7 +14,7 @@ exclude = ["test/*"]
 edition = "2018"
 
 [dependencies]
-security-framework-sys = { version = "0.4.2", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.4.2", default-features = false, path = "../security-framework-sys" }
 core-foundation = "0.7"
 core-foundation-sys = "0.7"
 bitflags = "1.2.1"
@@ -25,6 +25,7 @@ tempdir = "0.3.7"
 hex = "0.4.2"
 
 [features]
+default = ["OSX_10_9"]
 alpn = []
 session-tickets = []
 
