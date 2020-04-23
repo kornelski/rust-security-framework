@@ -310,6 +310,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn pkcs12_import() {
         let dir = TempDir::new("pkcs12_import").unwrap();
         let keychain = keychain::CreateOptions::new()

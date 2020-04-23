@@ -97,6 +97,7 @@ impl ItemSearchOptions {
     ///
     /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`")]
     pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self

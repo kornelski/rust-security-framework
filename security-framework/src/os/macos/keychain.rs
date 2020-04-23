@@ -23,17 +23,22 @@ unsafe impl Sync for SecKeychain {}
 unsafe impl Send for SecKeychain {}
 
 /// Deprecated.
+#[deprecated]
 pub trait SecKeychainExt {
     /// Deprecated.
+    #[deprecated]
     fn default() -> Result<SecKeychain>;
 
     /// Deprecated.
+    #[deprecated]
     fn open<P: AsRef<Path>>(path: P) -> Result<SecKeychain>;
 
     /// Deprecated.
+    #[deprecated]
     fn unlock(&mut self, password: Option<&str>) -> Result<()>;
 }
 
+#[allow(deprecated)]
 impl SecKeychainExt for SecKeychain {
     fn default() -> Result<Self> {
         Self::default()

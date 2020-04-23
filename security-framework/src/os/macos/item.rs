@@ -76,6 +76,7 @@ mod test {
     use crate::os::macos::test::keychain;
 
     #[test]
+    #[allow(deprecated)]
     fn find_certificate() {
         let dir = p!(TempDir::new("find_certificate"));
         let keychain = keychain(dir.path());

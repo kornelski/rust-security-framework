@@ -25,6 +25,7 @@ pub mod test {
     use crate::item::{ItemClass, ItemSearchOptions, Reference, SearchResult};
     use crate::os::macos::keychain::SecKeychain;
 
+    #[allow(deprecated)]
     pub fn identity(dir: &Path) -> SecIdentity {
         // FIXME https://github.com/rust-lang/rust/issues/30018
         let keychain = keychain(dir);

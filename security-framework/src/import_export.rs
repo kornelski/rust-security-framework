@@ -74,6 +74,7 @@ impl Pkcs12ImportOptions {
     ///
     /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::keychain`.
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::keychain`")]
     pub fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         self.keychain = Some(keychain);
         self
@@ -83,6 +84,7 @@ impl Pkcs12ImportOptions {
     ///
     /// Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::access`.
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Replaced by `os::macos::import_export::Pkcs12ImportOptionsExt::access`")]
     pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self
