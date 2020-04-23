@@ -70,7 +70,7 @@ impl ItemSearchOptionsExt for ItemSearchOptions {
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;
-
+    use crate::os::macos::item::ItemSearchOptionsExt;
     use crate::item::*;
     use crate::os::macos::certificate::SecCertificateExt;
     use crate::os::macos::test::keychain;

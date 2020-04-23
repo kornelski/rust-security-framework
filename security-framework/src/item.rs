@@ -93,14 +93,6 @@ impl ItemSearchOptions {
         self
     }
 
-    /// Deprecated.
-    ///
-    /// Replaced by `os::macos::item::ItemSearchOptionsExt::keychains`.
-    #[cfg(target_os = "macos")]
-    pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
-        self.keychains = Some(CFArray::from_CFTypes(keychains));
-        self
-    }
 
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
