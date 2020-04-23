@@ -1,8 +1,8 @@
 [package]
 name = "security-framework-sys"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"
 repository = "https://github.com/kornelski/rust-security-framework"
 homepage = "https://lib.rs/crates/security-framework-sys"
@@ -21,3 +21,9 @@ OSX_10_10 = ["OSX_10_9"]
 OSX_10_11 = ["OSX_10_10"]
 OSX_10_12 = ["OSX_10_11"]
 OSX_10_13 = ["OSX_10_12"]
+
+[package.metadata.docs.rs]
+targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
+
+[badges]
+maintenance = { status = "passively-maintained" }

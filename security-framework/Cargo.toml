@@ -1,8 +1,8 @@
 [package]
 name = "security-framework"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
 repository = "https://github.com/kornelski/rust-security-framework"
 documentation = "https://kornelski.github.io/rust-security-framework/doc/security_framework/"
@@ -13,7 +13,7 @@ keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
 
 [dependencies]
-security-framework-sys = { version = "0.4.2", path = "../security-framework-sys" }
+security-framework-sys = { version = "0.4.3", path = "../security-framework-sys" }
 core-foundation = "0.7"
 core-foundation-sys = "0.7"
 bitflags = "1.2.1"
@@ -43,3 +43,9 @@ name = "find_internet_password"
 
 [[example]]
 name = "set_internet_password"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
+
+[badges]
+maintenance = { status = "passively-maintained" }
