@@ -710,7 +710,7 @@ impl SslContext {
     /// Returns the set of protocols selected via ALPN if it succeeded.
     #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&self) -> Result<Vec<String>> {
-        let mut array = ptr::null();
+        let mut array: CFArrayRef = ptr::null();
         unsafe {
             #[cfg(feature = "OSX_10_13")]
             {
