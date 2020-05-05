@@ -10,10 +10,10 @@ use libc;
 macro_rules! dlsym {
     (fn $name:ident($($t:ty),*) -> $ret:ty) => (
         #[allow(bad_style)]
-        static $name: ::dlsym::DlSym<unsafe extern fn($($t),*) -> $ret> =
-            ::dlsym::DlSym {
+        static $name: $crate::dlsym::DlSym<unsafe extern fn($($t),*) -> $ret> =
+            $crate::dlsym::DlSym {
                 name: concat!(stringify!($name), "\0"),
-                addr: ::std::sync::atomic::ATOMIC_USIZE_INIT,
+                addr: ::std::sync::atomic::AtomicUsize::new(0),
                 _marker: ::std::marker::PhantomData,
             };
     )
