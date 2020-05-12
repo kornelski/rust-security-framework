@@ -1,10 +1,10 @@
-#[cfg(target_os = "mac_os")]
+#[cfg(target_os = "macos")]
 use security_framework::os::macos::keychain::SecKeychain;
-#[cfg(target_os = "mac_os")]
+#[cfg(target_os = "macos")]
 use security_framework::os::macos::passwords::*;
 
 fn main() {
-    #[cfg(target_os = "mac_os")] {
+    #[cfg(target_os = "macos")] {
     let hostname = "example.com";
     let username = "rusty";
     let password = b"oxidize";
