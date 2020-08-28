@@ -11,10 +11,10 @@ use core_foundation::number::CFNumber;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation_sys::error::CFErrorRef;
 use security_framework_sys::base::SecKeyRef;
+use security_framework_sys::item::{kSecAttrKeySizeInBits, kSecAttrKeyType};
 use security_framework_sys::key::SecKeyGetTypeID;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::key::{SecKeyCopyAttributes, SecKeyCopyExternalRepresentation};
-use security_framework_sys::item::{kSecAttrKeySizeInBits, kSecAttrKeyType};
 use std::fmt;
 
 declare_TCFType! {
@@ -87,11 +87,11 @@ impl SecKey {
     ///
     /// Gets the public key associated with the given private key.
     fn public_key(&self) -> Option<Self> {
-        let data = unsafe { SecKeyCopyPublicKey(self.to_void() as _) };
-        let data = ::std::ptr::null() {
+        let key = unsafe { SecKeyCopyPublicKey(self.to_void() as _) };
+        if key == ::std::ptr::null() {
             None
         } else {
-            Some(unsafe { Self::wrap_under_create_rule(data) })
+            Some(unsafe { Self::wrap_under_create_rule(key) })
         }
     }
 }
