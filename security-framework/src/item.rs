@@ -11,6 +11,7 @@ use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
+use security_framework_sys::keychain_item::SecItemCopyMatching;
 use std::collections::HashMap;
 use std::fmt;
 use std::ptr;

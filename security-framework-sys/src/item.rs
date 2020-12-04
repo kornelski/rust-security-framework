@@ -1,5 +1,3 @@
-use core_foundation_sys::base::{CFTypeRef, OSStatus};
-use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::string::CFStringRef;
 
 extern "C" {
@@ -42,6 +40,4 @@ extern "C" {
     pub static kSecAttrKeyTypeCAST: CFStringRef;
     #[cfg(feature = "OSX_10_9")]
     pub static kSecAttrKeyTypeEC: CFStringRef;
-
-    pub fn SecItemCopyMatching(query: CFDictionaryRef, result: *mut CFTypeRef) -> OSStatus;
 }
