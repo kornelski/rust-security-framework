@@ -1,5 +1,5 @@
 use crate::base::{SecKeychainAttributeList, SecKeychainItemRef};
-use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, CFTypeRef, OSStatus};
+use core_foundation_sys::base::{CFTypeID, CFTypeRef, OSStatus};
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use std::os::raw::c_void;
 
