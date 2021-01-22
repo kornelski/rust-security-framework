@@ -13,10 +13,14 @@ use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
-use std::ffi::{CStr, CString};
-use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::os::raw::c_void;
+use std::{
+    convert::TryFrom,
+    ffi::{CStr, CString},
+};
+use std::{convert::TryInto, marker::PhantomData};
+use sys::AuthorizationExternalForm;
 
 macro_rules! optional_str_to_cfref {
     ($string:ident) => {{
@@ -244,6 +248,30 @@ pub struct Authorization {
     free_flags: Flags,
 }
 
+impl TryFrom<AuthorizationExternalForm> for Authorization {
+    type Error = Error;
+
+    /// Internalizes the external representation of an authorization reference.
+    fn try_from(external_form: AuthorizationExternalForm) -> Result<Self> {
+        let mut handle = MaybeUninit::<sys::AuthorizationRef>::uninit();
+
+        let status = unsafe {
+            sys::AuthorizationCreateFromExternalForm(&external_form, handle.as_mut_ptr())
+        };
+
+        if status != sys::errAuthorizationSuccess {
+            return Err(Error::from_code(status));
+        }
+
+        let auth = Authorization {
+            handle: unsafe { handle.assume_init() },
+            free_flags: Default::default(),
+        };
+
+        Ok(auth)
+    }
+}
+
 impl<'a> Authorization {
     /// Creates an authorization object which has no environment or associated
     /// rights.
@@ -291,26 +319,9 @@ impl<'a> Authorization {
     }
 
     /// Internalizes the external representation of an authorization reference.
-    ///
-    /// TODO: TryFrom when security-framework stops supporting rust versions
-    /// which don't have it.
+    #[deprecated(since = "2.0.1", note = "Please use the TryFrom trait instead")]
     pub fn from_external_form(external_form: sys::AuthorizationExternalForm) -> Result<Self> {
-        let mut handle = MaybeUninit::<sys::AuthorizationRef>::uninit();
-
-        let status = unsafe {
-            sys::AuthorizationCreateFromExternalForm(&external_form, handle.as_mut_ptr())
-        };
-
-        if status != sys::errAuthorizationSuccess {
-            return Err(Error::from_code(status));
-        }
-
-        let auth = Authorization {
-            handle: unsafe { handle.assume_init() },
-            free_flags: Default::default(),
-        };
-
-        Ok(auth)
+        external_form.try_into()
     }
 
     /// By default the rights acquired will be retained by the Security Server.
