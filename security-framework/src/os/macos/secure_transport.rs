@@ -269,6 +269,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn server_client_builders() {
         let listener = p!(TcpListener::bind("localhost:0"));
         let port = p!(listener.local_addr()).port();
@@ -325,6 +326,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn client() {
         let listener = p!(TcpListener::bind("localhost:0"));
         let port = p!(listener.local_addr()).port();
@@ -577,6 +579,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn close() {
         let listener = p!(TcpListener::bind("localhost:0"));
         let port = p!(listener.local_addr()).port();
@@ -605,6 +608,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn short_read() {
         let listener = p!(TcpListener::bind("localhost:0"));
         let port = p!(listener.local_addr()).port();
