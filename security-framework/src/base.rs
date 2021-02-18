@@ -10,7 +10,7 @@ use std::result;
 pub type Result<T> = result::Result<T, Error>;
 
 /// A Security Framework error.
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Error(OSStatus);
 
 impl fmt::Debug for Error {
@@ -31,12 +31,12 @@ impl Error {
     }
 
     /// Returns a string describing the current error, if available.
-    pub fn message(self) -> Option<String> {
+    pub fn message(&self) -> Option<String> {
         self.inner_message()
     }
 
     #[cfg(target_os = "macos")]
-    fn inner_message(self) -> Option<String> {
+    fn inner_message(&self) -> Option<String> {
         use core_foundation::base::TCFType;
         use security_framework_sys::base::SecCopyErrorMessageString;
         use std::ptr;
@@ -57,7 +57,7 @@ impl Error {
     }
 
     /// Returns the code of the current error.
-    pub fn code(self) -> OSStatus {
+    pub fn code(&self) -> OSStatus {
         self.0
     }
 }
