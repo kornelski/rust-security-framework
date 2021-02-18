@@ -1198,6 +1198,13 @@ impl ClientBuilder {
         self
     }
 
+    /// Add the certificate the set of root certificates to trust
+    /// when verifying the server's certificate.
+    pub fn add_anchor_certificate(&mut self, certs: &SecCertificate) -> &mut Self {
+        self.certs.push(certs.to_owned());
+        self
+    }
+
     /// Specifies whether to trust the built-in certificates in addition
     /// to specified anchor certificates.
     pub fn trust_anchor_certificates_only(&mut self, only: bool) -> &mut Self {
