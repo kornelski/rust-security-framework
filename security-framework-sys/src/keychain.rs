@@ -166,4 +166,10 @@ extern "C" {
         keychain: SecKeychainRef,
         newSettings: *const SecKeychainSettings,
     ) -> OSStatus;
+
+    #[cfg(target_os = "macos")]
+    pub fn SecKeychainGetUserInteractionAllowed(state: *mut Boolean) -> OSStatus;
+
+    #[cfg(target_os = "macos")]
+    pub fn SecKeychainSetUserInteractionAllowed(state: Boolean) -> OSStatus;
 }
