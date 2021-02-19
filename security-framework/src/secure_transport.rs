@@ -107,6 +107,8 @@ use crate::identity::SecIdentity;
 use crate::policy::SecPolicy;
 use crate::trust::{SecTrust, TrustResult};
 use crate::{cvt, AsInner};
+use crate::import_export::Pkcs12ImportOptions;
+use security_framework_sys::base::errSecParam;
 
 /// Specifies a side of a TLS session.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -1396,6 +1398,31 @@ impl ServerBuilder {
         }
     }
 
+    /// Creates a new `ServerBuilder` which will use the identity
+    /// from the given PKCS #12 data.
+    ///
+    /// This operation fails if PKCS #12 file contains zero or more than one identity.
+    ///
+    /// This is a shortcut for the most common operation.
+    pub fn from_pkcs12(pkcs12_der: &[u8], passphrase: &str) -> Result<Self> {
+        let mut identities: Vec<(SecIdentity, Vec<SecCertificate>)> = Pkcs12ImportOptions::new()
+            .passphrase(passphrase)
+            .import(pkcs12_der)?
+            .into_iter()
+            .flat_map(|idendity| {
+                let certs = idendity.cert_chain.unwrap_or(Vec::new());
+                idendity.identity.map(|identity| (identity, certs))
+            })
+            .collect();
+        if identities.len() == 1 {
+            let (identity, certs) = identities.pop().unwrap();
+            Ok(ServerBuilder::new(&identity, &certs))
+        } else {
+            // This error code is not really helpful
+            Err(Error::from_code(errSecParam))
+        }
+    }
+
     /// Initiates a new SSL/TLS session over a stream.
     pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>>
     where
@@ -1418,6 +1445,12 @@ mod test {
     use std::net::TcpStream;
 
     use super::*;
+
+    #[test]
+    fn server_builder_from_pkcs12() {
+        let pkcs12_der = include_bytes!("../test/server.p12");
+        ServerBuilder::from_pkcs12(pkcs12_der, "password123").unwrap();
+    }
 
     #[test]
     fn connect() {
