@@ -1,7 +1,7 @@
 //! Keychain support.
 
 use core_foundation::base::{Boolean, TCFType};
-use security_framework_sys::base::SecKeychainRef;
+use security_framework_sys::base::{errSecSuccess, SecKeychainRef};
 use security_framework_sys::keychain::*;
 use std::ffi::CString;
 use std::os::raw::c_void;
@@ -9,7 +9,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::ptr;
 
-use crate::base::Result;
+use crate::base::{Error, Result};
 use crate::cvt;
 use crate::os::macos::access::SecAccess;
 
@@ -72,6 +72,33 @@ impl SecKeychain {
                 self.as_concrete_TypeRef(),
                 &settings.0,
             ))
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    /// Disables the user interface for keychain services functions that
+    /// automatically display a user interface.
+    pub fn disable_user_interaction() -> Result<KeychainUserInteractionLock> {
+        let code = unsafe { SecKeychainSetUserInteractionAllowed(0u8) };
+
+        if code != errSecSuccess {
+            Err(Error::from_code(code))
+        } else {
+            Ok(KeychainUserInteractionLock)
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    /// Indicates whether keychain services functions that normally display a
+    /// user interaction are allowed to do so.
+    pub fn user_interaction_allowed() -> Result<bool> {
+        let mut state: Boolean = 0;
+        let code = unsafe { SecKeychainGetUserInteractionAllowed(&mut state) };
+
+        if code != errSecSuccess {
+            Err(Error::from_code(code))
+        } else {
+            Ok(state != 0)
         }
     }
 }
@@ -180,6 +207,18 @@ impl KeychainSettings {
     }
 }
 
+#[cfg(target_os = "macos")]
+#[must_use = "The user interaction is disabled for the lifetime of the returned object"]
+/// Automatically re-enables user interaction.
+pub struct KeychainUserInteractionLock;
+
+#[cfg(target_os = "macos")]
+impl Drop for KeychainUserInteractionLock {
+    fn drop(&mut self) {
+        unsafe { SecKeychainSetUserInteractionAllowed(1u8) };
+    }
+}
+
 #[cfg(test)]
 mod test {
     use tempdir::TempDir;
@@ -196,5 +235,15 @@ mod test {
             .unwrap();
 
         keychain.set_settings(&KeychainSettings::new()).unwrap();
+    }
+
+    #[test]
+    fn disable_user_interaction() {
+        assert!(SecKeychain::user_interaction_allowed().unwrap());
+        {
+            let _lock = SecKeychain::disable_user_interaction().unwrap();
+            assert!(!SecKeychain::user_interaction_allowed().unwrap());
+        }
+        assert!(SecKeychain::user_interaction_allowed().unwrap());
     }
 }
