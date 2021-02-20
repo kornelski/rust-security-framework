@@ -1430,14 +1430,19 @@ impl ServerBuilder {
         }
     }
 
+    /// Create a SSL context for lower-level stream initialization.
+    pub fn new_ssl_context(&self) -> Result<SslContext> {
+        let mut ctx = SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM)?;
+        ctx.set_certificate(&self.identity, &self.certs)?;
+        Ok(ctx)
+    }
+
     /// Initiates a new SSL/TLS session over a stream.
     pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>>
     where
         S: Read + Write,
     {
-        let mut ctx = SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM)?;
-        ctx.set_certificate(&self.identity, &self.certs)?;
-        match ctx.handshake(stream) {
+        match self.new_ssl_context()?.handshake(stream) {
             Ok(stream) => Ok(stream),
             Err(HandshakeError::Interrupted(stream)) => Err(stream.error().clone()),
             Err(HandshakeError::Failure(err)) => Err(err),
