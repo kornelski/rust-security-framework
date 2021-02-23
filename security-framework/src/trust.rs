@@ -7,11 +7,14 @@ use core_foundation_sys::base::{Boolean, CFIndex};
 use security_framework_sys::trust::*;
 use std::ptr;
 
-use crate::base::Result;
+use log::warn;
+
+use crate::base::{Result, Error};
 use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::key::SecKey;
 use crate::policy::SecPolicy;
+use core_foundation::error::{CFErrorRef, CFError};
 
 /// The result of trust evaluation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -123,6 +126,20 @@ impl SecTrust {
         }
     }
 
+    /// Evaluates trust.
+    pub fn evaluate_new(&self) -> Result<()> {
+        unsafe {
+            let mut error: CFErrorRef = ::std::ptr::null_mut();
+            if !SecTrustEvaluateWithError(self.0, &mut error) {
+                assert!(!error.is_null());
+                let error = CFError::wrap_under_create_rule(error);
+                warn!("SecTrust::evaluate_new failed: {}", error.to_string());
+                return Err(Error::from_code(error.code() as i32));
+            }
+            Ok(())
+        }
+    }
+
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
     /// Note: evaluate must first be called on the SecTrust.
@@ -161,6 +178,14 @@ mod test {
     }
 
     #[test]
+    fn create_with_certificates_new() {
+        let cert = certificate();
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
+        let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
+        assert!(trust.evaluate_new().is_err());
+    }
+
+    #[test]
     fn certificate_count_and_at_index() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
@@ -175,12 +200,30 @@ mod test {
     }
 
     #[test]
-    fn certificate_at_index_out_of_bounds() {
+    fn certificate_count_and_at_index_new() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
-        trust.evaluate().unwrap();
+        assert!(trust.evaluate_new().is_err());
 
+        let count = trust.certificate_count();
+        assert_eq!(count, 1);
+
+        let cert_bytes = trust.certificate_at_index(0).unwrap().to_der();
+        assert_eq!(cert_bytes, certificate().to_der());
+    }
+
+    #[test]
+    fn certificate_at_index_out_of_bounds() {
+        let cert = certificate();
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
+
+        let trust = SecTrust::create_with_certificates(&[cert.clone()], &[ssl_policy.clone()]).unwrap();
+        trust.evaluate().unwrap();
+        assert!(trust.certificate_at_index(1).is_none());
+
+        let trust = SecTrust::create_with_certificates(&[cert.clone()], &[ssl_policy.clone()]).unwrap();
+        assert!(trust.evaluate_new().is_err());
         assert!(trust.certificate_at_index(1).is_none());
     }
 
@@ -192,5 +235,15 @@ mod test {
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         trust.set_policy(&ssl_policy).unwrap();
         assert_eq!(trust.evaluate().unwrap().success(), false)
+    }
+
+    #[test]
+    fn set_policy_new() {
+        let cert = certificate();
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io.bogus"));
+        let mut trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
+        let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
+        trust.set_policy(&ssl_policy).unwrap();
+        assert!(trust.evaluate_new().is_err());
     }
 }
