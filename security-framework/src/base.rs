@@ -7,7 +7,7 @@ use std::fmt;
 use std::result;
 
 /// A `Result` type commonly returned by functions.
-pub type Result<T> = result::Result<T, Error>;
+pub type Result<T, E = Error> = result::Result<T, E>;
 
 /// A Security Framework error.
 #[derive(Copy, Clone)]

@@ -295,7 +295,10 @@ impl<S> MidHandshakeClientBuilder<S> {
                 let policy =
                     SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
                 trust.set_policy(&policy)?;
-                trust.evaluate_new()?;
+                trust.evaluate_with_error().map_err(|error| {
+                    log::warn!("SecTrustEvaluateWithError: {}", error.to_string());
+                    Error::from_code(error.code() as _)
+                })?;
                 result = stream.handshake();
                 continue;
             }

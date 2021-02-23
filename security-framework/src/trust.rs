@@ -7,9 +7,7 @@ use core_foundation_sys::base::{Boolean, CFIndex};
 use security_framework_sys::trust::*;
 use std::ptr;
 
-use log::warn;
-
-use crate::base::{Result, Error};
+use crate::base::Result;
 use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::key::SecKey;
@@ -117,7 +115,6 @@ impl SecTrust {
     }
 
     /// Evaluates trust.
-    // FIXME should return &mut self
     pub fn evaluate(&self) -> Result<TrustResult> {
         unsafe {
             let mut result = kSecTrustResultInvalid;
@@ -127,14 +124,13 @@ impl SecTrust {
     }
 
     /// Evaluates trust.
-    pub fn evaluate_new(&self) -> Result<()> {
+    pub fn evaluate_with_error(&self) -> Result<(), CFError> {
         unsafe {
             let mut error: CFErrorRef = ::std::ptr::null_mut();
             if !SecTrustEvaluateWithError(self.0, &mut error) {
                 assert!(!error.is_null());
                 let error = CFError::wrap_under_create_rule(error);
-                warn!("SecTrust::evaluate_new failed: {}", error.to_string());
-                return Err(Error::from_code(error.code() as i32));
+                return Err(error);
             }
             Ok(())
         }
@@ -182,7 +178,7 @@ mod test {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
-        assert!(trust.evaluate_new().is_err());
+        assert!(trust.evaluate_with_error().is_err());
     }
 
     #[test]
@@ -204,7 +200,7 @@ mod test {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
-        assert!(trust.evaluate_new().is_err());
+        assert!(trust.evaluate_with_error().is_err());
 
         let count = trust.certificate_count();
         assert_eq!(count, 1);
@@ -223,7 +219,7 @@ mod test {
         assert!(trust.certificate_at_index(1).is_none());
 
         let trust = SecTrust::create_with_certificates(&[cert.clone()], &[ssl_policy.clone()]).unwrap();
-        assert!(trust.evaluate_new().is_err());
+        assert!(trust.evaluate_with_error().is_err());
         assert!(trust.certificate_at_index(1).is_none());
     }
 
@@ -244,6 +240,6 @@ mod test {
         let mut trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
         trust.set_policy(&ssl_policy).unwrap();
-        assert!(trust.evaluate_new().is_err());
+        assert!(trust.evaluate_with_error().is_err());
     }
 }

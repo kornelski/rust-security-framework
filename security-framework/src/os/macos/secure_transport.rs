@@ -259,7 +259,7 @@ mod test {
         assert!(stream.server_auth_completed());
         let mut peer_trust = p!(stream.context().peer_trust2()).unwrap();
         p!(peer_trust.set_anchor_certificates(&[certificate()]));
-        p!(peer_trust.evaluate_new());
+        p!(peer_trust.evaluate_with_error());
 
         let mut stream = p!(stream.handshake());
         p!(stream.write_all(b"hello world!"));
