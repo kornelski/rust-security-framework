@@ -105,7 +105,7 @@ use crate::certificate::SecCertificate;
 use crate::cipher_suite::CipherSuite;
 use crate::identity::SecIdentity;
 use crate::policy::SecPolicy;
-use crate::trust::{SecTrust, TrustResult};
+use crate::trust::SecTrust;
 use crate::{cvt, AsInner};
 use crate::import_export::Pkcs12ImportOptions;
 use security_framework_sys::base::errSecParam;
@@ -295,25 +295,9 @@ impl<S> MidHandshakeClientBuilder<S> {
                 let policy =
                     SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
                 trust.set_policy(&policy)?;
-                let trusted = trust.evaluate()?;
-                match trusted {
-                    TrustResult::PROCEED | TrustResult::UNSPECIFIED => {
-                        result = stream.handshake();
-                        continue;
-                    }
-                    TrustResult::DENY => {
-                        let err = Error::from_code(errSecTrustSettingDeny);
-                        return Err(ClientHandshakeError::Failure(err));
-                    }
-                    TrustResult::RECOVERABLE_TRUST_FAILURE | TrustResult::FATAL_TRUST_FAILURE => {
-                        let err = Error::from_code(errSecNotTrusted);
-                        return Err(ClientHandshakeError::Failure(err));
-                    }
-                    TrustResult::INVALID | TrustResult::OTHER_ERROR | _ => {
-                        let err = Error::from_code(errSecBadReq);
-                        return Err(ClientHandshakeError::Failure(err));
-                    }
-                }
+                trust.evaluate_new()?;
+                result = stream.handshake();
+                continue;
             }
 
             let err = Error::from_code(stream.error().code());

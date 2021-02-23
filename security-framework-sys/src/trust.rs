@@ -2,6 +2,8 @@ use crate::base::SecCertificateRef;
 use crate::base::SecKeyRef;
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
+use core_foundation_sys::error::CFErrorRef;
+
 pub type SecTrustResultType = u32;
 
 pub const kSecTrustResultInvalid: SecTrustResultType = 0;
@@ -29,6 +31,7 @@ extern "C" {
         anchorCertificatesOnly: Boolean,
     ) -> OSStatus;
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
+    pub fn SecTrustEvaluateWithError(trust: SecTrustRef, error: *mut CFErrorRef) -> bool;
     pub fn SecTrustCreateWithCertificates(
         certificates: CFTypeRef,
         policies: CFTypeRef,
