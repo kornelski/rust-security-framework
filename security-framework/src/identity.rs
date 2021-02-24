@@ -23,6 +23,7 @@ unsafe impl Sync for SecIdentity {}
 unsafe impl Send for SecIdentity {}
 
 impl fmt::Debug for SecIdentity {
+    #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut builder = fmt.debug_struct("SecIdentity");
         if let Ok(cert) = self.certificate() {

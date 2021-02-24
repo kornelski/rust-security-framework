@@ -92,6 +92,7 @@ macro_rules! impl_options {
     ($($(#[$a:meta])* const $opt:ident: $get:ident & $set:ident,)*) => {
         $(
             $(#[$a])*
+            #[inline]
             fn $set(&mut self, value: bool) -> Result<()> {
                 unsafe {
                     cvt(SSLSetSessionOption(self.as_inner(),
@@ -101,6 +102,7 @@ macro_rules! impl_options {
             }
 
             $(#[$a])*
+            #[inline]
             fn $get(&self) -> Result<bool> {
                 let mut value = 0;
                 unsafe { cvt(SSLGetSessionOption(self.as_inner(), $opt, &mut value))?; }

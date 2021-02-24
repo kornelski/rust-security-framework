@@ -29,6 +29,7 @@ pub enum Domain {
 }
 
 impl Into<SecTrustSettingsDomain> for Domain {
+    #[inline]
     fn into(self) -> SecTrustSettingsDomain {
         match self {
             Self::User => kSecTrustSettingsDomainUser,
@@ -86,6 +87,7 @@ impl TrustSettings {
     ///
     /// Then you can call `tls_trust_settings_for_certificate()` with a given certificate
     /// to learn what the aggregate trust setting for that certificate within this domain.
+    #[inline(always)]
     pub fn new(domain: Domain) -> Self {
         Self { domain }
     }

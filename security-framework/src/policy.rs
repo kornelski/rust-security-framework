@@ -18,6 +18,7 @@ unsafe impl Sync for SecPolicy {}
 unsafe impl Send for SecPolicy {}
 
 impl fmt::Debug for SecPolicy {
+    #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("SecPolicy").finish()
     }

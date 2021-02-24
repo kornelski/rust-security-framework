@@ -61,6 +61,7 @@ trait AsInner {
     fn as_inner(&self) -> Self::Inner;
 }
 
+#[inline(always)]
 fn cvt(err: OSStatus) -> Result<()> {
     match err {
         errSecSuccess => Ok(()),

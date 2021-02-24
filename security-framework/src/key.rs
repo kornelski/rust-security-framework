@@ -77,6 +77,7 @@ impl SecKey {
 
 // FIXME
 impl fmt::Debug for SecKey {
+    #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(fmt, "SecKey")
     }

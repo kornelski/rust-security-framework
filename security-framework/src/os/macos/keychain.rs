@@ -25,6 +25,7 @@ unsafe impl Send for SecKeychain {}
 impl SecKeychain {
     /// Creates a `SecKeychain` object corresponding to the user's default
     /// keychain.
+    #[inline]
     pub fn default() -> Result<Self> {
         unsafe {
             let mut keychain = ptr::null_mut();
@@ -66,6 +67,7 @@ impl SecKeychain {
     }
 
     /// Sets settings of the keychain.
+    #[inline]
     pub fn set_settings(&mut self, settings: &KeychainSettings) -> Result<()> {
         unsafe {
             cvt(SecKeychainSetSettings(
@@ -113,11 +115,13 @@ pub struct CreateOptions {
 
 impl CreateOptions {
     /// Creates a new builder with default options.
+    #[inline(always)]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Sets the password to be used to protect the keychain.
+    #[inline]
     pub fn password(&mut self, password: &str) -> &mut Self {
         self.password = Some(password.into());
         self
@@ -125,12 +129,14 @@ impl CreateOptions {
 
     /// If set, the user will be prompted to provide a password used to
     /// protect the keychain.
+    #[inline(always)]
     pub fn prompt_user(&mut self, prompt_user: bool) -> &mut Self {
         self.prompt_user = prompt_user;
         self
     }
 
     /// Sets the access control applied to the keychain.
+    #[inline(always)]
     pub fn access(&mut self, access: SecAccess) -> &mut Self {
         self.access = Some(access);
         self
@@ -173,6 +179,7 @@ pub struct KeychainSettings(SecKeychainSettings);
 
 impl KeychainSettings {
     /// Creates a new `KeychainSettings` with default settings.
+    #[inline]
     pub fn new() -> Self {
         Self(SecKeychainSettings {
             version: SEC_KEYCHAIN_SETTINGS_VERS1,
@@ -185,6 +192,7 @@ impl KeychainSettings {
     /// If set, the keychain will automatically lock when the computer sleeps.
     ///
     /// Defaults to `false`.
+    #[inline(always)]
     pub fn set_lock_on_sleep(&mut self, lock_on_sleep: bool) {
         self.0.lockOnSleep = lock_on_sleep as Boolean;
     }
@@ -214,6 +222,7 @@ pub struct KeychainUserInteractionLock;
 
 #[cfg(target_os = "macos")]
 impl Drop for KeychainUserInteractionLock {
+    #[inline(always)]
     fn drop(&mut self) {
         unsafe { SecKeychainSetUserInteractionAllowed(1u8) };
     }

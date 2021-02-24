@@ -30,30 +30,36 @@ pub struct ItemClass(CFStringRef);
 
 impl ItemClass {
     /// Look for `SecKeychainItem`s corresponding to generic passwords.
+    #[inline(always)]
     pub fn generic_password() -> Self {
         unsafe { Self(kSecClassGenericPassword) }
     }
 
     /// Look for `SecKeychainItem`s corresponding to internet passwords.
+    #[inline(always)]
     pub fn internet_password() -> Self {
         unsafe { Self(kSecClassInternetPassword) }
     }
 
     /// Look for `SecCertificate`s.
+    #[inline(always)]
     pub fn certificate() -> Self {
         unsafe { Self(kSecClassCertificate) }
     }
 
     /// Look for `SecKey`s.
+    #[inline(always)]
     pub fn key() -> Self {
         unsafe { Self(kSecClassKey) }
     }
 
     /// Look for `SecIdentity`s.
+    #[inline(always)]
     pub fn identity() -> Self {
         unsafe { Self(kSecClassIdentity) }
     }
 
+    #[inline]
     fn to_value(self) -> CFType {
         unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
     }
@@ -76,6 +82,7 @@ pub struct ItemSearchOptions {
 
 #[cfg(target_os = "macos")]
 impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
+    #[inline]
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
@@ -84,11 +91,13 @@ impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
 
 impl ItemSearchOptions {
     /// Creates a new builder with default options.
+    #[inline(always)]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Search only for items of the specified class.
+    #[inline(always)]
     pub fn class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
         self
@@ -97,6 +106,7 @@ impl ItemSearchOptions {
 
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
+    #[inline(always)]
     pub fn load_refs(&mut self, load_refs: bool) -> &mut Self {
         self.load_refs = load_refs;
         self
@@ -104,6 +114,7 @@ impl ItemSearchOptions {
 
     /// Load Security Framework object attributes for
     /// the results.
+    #[inline(always)]
     pub fn load_attributes(&mut self, load_attributes: bool) -> &mut Self {
         self.load_attributes = load_attributes;
         self
@@ -111,6 +122,7 @@ impl ItemSearchOptions {
 
     /// Load Security Framework objects data for
     /// the results.
+    #[inline(always)]
     pub fn load_data(&mut self, load_data: bool) -> &mut Self {
         self.load_data = load_data;
         self
@@ -119,12 +131,14 @@ impl ItemSearchOptions {
     /// Limit the number of search results.
     ///
     /// If this is not called, the default limit is 1.
+    #[inline(always)]
     pub fn limit(&mut self, limit: i64) -> &mut Self {
         self.limit = Some(limit);
         self
     }
 
     /// Search for an item with the given label.
+    #[inline(always)]
     pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
         self
@@ -286,6 +300,7 @@ pub enum SearchResult {
 }
 
 impl fmt::Debug for SearchResult {
+    #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Ref(ref reference) => fmt

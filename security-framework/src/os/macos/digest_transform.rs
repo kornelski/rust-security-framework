@@ -19,38 +19,47 @@ pub struct DigestType(CFStringRef);
 
 #[allow(missing_docs)]
 impl DigestType {
+    #[inline(always)]
     pub fn hmac_md5() -> Self {
         unsafe { Self(kSecDigestHMACMD5) }
     }
 
+    #[inline(always)]
     pub fn hmac_sha1() -> Self {
         unsafe { Self(kSecDigestHMACSHA1) }
     }
 
+    #[inline(always)]
     pub fn hmac_sha2() -> Self {
         unsafe { Self(kSecDigestHMACSHA2) }
     }
 
+    #[inline(always)]
     pub fn md2() -> Self {
         unsafe { Self(kSecDigestMD2) }
     }
 
+    #[inline(always)]
     pub fn md4() -> Self {
         unsafe { Self(kSecDigestMD4) }
     }
 
+    #[inline(always)]
     pub fn md5() -> Self {
         unsafe { Self(kSecDigestMD5) }
     }
 
+    #[inline(always)]
     pub fn sha1() -> Self {
         unsafe { Self(kSecDigestSHA1) }
     }
 
+    #[inline(always)]
     pub fn sha2() -> Self {
         unsafe { Self(kSecDigestSHA2) }
     }
 
+    #[inline(always)]
     fn to_type(self) -> CFTypeRef {
         self.0 as CFTypeRef
     }
@@ -64,6 +73,7 @@ pub struct Builder {
 }
 
 impl Default for Builder {
+    #[inline(always)]
     fn default() -> Self {
         Self::new()
     }
@@ -71,6 +81,7 @@ impl Default for Builder {
 
 impl Builder {
     /// Returns a new builder with default settings.
+    #[inline(always)]
     pub fn new() -> Self {
         Self {
             digest_type: None,
@@ -82,6 +93,7 @@ impl Builder {
     /// Sets the type of digest to perform.
     ///
     /// If not set, an appropriate digest will be selected for you.
+    #[inline]
     pub fn type_(&mut self, digest_type: DigestType) -> &mut Self {
         self.digest_type = Some(digest_type);
         self
@@ -91,6 +103,7 @@ impl Builder {
     ///
     /// If not set, an appropriate length will be selected for you. Some digest
     /// types only support specific output lengths.
+    #[inline]
     pub fn length(&mut self, digest_length: CFIndex) -> &mut Self {
         self.digest_length = Some(digest_length);
         self
@@ -99,6 +112,7 @@ impl Builder {
     /// Sets the key used for HMAC digests.
     ///
     /// Only applies to `HmacMd5`, `HmacSha1`, and `HmacSha2` digests.
+    #[inline]
     pub fn hmac_key(&mut self, hmac_key: CFData) -> &mut Self {
         self.hmac_key = Some(hmac_key);
         self

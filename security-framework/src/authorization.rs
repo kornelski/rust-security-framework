@@ -64,6 +64,7 @@ bitflags::bitflags! {
 }
 
 impl Default for Flags {
+    #[inline(always)]
     fn default() -> Flags {
         Flags::DEFAULTS
     }
@@ -109,6 +110,7 @@ pub struct AuthorizationItemSet<'a> {
 }
 
 impl<'a> Drop for AuthorizationItemSet<'a> {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             sys::AuthorizationFreeItemSet(self.inner as *mut sys::AuthorizationItemSet);
@@ -135,6 +137,7 @@ pub struct AuthorizationItemSetStorage {
 }
 
 impl Default for AuthorizationItemSetStorage {
+    #[inline]
     fn default() -> Self {
         AuthorizationItemSetStorage {
             names: Vec::new(),
@@ -159,6 +162,7 @@ pub struct AuthorizationItemSetBuilder {
 impl AuthorizationItemSetBuilder {
     /// Creates a new `AuthorizationItemSetStore`, which simplifies creating
     /// owned vectors of `AuthorizationItem`s.
+    #[inline(always)]
     pub fn new() -> AuthorizationItemSetBuilder {
         Default::default()
     }
@@ -252,6 +256,7 @@ impl TryFrom<AuthorizationExternalForm> for Authorization {
     type Error = Error;
 
     /// Internalizes the external representation of an authorization reference.
+    #[cold]
     fn try_from(external_form: AuthorizationExternalForm) -> Result<Self> {
         let mut handle = MaybeUninit::<sys::AuthorizationRef>::uninit();
 
@@ -275,6 +280,7 @@ impl TryFrom<AuthorizationExternalForm> for Authorization {
 impl<'a> Authorization {
     /// Creates an authorization object which has no environment or associated
     /// rights.
+    #[inline]
     pub fn default() -> Result<Self> {
         Self::new(None, None, Default::default())
     }
@@ -327,7 +333,7 @@ impl<'a> Authorization {
     /// By default the rights acquired will be retained by the Security Server.
     /// Use this to ensure they are destroyed and to prevent shared rights'
     /// continued used by other processes.
-    #[inline]
+    #[inline(always)]
     pub fn destroy_rights(mut self) {
         self.free_flags = Flags::DESTROY_RIGHTS;
     }
@@ -495,6 +501,7 @@ impl<'a> Authorization {
 }
 
 impl Drop for Authorization {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             sys::AuthorizationFree(self.handle, self.free_flags.bits());

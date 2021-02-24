@@ -29,10 +29,12 @@ pub trait Pkcs12ImportOptionsExt {
 }
 
 impl Pkcs12ImportOptionsExt for Pkcs12ImportOptions {
+    #[inline(always)]
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         crate::Pkcs12ImportOptionsInternals::keychain(self, keychain)
     }
 
+    #[inline(always)]
     fn access(&mut self, access: SecAccess) -> &mut Self {
         crate::Pkcs12ImportOptionsInternals::access(self, access)
     }
@@ -53,6 +55,7 @@ pub struct ImportOptions<'a> {
 
 impl<'a> ImportOptions<'a> {
     /// Creates a new builder with default options.
+    #[inline(always)]
     pub fn new() -> ImportOptions<'a> {
         ImportOptions::default()
     }
@@ -79,12 +82,14 @@ impl<'a> ImportOptions<'a> {
 
     /// If set, the user will be prompted to imput the passphrase used to
     /// decrypt the imported data.
+    #[inline(always)]
     pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut ImportOptions<'a> {
         self.secure_passphrase = secure_passphrase;
         self
     }
 
     /// If set, imported items will have no access controls imposed on them.
+    #[inline(always)]
     pub fn no_access_control(&mut self, no_access_control: bool) -> &mut ImportOptions<'a> {
         self.no_access_control = no_access_control;
         self
@@ -105,6 +110,7 @@ impl<'a> ImportOptions<'a> {
     }
 
     /// Sets the object into which imported items will be placed.
+    #[inline(always)]
     pub fn items(&mut self, items: &'a mut SecItems) -> &mut ImportOptions<'a> {
         self.items = Some(items);
         self

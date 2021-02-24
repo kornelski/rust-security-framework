@@ -44,6 +44,7 @@ impl TrustResult {
 
 impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
+    #[inline]
     pub fn success(self) -> bool {
         match self {
             Self::PROCEED | Self::UNSPECIFIED => true,
@@ -106,6 +107,7 @@ impl SecTrust {
     }
 
     /// Returns the public key for a leaf certificate after it has been evaluated.
+    #[inline]
     pub fn copy_public_key(&mut self) -> Result<SecKey> {
         unsafe {
             Ok(SecKey::wrap_under_create_rule(SecTrustCopyPublicKey(
@@ -139,6 +141,7 @@ impl SecTrust {
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
     /// Note: evaluate must first be called on the SecTrust.
+    #[inline(always)]
     pub fn certificate_count(&self) -> CFIndex {
         unsafe { SecTrustGetCertificateCount(self.0) }
     }

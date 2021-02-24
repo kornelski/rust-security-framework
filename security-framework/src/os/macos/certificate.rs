@@ -137,6 +137,7 @@ pub struct PropertySection(CFArray<CFDictionary>);
 
 impl PropertySection {
     /// Returns an iterator over the properties in this section.
+    #[inline(always)]
     pub fn iter(&self) -> PropertySectionIter<'_> {
         PropertySectionIter(self.0.iter())
     }
@@ -146,6 +147,7 @@ impl<'a> IntoIterator for &'a PropertySection {
     type IntoIter = PropertySectionIter<'a>;
     type Item = CertificateProperty;
 
+    #[inline(always)]
     fn into_iter(self) -> PropertySectionIter<'a> {
         self.iter()
     }
@@ -161,6 +163,7 @@ impl<'a> Iterator for PropertySectionIter<'a> {
         self.0.next().map(|t| CertificateProperty(t.clone()))
     }
 
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.0.size_hint()
     }

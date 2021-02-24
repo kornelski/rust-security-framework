@@ -43,6 +43,7 @@ unsafe impl Sync for SecCertificate {}
 unsafe impl Send for SecCertificate {}
 
 impl fmt::Debug for SecCertificate {
+    #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("SecCertificate")
             .field("subject", &self.subject_summary())
