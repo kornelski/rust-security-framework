@@ -296,6 +296,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                     SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
+                    #[cfg(feature = "log")]
                     log::warn!("SecTrustEvaluateWithError: {}", error.to_string());
                     Error::from_code(error.code() as _)
                 })?;
