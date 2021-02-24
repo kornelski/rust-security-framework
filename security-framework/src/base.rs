@@ -5,13 +5,14 @@ use core_foundation_sys::base::OSStatus;
 use std::error;
 use std::fmt;
 use std::result;
+use std::num::NonZeroI32;
 
 /// A `Result` type commonly returned by functions.
 pub type Result<T, E = Error> = result::Result<T, E>;
 
 /// A Security Framework error.
 #[derive(Copy, Clone)]
-pub struct Error(OSStatus);
+pub struct Error(NonZeroI32);
 
 impl fmt::Debug for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -26,8 +27,9 @@ impl fmt::Debug for Error {
 
 impl Error {
     /// Creates a new `Error` from a status code.
+    /// The code must not be zero
     pub fn from_code(code: OSStatus) -> Self {
-        Self(code)
+        Self(NonZeroI32::new(code as i32).unwrap_or(NonZeroI32::new(1).unwrap()))
     }
 
     /// Returns a string describing the current error, if available.
@@ -42,7 +44,7 @@ impl Error {
         use std::ptr;
 
         unsafe {
-            let s = SecCopyErrorMessageString(self.0, ptr::null_mut());
+            let s = SecCopyErrorMessageString(self.code(), ptr::null_mut());
             if s.is_null() {
                 None
             } else {
@@ -58,7 +60,7 @@ impl Error {
 
     /// Returns the code of the current error.
     pub fn code(self) -> OSStatus {
-        self.0
+        self.0.get() as _
     }
 }
 
@@ -79,7 +81,4 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {
-    fn description(&self) -> &str {
-        "Security Framework error"
-    }
 }
