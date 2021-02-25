@@ -104,10 +104,10 @@ use crate::base::{Error, Result};
 use crate::certificate::SecCertificate;
 use crate::cipher_suite::CipherSuite;
 use crate::identity::SecIdentity;
+use crate::import_export::Pkcs12ImportOptions;
 use crate::policy::SecPolicy;
 use crate::trust::SecTrust;
 use crate::{cvt, AsInner};
-use crate::import_export::Pkcs12ImportOptions;
 use security_framework_sys::base::errSecParam;
 
 /// Specifies a side of a TLS session.

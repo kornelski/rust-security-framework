@@ -1,6 +1,5 @@
 #![allow(bad_style)]
 
-
 #[cfg_attr(
     any(target_os = "macos", target_os = "ios"),
     link(name = "Security", kind = "framework")

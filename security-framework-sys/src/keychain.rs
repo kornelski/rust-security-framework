@@ -1,7 +1,11 @@
-use core_foundation_sys::base::{Boolean, CFTypeID, CFTypeRef, OSStatus};
+#[cfg(target_os = "macos")]
+use core_foundation_sys::base::CFTypeRef;
+use core_foundation_sys::base::{Boolean, CFTypeID, OSStatus};
 use std::os::raw::{c_char, c_uint, c_void};
 
-use crate::base::{SecAccessRef, SecKeychainItemRef, SecKeychainRef};
+#[cfg(target_os = "macos")]
+use crate::base::SecKeychainItemRef;
+use crate::base::{SecAccessRef, SecKeychainRef};
 
 pub const SEC_KEYCHAIN_SETTINGS_VERS1: c_uint = 1;
 

@@ -12,7 +12,7 @@ use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::key::SecKey;
 use crate::policy::SecPolicy;
-use core_foundation::error::{CFErrorRef, CFError};
+use core_foundation::error::{CFError, CFErrorRef};
 
 /// The result of trust evaluation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
