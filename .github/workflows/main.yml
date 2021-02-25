@@ -29,6 +29,33 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all-features
+
+      - name: Check default features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+  ios:
+    name: iOS compile-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: aarch64-apple-ios
+          override: true
+
+      - name: Run check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features -p security-framework --target aarch64-apple-ios
 
   lints:
     name: Lints
@@ -49,3 +76,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
+          args: --all-features
