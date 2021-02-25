@@ -9,6 +9,8 @@ use security_framework_sys::access::*;
 use security_framework_sys::authorization::*;
 use security_framework_sys::base::*;
 use security_framework_sys::certificate::*;
+#[cfg(target_os = "macos")]
+use security_framework_sys::certificate_oids::*;
 use security_framework_sys::cipher_suite::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::digest_transform::*;
@@ -27,8 +29,6 @@ use security_framework_sys::random::*;
 use security_framework_sys::secure_transport::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::transform::*;
-#[cfg(target_os = "macos")]
-use security_framework_sys::certificate_oids::*;
 use security_framework_sys::trust::*;
 use security_framework_sys::trust_settings::*;
 
