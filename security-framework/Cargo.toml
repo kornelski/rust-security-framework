@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "2.1.1"
+version = "2.1.2"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
@@ -36,6 +36,7 @@ OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]
 OSX_10_11 = ["OSX_10_10", "security-framework-sys/OSX_10_11"]
 OSX_10_12 = ["OSX_10_11", "security-framework-sys/OSX_10_12"]
 OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13", "alpn", "session-tickets"]
+OSX_10_14 = ["OSX_10_13"]
 
 nightly = []
 

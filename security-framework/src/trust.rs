@@ -125,8 +125,9 @@ impl SecTrust {
         }
     }
 
-    /// Evaluates trust.
+    /// Evaluates trust. Requires macOS 10.14, otherwise it just calls `evaluate()`
     pub fn evaluate_with_error(&self) -> Result<(), CFError> {
+        #[cfg(feature = "OSX_10_14")]
         unsafe {
             let mut error: CFErrorRef = ::std::ptr::null_mut();
             if !SecTrustEvaluateWithError(self.0, &mut error) {
@@ -135,6 +136,19 @@ impl SecTrust {
                 return Err(error);
             }
             Ok(())
+        }
+        #[cfg(not(feature = "OSX_10_14"))]
+        {
+            use security_framework_sys::base::errSecNotTrusted;
+            use security_framework_sys::base::errSecTrustSettingDeny;
+
+            let code = match self.evaluate() {
+                Ok(res) if res.success() => return Ok(()),
+                Ok(TrustResult::DENY) => errSecTrustSettingDeny,
+                Ok(_) => errSecNotTrusted,
+                Err(err) => err.code(),
+            };
+            Err(cferror_from_osstatus(code))
         }
     }
 
@@ -158,6 +172,20 @@ impl SecTrust {
                 Some(SecCertificate::wrap_under_get_rule(certificate as *mut _))
             }
         }
+    }
+}
+
+#[cfg(not(feature = "OSX_10_14"))]
+extern "C" {
+    fn CFErrorCreate(allocator: core_foundation_sys::base::CFAllocatorRef, domain: core_foundation_sys::string::CFStringRef, code: CFIndex, userInfo: core_foundation_sys::dictionary::CFDictionaryRef) -> CFErrorRef;
+}
+
+#[cfg(not(feature = "OSX_10_14"))]
+fn cferror_from_osstatus(code: core_foundation_sys::base::OSStatus) -> CFError {
+    unsafe {
+        let error = CFErrorCreate(ptr::null_mut(), core_foundation_sys::error::kCFErrorDomainOSStatus, code as _, ptr::null_mut());
+        assert!(!error.is_null());
+        CFError::wrap_under_create_rule(error)
     }
 }
 
