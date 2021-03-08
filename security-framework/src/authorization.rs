@@ -17,7 +17,8 @@ use std::mem::MaybeUninit;
 use std::os::raw::c_void;
 use std::{
     convert::TryFrom,
-    ffi::{CStr, CString},
+    ffi::{CStr, CString, OsStr},
+    path::Path,
 };
 use std::{convert::TryInto, marker::PhantomData};
 use sys::AuthorizationExternalForm;
@@ -498,6 +499,50 @@ impl<'a> Authorization {
 
         Ok(unsafe { external_form.assume_init() })
     }
+
+    /// Runs an executable tool with root privileges.
+    #[cfg(target_os = "macos")]
+    pub fn execute_with_privileges<P, S, I>(
+        &self,
+        command: P,
+        arguments: I,
+        flags: Flags,
+    ) -> Result<()>
+    where
+        P: AsRef<Path>,
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        // OsStr::as_bytes
+        use std::os::unix::ffi::OsStrExt as _;
+
+        let c_cmd = cstring_or_err!(command.as_ref().as_os_str().as_bytes())?;
+
+        let args = arguments
+            .into_iter()
+            .map(|a| CString::new(a.as_ref().as_bytes()))
+            .flatten()
+            .collect::<Vec<_>>();
+
+        let mut c_args = args.iter().map(|a| a.as_ptr() as _).collect::<Vec<_>>();
+        c_args.push(std::ptr::null_mut());
+
+        let status = unsafe {
+            sys::AuthorizationExecuteWithPrivileges(
+                self.handle,
+                c_cmd.as_ptr(),
+                flags.bits(),
+                c_args.as_ptr(),
+                std::ptr::null_mut(),
+            )
+        };
+
+        if status != sys::errAuthorizationSuccess {
+            Err(Error::from(status))
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Drop for Authorization {
@@ -649,6 +694,28 @@ mod tests {
         auth.remove_right("TEST_RIGHT").unwrap();
 
         assert!(!Authorization::right_exists("TEST_RIGHT")?);
+
+        Ok(())
+    }
+
+    /// This test will succeed if authorization popup is approved.
+    #[test]
+    #[ignore]
+    fn test_execute_with_privileges() -> Result<()> {
+        let rights = AuthorizationItemSetBuilder::new()
+            .add_right("system.privilege.admin")?
+            .build();
+
+        let auth = Authorization::new(
+            Some(rights),
+            None,
+            Flags::DEFAULTS
+                | Flags::INTERACTION_ALLOWED
+                | Flags::PREAUTHORIZE
+                | Flags::EXTEND_RIGHTS,
+        )?;
+
+        auth.execute_with_privileges("/bin/ls", &["/"], Flags::DEFAULTS)?;
 
         Ok(())
     }
