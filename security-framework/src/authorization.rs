@@ -17,8 +17,7 @@ use std::mem::MaybeUninit;
 use std::os::raw::c_void;
 use std::{
     convert::TryFrom,
-    ffi::{CStr, CString, OsStr},
-    path::Path,
+    ffi::{CStr, CString},
 };
 use std::{convert::TryInto, marker::PhantomData};
 use sys::AuthorizationExternalForm;
@@ -509,9 +508,9 @@ impl<'a> Authorization {
         flags: Flags,
     ) -> Result<()>
     where
-        P: AsRef<Path>,
+        P: AsRef<std::path::Path>,
         I: IntoIterator<Item = S>,
-        S: AsRef<OsStr>,
+        S: AsRef<std::ffi::OsStr>,
     {
         // OsStr::as_bytes
         use std::os::unix::ffi::OsStrExt as _;
