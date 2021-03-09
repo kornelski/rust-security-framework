@@ -536,11 +536,7 @@ impl<'a> Authorization {
             )
         };
 
-        if status != sys::errAuthorizationSuccess {
-            Err(Error::from(status))
-        } else {
-            Ok(())
-        }
+        crate::cvt(status)
     }
 }
 
