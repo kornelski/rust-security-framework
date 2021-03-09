@@ -41,7 +41,7 @@ impl SecKey {
     pub fn external_representation(&self) -> Option<CFData> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let data = unsafe { SecKeyCopyExternalRepresentation(self.to_void() as _, &mut error) };
-        if data == ::std::ptr::null() {
+        if data.is_null() {
             return None;
         }
         Some(unsafe { CFData::wrap_under_create_rule(data) })

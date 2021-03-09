@@ -1,3 +1,4 @@
+#![allow(invalid_value)] // mem::uninitialized has to stay
 #![allow(bad_style)]
 
 use core_foundation_sys::base::OSStatus;

@@ -139,6 +139,7 @@ pub fn find_generic_password(
 /// * `port`: The TCP/IP port number.
 /// * `protocol`: The protocol associated with this password.
 /// * `authentication_type`: The authentication scheme used.
+#[allow(clippy::too_many_arguments)]
 pub fn find_internet_password(
     keychains: Option<&[SecKeychain]>,
     server: &str,
@@ -202,6 +203,7 @@ impl SecKeychain {
 
     /// Find internet password in this keychain
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     pub fn find_internet_password(
         &self,
         server: &str,
@@ -225,6 +227,7 @@ impl SecKeychain {
     }
 
     /// Update existing or add new internet password
+    #[allow(clippy::too_many_arguments)]
     pub fn set_internet_password(
         &self,
         server: &str,
@@ -307,6 +310,7 @@ impl SecKeychain {
     ///
     /// See `set_internet_password()`
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     pub fn add_internet_password(
         &self,
         server: &str,

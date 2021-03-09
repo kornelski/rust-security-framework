@@ -1,6 +1,7 @@
 //! Wrappers around the OSX Security Framework.
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
+#![allow(clippy::manual_non_exhaustive)] // MSRV
 
 #[macro_use]
 extern crate core_foundation;

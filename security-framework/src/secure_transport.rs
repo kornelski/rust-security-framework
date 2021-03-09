@@ -307,7 +307,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
                 let policy =
-                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
+                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_deref());
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
                     #[cfg(feature = "log")]
@@ -1454,7 +1454,7 @@ impl ServerBuilder {
             .import(pkcs12_der)?
             .into_iter()
             .flat_map(|idendity| {
-                let certs = idendity.cert_chain.unwrap_or(Vec::new());
+                let certs = idendity.cert_chain.unwrap_or_default();
                 idendity.identity.map(|identity| (identity, certs))
             })
             .collect();
@@ -1481,7 +1481,7 @@ impl ServerBuilder {
     {
         match self.new_ssl_context()?.handshake(stream) {
             Ok(stream) => Ok(stream),
-            Err(HandshakeError::Interrupted(stream)) => Err(stream.error().clone()),
+            Err(HandshakeError::Interrupted(stream)) => Err(*stream.error()),
             Err(HandshakeError::Failure(err)) => Err(err),
         }
     }

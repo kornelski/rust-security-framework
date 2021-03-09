@@ -215,6 +215,13 @@ impl KeychainSettings {
     }
 }
 
+impl Default for KeychainSettings {
+    #[inline(always)]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(target_os = "macos")]
 #[must_use = "The user interaction is disabled for the lifetime of the returned object"]
 /// Automatically re-enables user interaction.
