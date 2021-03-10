@@ -1,5 +1,3 @@
-#![allow(clippy::upper_case_acronyms)]
-
 #[cfg(target_os = "macos")]
 use core_foundation_sys::base::CFTypeRef;
 use core_foundation_sys::base::{Boolean, CFTypeID, OSStatus};

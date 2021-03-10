@@ -307,7 +307,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
                 let policy =
-                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_deref());
+                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
                     #[cfg(feature = "log")]
