@@ -13,6 +13,8 @@ use crate::base::{Error, Result};
 use crate::cvt;
 use crate::os::macos::access::SecAccess;
 
+pub use security_framework_sys::keychain::SecPreferencesDomain;
+
 declare_TCFType! {
     /// A type representing a keychain.
     SecKeychain, SecKeychainRef
