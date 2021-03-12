@@ -34,6 +34,16 @@ impl SecKeychain {
         }
     }
 
+    /// Creates a `SecKeychain` object corresponding to the user's default
+    /// keychain for the given domain.
+    pub fn default_for_domain(domain: SecPreferencesDomain) -> Result<Self> {
+        unsafe {
+            let mut keychain = ptr::null_mut();
+            cvt(SecKeychainCopyDomainDefault(domain, &mut keychain))?;
+            Ok(Self::wrap_under_create_rule(keychain))
+        }
+    }
+
     /// Opens a keychain from a file.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path_name = path.as_ref().as_os_str().as_bytes();
