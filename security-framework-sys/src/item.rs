@@ -9,6 +9,7 @@ extern "C" {
     pub static kSecClassIdentity: CFStringRef;
 
     pub static kSecMatchLimit: CFStringRef;
+    pub static kSecMatchLimitAll: CFStringRef;
 
     pub static kSecReturnData: CFStringRef;
     pub static kSecReturnAttributes: CFStringRef;
@@ -40,4 +41,7 @@ extern "C" {
     pub static kSecAttrKeyTypeCAST: CFStringRef;
     #[cfg(feature = "OSX_10_9")]
     pub static kSecAttrKeyTypeEC: CFStringRef;
+
+    pub static kSecAttrAccessGroup: CFStringRef;
+    pub static kSecAttrAccessGroupToken: CFStringRef;
 }

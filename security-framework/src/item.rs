@@ -65,6 +65,32 @@ impl ItemClass {
     }
 }
 
+/// Specifies the number of results returned by a search
+#[derive(Debug, Copy, Clone)]
+pub enum Limit {
+    /// Always return all results
+    All,
+
+    /// Return up to the specified number of results
+    Max(i64),
+}
+
+impl Limit {
+    #[inline]
+    fn to_value(self) -> CFType {
+        match self {
+            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() }
+            Self::Max(l) => CFNumber::from(l).as_CFType()
+        }
+    }
+}
+
+impl From<i64> for Limit {
+    fn from(limit: i64) -> Self {
+        Self::Max(limit)
+    }
+}
+
 /// A builder type to search for items in keychains.
 #[derive(Default)]
 pub struct ItemSearchOptions {
@@ -76,8 +102,9 @@ pub struct ItemSearchOptions {
     load_refs: bool,
     load_attributes: bool,
     load_data: bool,
-    limit: Option<i64>,
+    limit: Option<Limit>,
     label: Option<CFString>,
+    access_group: Option<CFString>,
 }
 
 #[cfg(target_os = "macos")]
@@ -132,8 +159,8 @@ impl ItemSearchOptions {
     ///
     /// If this is not called, the default limit is 1.
     #[inline(always)]
-    pub fn limit(&mut self, limit: i64) -> &mut Self {
-        self.limit = Some(limit);
+    pub fn limit<T: Into<Limit>>(&mut self, limit: T) -> &mut Self {
+        self.limit = Some(limit.into());
         self
     }
 
@@ -141,6 +168,13 @@ impl ItemSearchOptions {
     #[inline(always)]
     pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
+        self
+    }
+
+    /// Sets kSecAttrAccessGroup to kSecAttrAccessGroupToken
+    #[inline(always)]
+    pub fn access_group_token(&mut self) -> &mut Self {
+        self.access_group = unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
         self
     }
 
@@ -184,7 +218,7 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((
                     CFString::wrap_under_get_rule(kSecMatchLimit),
-                    CFNumber::from(limit).as_CFType(),
+                    limit.to_value()
                 ));
             }
 
@@ -192,6 +226,13 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrLabel),
                     label.as_CFType(),
+                ));
+            }
+
+            if let Some(ref access_group) = self.access_group {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrAccessGroup),
+                    access_group.as_CFType(),
                 ));
             }
 
@@ -377,5 +418,15 @@ mod test {
             .search()
             .unwrap();
         assert_eq!(results.len(), 2);
+    }
+
+    #[test]
+    fn limit_all() {
+        let results = ItemSearchOptions::new()
+            .class(ItemClass::certificate())
+            .limit(Limit::All)
+            .search()
+            .unwrap();
+        assert!(results.len() >= 2);
     }
 }
