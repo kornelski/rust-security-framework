@@ -18,6 +18,7 @@ use std::os::raw::c_void;
 use std::{
     convert::TryFrom,
     ffi::{CStr, CString},
+    fs::File,
 };
 use std::{convert::TryInto, marker::PhantomData};
 use sys::AuthorizationExternalForm;
@@ -506,14 +507,17 @@ impl<'a> Authorization {
         command: P,
         arguments: I,
         flags: Flags,
-    ) -> Result<()>
+    ) -> Result<File>
     where
         P: AsRef<std::path::Path>,
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
     {
         // OsStr::as_bytes
-        use std::os::unix::ffi::OsStrExt as _;
+        use std::os::unix::{
+            ffi::OsStrExt as _,
+            io::{FromRawFd, RawFd},
+        };
 
         let c_cmd = cstring_or_err!(command.as_ref().as_os_str().as_bytes())?;
 
@@ -526,17 +530,19 @@ impl<'a> Authorization {
         let mut c_args = args.iter().map(|a| a.as_ptr() as _).collect::<Vec<_>>();
         c_args.push(std::ptr::null_mut());
 
+        let mut pipe: *mut libc::FILE = std::ptr::null_mut();
+
         let status = unsafe {
             sys::AuthorizationExecuteWithPrivileges(
                 self.handle,
                 c_cmd.as_ptr(),
                 flags.bits(),
                 c_args.as_ptr(),
-                std::ptr::null_mut(),
+                &mut pipe,
             )
         };
 
-        crate::cvt(status)
+        crate::cvt(status).map(|_| unsafe { File::from_raw_fd(libc::fileno(pipe) as RawFd) })
     }
 }
 
@@ -710,7 +716,14 @@ mod tests {
                 | Flags::EXTEND_RIGHTS,
         )?;
 
-        auth.execute_with_privileges("/bin/ls", &["/"], Flags::DEFAULTS)?;
+        let file = auth.execute_with_privileges("/bin/ls", &["/"], Flags::DEFAULTS)?;
+
+        use std::io::{self, BufRead};
+        for line in io::BufReader::new(file).lines() {
+            if let Ok(s) = line {
+                // println!("{}", s);
+            }
+        }
 
         Ok(())
     }
