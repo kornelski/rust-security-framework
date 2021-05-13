@@ -2,12 +2,12 @@ use core_foundation_sys::base::CFTypeID;
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::error::CFErrorRef;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use core_foundation_sys::string::CFStringRef;
 
 use crate::base::SecKeyRef;
 
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 pub type SecKeyAlgorithm = CFStringRef;
 
 extern "C" {
@@ -20,12 +20,12 @@ extern "C" {
         error: *mut CFErrorRef,
     ) -> SecKeyRef;
 
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     pub fn SecKeyCopyAttributes(key: SecKeyRef) -> CFDictionaryRef;
 
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     pub fn SecKeyCreateSignature(
         key: SecKeyRef,
         algorithm: SecKeyAlgorithm,
@@ -34,7 +34,7 @@ extern "C" {
     ) -> CFDataRef;
 }
 
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 macro_rules! names {
     ($($i:ident => $x:ident),*) => {
         extern "C" {
@@ -58,7 +58,7 @@ macro_rules! names {
     }
 }
 
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 names! {
     ECIESEncryptionStandardX963SHA1AESGCM => kSecKeyAlgorithmECIESEncryptionStandardX963SHA1AESGCM,
     ECIESEncryptionStandardX963SHA224AESGCM => kSecKeyAlgorithmECIESEncryptionStandardX963SHA224AESGCM,

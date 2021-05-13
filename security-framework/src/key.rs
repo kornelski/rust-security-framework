@@ -1,19 +1,19 @@
 //! Encryption key support
 
 use core_foundation::base::TCFType;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use core_foundation::base::ToVoid;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use core_foundation::data::CFData;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use core_foundation::dictionary::CFDictionary;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use core_foundation::error::{CFError, CFErrorRef};
 use security_framework_sys::base::SecKeyRef;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 pub use security_framework_sys::key::Algorithm;
 use security_framework_sys::key::SecKeyGetTypeID;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
 use security_framework_sys::key::{
     SecKeyCopyAttributes, SecKeyCopyExternalRepresentation, SecKeyCreateSignature,
 };
@@ -29,14 +29,14 @@ unsafe impl Sync for SecKey {}
 unsafe impl Send for SecKey {}
 
 impl SecKey {
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     /// Translates to SecKeyCopyAttributes
     pub fn attributes(&self) -> CFDictionary {
         let pka = unsafe { SecKeyCopyAttributes(self.to_void() as _) };
         unsafe { CFDictionary::wrap_under_create_rule(pka) }
     }
 
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     /// Translates to SecKeyCopyExternalRepresentation
     pub fn external_representation(&self) -> Option<CFData> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
@@ -47,7 +47,7 @@ impl SecKey {
         Some(unsafe { CFData::wrap_under_create_rule(data) })
     }
 
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "macos"))]
     /// Creates the cryptographic signature for a block of data using a private
     /// key and specified algorithm.
     pub fn create_signature(
