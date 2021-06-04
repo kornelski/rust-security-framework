@@ -30,6 +30,7 @@ jobs:
         with:
           command: test
           args: --all-features
+        continue-on-error: ${{ matrix.rust == 'nightly' }}
 
       - name: Check default features
         uses: actions-rs/cargo@v1
