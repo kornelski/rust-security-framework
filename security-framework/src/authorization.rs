@@ -721,7 +721,7 @@ mod tests {
         use std::io::{self, BufRead};
         for line in io::BufReader::new(file).lines() {
             if let Ok(s) = line {
-                // println!("{}", s);
+                println!("{}", s);
             }
         }
 

@@ -15,6 +15,8 @@ use security_framework_sys::certificate::*;
 use security_framework_sys::certificate_oids::*;
 use security_framework_sys::cipher_suite::*;
 #[cfg(target_os = "macos")]
+use security_framework_sys::code_signing::*;
+#[cfg(target_os = "macos")]
 use security_framework_sys::digest_transform::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::encrypt_transform::*;
