@@ -12,8 +12,13 @@ use core_foundation::{
 };
 use libc::pid_t;
 use security_framework_sys::code_signing::{
-    kSecCSCheckTrustedAnchors, kSecCSConsiderExpiration, kSecCSEnforceRevocationChecks,
-    kSecCSNoNetworkAccess, kSecCSQuickCheck, kSecCSReportProgress, kSecGuestAttributeAudit,
+    kSecCSAllowNetworkAccess, kSecCSBasicValidateOnly, kSecCSCheckAllArchitectures,
+    kSecCSCheckGatekeeperArchitectures, kSecCSCheckNestedCode, kSecCSCheckTrustedAnchors,
+    kSecCSConsiderExpiration, kSecCSDoNotValidateExecutable, kSecCSDoNotValidateResources,
+    kSecCSEnforceRevocationChecks, kSecCSFullReport, kSecCSNoNetworkAccess, kSecCSQuickCheck,
+    kSecCSReportProgress, kSecCSRestrictSidebandData, kSecCSRestrictSymlinks,
+    kSecCSRestrictToAppLike, kSecCSSingleThreaded, kSecCSStrictValidate,
+    kSecCSUseSoftwareSigningCert, kSecCSValidatePEH, kSecGuestAttributeAudit,
     kSecGuestAttributePid, SecCodeCheckValidity, SecCodeCopyGuestWithAttributes, SecCodeCopyPath,
     SecCodeCopySelf, SecCodeGetTypeID, SecCodeRef, SecRequirementCreateWithString,
     SecRequirementGetTypeID, SecRequirementRef, SecStaticCodeCheckValidity,
@@ -23,18 +28,79 @@ use security_framework_sys::code_signing::{
 use crate::{cvt, Result};
 
 bitflags::bitflags! {
+
     /// Values that can be used in the flags parameter to most code signing
     /// functions.
     pub struct Flags: u32 {
+        /// Use the default behaviour.
         const NONE = 0;
 
-        /// Consider expired certificates invalid.
-        const CONSIDER_EXPIRATION = kSecCSConsiderExpiration;
-        const ENFORCE_REVOCATION_CHECKS = kSecCSEnforceRevocationChecks;
-        const NO_NETWORK_ACCESS = kSecCSNoNetworkAccess;
-        const REPORT_PROGRESS = kSecCSReportProgress;
-        const CHECK_TRUSTED_ANCHORS = kSecCSCheckTrustedAnchors;
+        /// For multi-architecture (universal) Mach-O programs, validate all
+        /// architectures included.
+        const CHECK_ALL_ARCHITECTURES = kSecCSCheckAllArchitectures;
+
+        /// Do not validate the contents of the main executable.
+        const DO_NOT_VALIDATE_EXECUTABLE = kSecCSDoNotValidateExecutable;
+
+        /// Do not validate the presence and contents of all bundle resources
+        /// if any.
+        const DO_NOT_VALIDATE_RESOURCES = kSecCSDoNotValidateResources;
+
+        /// Do not validate either the main executable or the bundle resources,
+        /// if any.
+        const BASIC_VALIDATE_ONLY = kSecCSBasicValidateOnly;
+
+        /// For code in bundle form, locate and recursively check embedded code.
+        const CHECK_NESTED_CODE = kSecCSCheckNestedCode;
+
+        /// Perform additional checks to ensure the validity of code in bundle
+        /// form.
+        const STRICT_VALIDATE = kSecCSStrictValidate;
+
+        /// Apple have not documented this flag.
+        const FULL_REPORT = kSecCSFullReport;
+
+        /// Apple have not documented this flag.
+        const CHECK_GATEKEEPER_ARCHITECTURES = kSecCSCheckGatekeeperArchitectures;
+
+        /// Apple have not documented this flag.
+        const RESTRICT_SYMLINKS = kSecCSRestrictSymlinks;
+
+        /// Apple have not documented this flag.
+        const RESTRICT_TO_APP_LIKE = kSecCSRestrictToAppLike;
+
+        /// Apple have not documented this flag.
+        const RESTRICT_SIDEBAND_DATA = kSecCSRestrictSidebandData;
+
+        /// Apple have not documented this flag.
+        const USE_SOFTWARE_SIGNING_CERT = kSecCSUseSoftwareSigningCert;
+
+        /// Apple have not documented this flag.
+        const VALIDATE_PEH = kSecCSValidatePEH;
+
+        /// Apple have not documented this flag.
+        const SINGLE_THREADED = kSecCSSingleThreaded;
+
+        /// Apple have not documented this flag.
+        const ALLOW_NETWORK_ACCESS = kSecCSAllowNetworkAccess;
+
+        /// Apple have not documented this flag.
         const QUICK_CHECK = kSecCSQuickCheck;
+
+        /// Apple have not documented this flag.
+        const CHECK_TRUSTED_ANCHORS = kSecCSCheckTrustedAnchors;
+
+        /// Apple have not documented this flag.
+        const REPORT_PROGRESS = kSecCSReportProgress;
+
+        /// Apple have not documented this flag.
+        const NO_NETWORK_ACCESS = kSecCSNoNetworkAccess;
+
+        /// Apple have not documented this flag.
+        const ENFORCE_REVOCATION_CHECKS = kSecCSEnforceRevocationChecks;
+
+        /// Apple have not documented this flag.
+        const CONSIDER_EXPIRATION = kSecCSConsiderExpiration;
     }
 }
 
