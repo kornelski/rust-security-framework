@@ -11,17 +11,13 @@ use core_foundation::{
     url::CFURL,
 };
 use libc::pid_t;
-use security_framework_sys::{
-    base::errSecSuccess,
-    code_signing::{
-        kSecCSCheckTrustedAnchors, kSecCSConsiderExpiration, kSecCSEnforceRevocationChecks,
-        kSecCSNoNetworkAccess, kSecCSQuickCheck, kSecCSReportProgress, kSecGuestAttributeAudit,
-        kSecGuestAttributePid, SecCodeCheckValidity, SecCodeCopyGuestWithAttributes,
-        SecCodeCopyPath, SecCodeCopySelf, SecCodeGetTypeID, SecCodeRef,
-        SecRequirementCreateWithString, SecRequirementGetTypeID, SecRequirementRef,
-        SecStaticCodeCheckValidity, SecStaticCodeCreateWithPath, SecStaticCodeGetTypeID,
-        SecStaticCodeRef,
-    },
+use security_framework_sys::code_signing::{
+    kSecCSCheckTrustedAnchors, kSecCSConsiderExpiration, kSecCSEnforceRevocationChecks,
+    kSecCSNoNetworkAccess, kSecCSQuickCheck, kSecCSReportProgress, kSecGuestAttributeAudit,
+    kSecGuestAttributePid, SecCodeCheckValidity, SecCodeCopyGuestWithAttributes, SecCodeCopyPath,
+    SecCodeCopySelf, SecCodeGetTypeID, SecCodeRef, SecRequirementCreateWithString,
+    SecRequirementGetTypeID, SecRequirementRef, SecStaticCodeCheckValidity,
+    SecStaticCodeCreateWithPath, SecStaticCodeGetTypeID, SecStaticCodeRef,
 };
 
 use crate::{cvt, Result};
@@ -112,16 +108,13 @@ impl_TCFType!(SecCode, SecCodeRef, SecCodeGetTypeID);
 
 impl SecCode {
     /// Retrieves the code object for the code making the call.
-    pub fn for_self(flags: Flags) -> Self {
+    pub fn for_self(flags: Flags) -> Result<Self> {
         let mut code = MaybeUninit::uninit();
 
-        let status = unsafe { SecCodeCopySelf(flags.bits(), code.as_mut_ptr()) };
-
-        if status != errSecSuccess {
-            panic!("TODO: error");
+        unsafe {
+            cvt(SecCodeCopySelf(flags.bits(), code.as_mut_ptr()))?;
+            Ok(Self::wrap_under_create_rule(code.assume_init()))
         }
-
-        unsafe { Self::wrap_under_create_rule(code.assume_init()) }
     }
 
     /// Performs dynamic validation of signed code.
@@ -248,7 +241,7 @@ mod test {
     #[test]
     fn self_to_path() {
         let path = CFURL::from_path(std::env::current_exe().unwrap(), false).unwrap();
-        let code = SecCode::for_self(Flags::NONE);
+        let code = SecCode::for_self(Flags::NONE).unwrap();
         assert_eq!(code.path(Flags::NONE).unwrap(), path);
     }
 
@@ -262,7 +255,7 @@ mod test {
 
     #[test]
     fn self_is_not_signed_by_apple() {
-        let code = SecCode::for_self(Flags::NONE);
+        let code = SecCode::for_self(Flags::NONE).unwrap();
         let requirement: SecRequirement = "anchor apple".parse().unwrap();
 
         assert_eq!(
