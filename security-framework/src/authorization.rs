@@ -501,8 +501,36 @@ impl<'a> Authorization {
     }
 
     /// Runs an executable tool with root privileges.
+    /// Discards executable's output
     #[cfg(target_os = "macos")]
+    #[inline(always)]
     pub fn execute_with_privileges<P, S, I>(
+        &self,
+        command: P,
+        arguments: I,
+        flags: Flags,
+    ) -> Result<()>
+    where
+        P: AsRef<std::path::Path>,
+        I: IntoIterator<Item = S>,
+        S: AsRef<std::ffi::OsStr>,
+    {
+        use std::os::unix::ffi::OsStrExt;
+
+        let arguments = arguments
+            .into_iter()
+            .map(|a| CString::new(a.as_ref().as_bytes()))
+            .flatten()
+            .collect::<Vec<_>>();
+        self.execute_with_privileges_internal(command.as_ref().as_os_str().as_bytes(), &arguments, flags, false)?;
+        Ok(())
+    }
+
+    /// Runs an executable tool with root privileges,
+    /// and returns a `File` handle to its communication pipe
+    #[cfg(target_os = "macos")]
+    #[inline(always)]
+    pub fn execute_with_privileges_piped<P, S, I>(
         &self,
         command: P,
         arguments: I,
@@ -513,21 +541,31 @@ impl<'a> Authorization {
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
     {
-        // OsStr::as_bytes
-        use std::os::unix::{
-            ffi::OsStrExt as _,
-            io::{FromRawFd, RawFd},
-        };
+        use std::os::unix::ffi::OsStrExt;
 
-        let c_cmd = cstring_or_err!(command.as_ref().as_os_str().as_bytes())?;
-
-        let args = arguments
+        let arguments = arguments
             .into_iter()
             .map(|a| CString::new(a.as_ref().as_bytes()))
             .flatten()
             .collect::<Vec<_>>();
+        Ok(self.execute_with_privileges_internal(command.as_ref().as_os_str().as_bytes(), &arguments, flags, true)?.unwrap())
+    }
 
-        let mut c_args = args.iter().map(|a| a.as_ptr() as _).collect::<Vec<_>>();
+    // Runs an executable tool with root privileges.
+    #[cfg(target_os = "macos")]
+    fn execute_with_privileges_internal(
+        &self,
+        command: &[u8],
+        arguments: &[CString],
+        flags: Flags,
+        make_pipe: bool,
+    ) -> Result<Option<File>>
+    {
+        use std::os::unix::io::{FromRawFd, RawFd};
+
+        let c_cmd = cstring_or_err!(command)?;
+
+        let mut c_args = arguments.iter().map(|a| a.as_ptr() as _).collect::<Vec<_>>();
         c_args.push(std::ptr::null_mut());
 
         let mut pipe: *mut libc::FILE = std::ptr::null_mut();
@@ -538,11 +576,19 @@ impl<'a> Authorization {
                 c_cmd.as_ptr(),
                 flags.bits(),
                 c_args.as_ptr(),
-                &mut pipe,
+                if make_pipe { &mut pipe } else { std::ptr::null_mut() },
             )
         };
 
-        crate::cvt(status).map(|_| unsafe { File::from_raw_fd(libc::fileno(pipe) as RawFd) })
+        crate::cvt(status)?;
+        Ok(if make_pipe {
+            if pipe.is_null() {
+                return Err(Error::from_code(32)); // EPIPE?
+            }
+            Some(unsafe { File::from_raw_fd(libc::fileno(pipe) as RawFd)})
+        } else {
+            None
+        })
     }
 }
 
@@ -638,8 +684,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_create_authorization_with_credentials() -> Result<()> {
+        if option_env!("PASSWORD").is_none() {
+            return Ok(());
+        }
+
         let rights = AuthorizationItemSetBuilder::new()
             .add_right("system.privilege.admin")?
             .build();
@@ -669,8 +718,11 @@ mod tests {
 
     /// This test will only pass if its process has a valid code signature.
     #[test]
-    #[ignore]
     fn test_modify_authorization_database() -> Result<()> {
+        if option_env!("PASSWORD").is_none() {
+            return Ok(());
+        }
+
         let rights = AuthorizationItemSetBuilder::new()
             .add_right("config.modify.")?
             .build();
@@ -701,8 +753,11 @@ mod tests {
 
     /// This test will succeed if authorization popup is approved.
     #[test]
-    #[ignore]
     fn test_execute_with_privileges() -> Result<()> {
+        if option_env!("PASSWORD").is_none() {
+            return Ok(());
+        }
+
         let rights = AuthorizationItemSetBuilder::new()
             .add_right("system.privilege.admin")?
             .build();
@@ -716,7 +771,7 @@ mod tests {
                 | Flags::EXTEND_RIGHTS,
         )?;
 
-        let file = auth.execute_with_privileges("/bin/ls", &["/"], Flags::DEFAULTS)?;
+        let file = auth.execute_with_privileges_piped("/bin/ls", &["/"], Flags::DEFAULTS)?;
 
         use std::io::{self, BufRead};
         for line in io::BufReader::new(file).lines() {

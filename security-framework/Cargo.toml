@@ -38,7 +38,7 @@ OSX_10_12 = ["OSX_10_11", "security-framework-sys/OSX_10_12"]
 OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13", "alpn", "session-tickets"]
 OSX_10_14 = ["OSX_10_13", "security-framework-sys/OSX_10_14"]
 
-nightly = []
+nightly = [] # not used, doesn't do anything, only for back compat
 
 [[example]]
 name = "client"
