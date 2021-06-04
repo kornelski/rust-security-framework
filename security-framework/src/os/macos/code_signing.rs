@@ -3,11 +3,11 @@
 use std::{mem::MaybeUninit, str::FromStr};
 
 use core_foundation::{
-    base::{TCFType, TCFTypeRef},
+    base::{TCFType, TCFTypeRef, ToVoid},
     data::CFDataRef,
     dictionary::CFMutableDictionary,
     number::CFNumber,
-    string::CFString,
+    string::{CFString, CFStringRef},
     url::CFURL,
 };
 use libc::pid_t;
@@ -62,16 +62,21 @@ impl GuestAttributes {
     // - sub-architecture
 
     /// The guest's audit token.
-    pub fn audit_token(&mut self, token: CFDataRef) {
+    pub fn set_audit_token(&mut self, token: CFDataRef) {
         let key = unsafe { CFString::wrap_under_get_rule(kSecGuestAttributeAudit) };
         self.inner.add(&key.as_CFTypeRef(), &token.as_void_ptr());
     }
 
     /// The guest's pid.
-    pub fn pid(&mut self, pid: pid_t) {
+    pub fn set_pid(&mut self, pid: pid_t) {
         let key = unsafe { CFString::wrap_under_get_rule(kSecGuestAttributePid) };
         let pid = CFNumber::from(pid);
         self.inner.add(&key.as_CFTypeRef(), &pid.as_CFTypeRef());
+    }
+
+    /// Support for arbirtary guest attributes.
+    pub fn set_other<V: ToVoid<V>>(&mut self, key: CFStringRef, value: V) {
+        self.inner.add(&key.as_void_ptr(), &value.to_void());
     }
 }
 
