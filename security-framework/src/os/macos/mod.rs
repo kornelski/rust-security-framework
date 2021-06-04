@@ -3,6 +3,7 @@
 pub mod access;
 pub mod certificate;
 pub mod certificate_oids;
+pub mod code_signing;
 pub mod digest_transform;
 pub mod encrypt_transform;
 pub mod identity;
