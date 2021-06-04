@@ -13,8 +13,8 @@ categories = ["os::macos-apis", "external-ffi-bindings"]
 edition = "2018"
 
 [dependencies]
-core-foundation-sys = "0.8"
-libc = "0.2.47"
+core-foundation-sys = "0.8.2"
+libc = "0.2.95"
 
 [features]
 default = ["OSX_10_9"]
