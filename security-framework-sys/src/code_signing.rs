@@ -1,9 +1,8 @@
-use core_foundation_sys::{
-    base::{CFTypeID, OSStatus},
-    dictionary::CFDictionaryRef,
-    string::CFStringRef,
-    url::CFURLRef,
-};
+use core_foundation_sys::base::CFTypeID;
+use core_foundation_sys::base::OSStatus;
+use core_foundation_sys::dictionary::CFDictionaryRef;
+use core_foundation_sys::string::CFStringRef;
+use core_foundation_sys::url::CFURLRef;
 
 pub enum OpaqueSecRequirementRef {}
 pub type SecRequirementRef = *mut OpaqueSecRequirementRef;
@@ -31,7 +30,8 @@ pub const kSecCSUseSoftwareSigningCert: SecCSFlags = 1 << 10;
 pub const kSecCSValidatePEH: SecCSFlags = 1 << 11;
 pub const kSecCSSingleThreaded: SecCSFlags = 1 << 12;
 // 13 - 15 are unused
-pub const kSecCSAllowNetworkAccess: SecCSFlags = 1 << 16;
+// This is only available in macOS 11.3:
+// pub const kSecCSAllowNetworkAccess: SecCSFlags = 1 << 16;
 // 17 - 25 are unused
 pub const kSecCSQuickCheck: SecCSFlags = 1 << 26;
 pub const kSecCSCheckTrustedAnchors: SecCSFlags = 1 << 27;

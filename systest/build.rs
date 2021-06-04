@@ -19,7 +19,8 @@ fn main() {
             .header("Security/SecKeychain.h")
             .header("Security/SecKeychainItem.h")
             .header("Security/SecCertificateOIDs.h")
-            .header("Security/SecTransform.h");
+            .header("Security/SecTransform.h")
+            .header("Security/CodeSigning.h");
     }
 
     test.header("Security/SecBase.h")

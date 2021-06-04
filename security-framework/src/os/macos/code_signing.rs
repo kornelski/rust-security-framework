@@ -12,17 +12,17 @@ use core_foundation::{
 };
 use libc::pid_t;
 use security_framework_sys::code_signing::{
-    kSecCSAllowNetworkAccess, kSecCSBasicValidateOnly, kSecCSCheckAllArchitectures,
-    kSecCSCheckGatekeeperArchitectures, kSecCSCheckNestedCode, kSecCSCheckTrustedAnchors,
-    kSecCSConsiderExpiration, kSecCSDoNotValidateExecutable, kSecCSDoNotValidateResources,
-    kSecCSEnforceRevocationChecks, kSecCSFullReport, kSecCSNoNetworkAccess, kSecCSQuickCheck,
-    kSecCSReportProgress, kSecCSRestrictSidebandData, kSecCSRestrictSymlinks,
-    kSecCSRestrictToAppLike, kSecCSSingleThreaded, kSecCSStrictValidate,
-    kSecCSUseSoftwareSigningCert, kSecCSValidatePEH, kSecGuestAttributeAudit,
-    kSecGuestAttributePid, SecCodeCheckValidity, SecCodeCopyGuestWithAttributes, SecCodeCopyPath,
-    SecCodeCopySelf, SecCodeGetTypeID, SecCodeRef, SecRequirementCreateWithString,
-    SecRequirementGetTypeID, SecRequirementRef, SecStaticCodeCheckValidity,
-    SecStaticCodeCreateWithPath, SecStaticCodeGetTypeID, SecStaticCodeRef,
+    kSecCSBasicValidateOnly, kSecCSCheckAllArchitectures, kSecCSCheckGatekeeperArchitectures,
+    kSecCSCheckNestedCode, kSecCSCheckTrustedAnchors, kSecCSConsiderExpiration,
+    kSecCSDoNotValidateExecutable, kSecCSDoNotValidateResources, kSecCSEnforceRevocationChecks,
+    kSecCSFullReport, kSecCSNoNetworkAccess, kSecCSQuickCheck, kSecCSReportProgress,
+    kSecCSRestrictSidebandData, kSecCSRestrictSymlinks, kSecCSRestrictToAppLike,
+    kSecCSSingleThreaded, kSecCSStrictValidate, kSecCSUseSoftwareSigningCert, kSecCSValidatePEH,
+    kSecGuestAttributeAudit, kSecGuestAttributePid, SecCodeCheckValidity,
+    SecCodeCopyGuestWithAttributes, SecCodeCopyPath, SecCodeCopySelf, SecCodeGetTypeID, SecCodeRef,
+    SecRequirementCreateWithString, SecRequirementGetTypeID, SecRequirementRef,
+    SecStaticCodeCheckValidity, SecStaticCodeCreateWithPath, SecStaticCodeGetTypeID,
+    SecStaticCodeRef,
 };
 
 use crate::{cvt, Result};
@@ -80,9 +80,6 @@ bitflags::bitflags! {
 
         /// Apple have not documented this flag.
         const SINGLE_THREADED = kSecCSSingleThreaded;
-
-        /// Apple have not documented this flag.
-        const ALLOW_NETWORK_ACCESS = kSecCSAllowNetworkAccess;
 
         /// Apple have not documented this flag.
         const QUICK_CHECK = kSecCSQuickCheck;
