@@ -33,6 +33,7 @@ macro_rules! char_lit_swapped {
 
 #[repr(u32)]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum SecProtocolType {
     FTP = char_lit!(b"ftp "),
     FTPAccount = char_lit!(b"ftpa"),
@@ -73,6 +74,7 @@ pub enum SecProtocolType {
 
 #[repr(u32)]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum SecAuthenticationType {
     // [sic] Apple has got two related enums each with a different endianness!
     NTLM = char_lit_swapped!(b"ntlm"),
