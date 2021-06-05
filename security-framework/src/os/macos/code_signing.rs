@@ -124,10 +124,18 @@ impl GuestAttributes {
     // - mach port
     // - sub-architecture
 
+    /// Creates a new, empty `GuestAttributes`. You must add values to it in
+    /// order for it to be of any use.
+    pub fn new() -> Self {
+        Self {
+            inner: CFMutableDictionary::new(),
+        }
+    }
+
     /// The guest's audit token.
     pub fn set_audit_token(&mut self, token: CFDataRef) {
         let key = unsafe { CFString::wrap_under_get_rule(kSecGuestAttributeAudit) };
-        self.inner.add(&key.as_CFTypeRef(), &token.as_void_ptr());
+        self.inner.add(&key.as_CFTypeRef(), &token.to_void());
     }
 
     /// The guest's pid.
