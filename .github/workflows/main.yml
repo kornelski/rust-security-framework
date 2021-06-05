@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest ]
-        rust: [ 1.42.0, stable ]
+        rust: [ 1.42.0, stable, beta ]
 
     steps:
       - name: Checkout sources
