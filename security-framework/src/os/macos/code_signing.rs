@@ -1,6 +1,6 @@
 //! Code signing services.
 
-use std::{mem::MaybeUninit, str::FromStr};
+use std::{fmt::Debug, mem::MaybeUninit, str::FromStr};
 
 use core_foundation::{
     base::{TCFType, TCFTypeRef, ToVoid},
@@ -181,6 +181,12 @@ declare_TCFType! {
     SecCode, SecCodeRef
 }
 impl_TCFType!(SecCode, SecCodeRef, SecCodeGetTypeID);
+
+impl Debug for SecCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SecCode")
+    }
+}
 
 impl SecCode {
     /// Retrieves the code object for the code making the call.
