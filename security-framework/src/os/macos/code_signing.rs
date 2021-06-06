@@ -312,6 +312,8 @@ impl SecStaticCode {
 #[cfg(test)]
 mod test {
     use super::*;
+    use core_foundation::data::CFData;
+    use libc::{c_uint, c_void, KERN_SUCCESS};
 
     #[test]
     fn path_to_static_code_and_back() {
@@ -346,6 +348,115 @@ mod test {
                 .code(),
             // "code object is not signed at all"
             -67062
+        );
+    }
+
+    #[test]
+    fn copy_kernel_guest_with_launchd_pid() {
+        let mut attrs = GuestAttributes::new();
+        attrs.set_pid(1);
+
+        assert_eq!(
+            SecCode::copy_guest_with_attribues(None, &attrs, Flags::NONE)
+                .unwrap()
+                .path(Flags::NONE)
+                .unwrap()
+                .get_string()
+                .to_string(),
+            "file:///sbin/launchd"
+        );
+    }
+
+    #[test]
+    fn copy_current_guest_with_launchd_pid() {
+        let host_code = SecCode::for_self(Flags::NONE).unwrap();
+
+        let mut attrs = GuestAttributes::new();
+        attrs.set_pid(1);
+
+        assert_eq!(
+            SecCode::copy_guest_with_attribues(Some(&host_code), &attrs, Flags::NONE)
+                .unwrap_err()
+                .code(),
+            // "host has no guest with the requested attributes"
+            -67065
+        );
+    }
+
+    #[test]
+    fn copy_kernel_guest_with_unmatched_pid() {
+        let mut attrs = GuestAttributes::new();
+        attrs.set_pid(999_999_999);
+
+        assert_eq!(
+            SecCode::copy_guest_with_attribues(None, &attrs, Flags::NONE)
+                .unwrap_err()
+                .code(),
+            // "UNIX[No such process]"
+            100003
+        );
+    }
+
+    #[test]
+    fn copy_kernel_guest_with_current_token() {
+        let mut token: [u8; 32] = [0; 32];
+        let mut token_len = 32u32;
+
+        enum OpaqueTaskName {}
+
+        extern "C" {
+            fn mach_task_self() -> *const OpaqueTaskName;
+            fn task_info(
+                task_name: *const OpaqueTaskName,
+                task_flavor: u32,
+                out: *mut c_void,
+                out_len: *mut u32,
+            ) -> i32;
+        }
+
+        const TASK_AUDIT_TOKEN: c_uint = 15;
+
+        let result = unsafe {
+            task_info(
+                mach_task_self(),
+                TASK_AUDIT_TOKEN,
+                token.as_mut_ptr() as *mut c_void,
+                &mut token_len,
+            )
+        };
+
+        assert_eq!(result, KERN_SUCCESS);
+
+        let token_data = CFData::from_buffer(&token);
+
+        let mut attrs = GuestAttributes::new();
+        attrs.set_audit_token(token_data.as_concrete_TypeRef());
+
+        assert_eq!(
+            SecCode::copy_guest_with_attribues(None, &attrs, Flags::NONE)
+                .unwrap()
+                .path(Flags::NONE)
+                .unwrap()
+                .to_path()
+                .unwrap(),
+            std::env::current_exe().unwrap()
+        );
+    }
+
+    #[test]
+    fn copy_kernel_guest_with_unmatched_token() {
+        let token: [u8; 32] = [0; 32];
+        let token_data = CFData::from_buffer(&token);
+
+        let mut attrs = GuestAttributes::new();
+        attrs.set_audit_token(token_data.as_concrete_TypeRef());
+
+        assert_eq!(
+            SecCode::copy_guest_with_attribues(None, &attrs, Flags::NONE)
+                .unwrap_err()
+                .code(),
+            // "UNIX[No such process]"
+            100003
         );
     }
 }
