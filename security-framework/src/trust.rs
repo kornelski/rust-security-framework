@@ -1,6 +1,6 @@
 //! Trust evaluation support.
 
-use core_foundation::array::CFArray;
+use core_foundation::array::{CFArray, CFArrayRef};
 use core_foundation::base::TCFType;
 use core_foundation_sys::base::{Boolean, CFIndex};
 
@@ -92,6 +92,22 @@ impl SecTrust {
                 certs.as_concrete_TypeRef(),
             ))
         }
+    }
+
+    /// Retrieves the anchor (root) certificates stored by macOS
+    pub fn copy_anchor_certificates() -> Result<Vec<SecCertificate>> {
+        let mut array: CFArrayRef = ptr::null();
+
+        unsafe {
+            cvt(SecTrustCopyAnchorCertificates(&mut array))?;
+        }
+
+        if array.is_null() {
+            return Ok(vec![]);
+        }
+
+        let array = unsafe { CFArray::<SecCertificate>::wrap_under_create_rule(array) };
+        Ok(array.into_iter().map(|c| c.clone()).collect())
     }
 
     /// If set to `true`, only the certificates specified by
