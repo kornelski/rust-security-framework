@@ -20,11 +20,13 @@ core-foundation-sys = "0.8.2"
 bitflags = "1.2.1"
 libc = "0.2.95"
 log = { version = "0.4.14", optional = true }
+num = "0.4.0"
 
 [dev-dependencies]
 tempdir = "0.3.7"
 hex = "0.4.3"
 env_logger = "0.8.3"
+x509-parser = "0.10.0"
 
 [features]
 default = ["OSX_10_9"]
