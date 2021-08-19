@@ -1,6 +1,7 @@
 #![allow(invalid_value)] // mem::uninitialized has to stay
 #![allow(bad_style)]
 #![allow(clippy::all)]
+#![allow(deref_nullptr)]
 
 use core_foundation_sys::base::OSStatus;
 use core_foundation_sys::string::CFStringRef;
