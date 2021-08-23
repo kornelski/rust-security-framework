@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 core-foundation-sys = "0.8.2"
 security-framework-sys = { path = "../security-framework-sys" }
-libc = "0.2.95"
+libc = "0.2.100"
 
 [build-dependencies]
 ctest = "0.2.22"

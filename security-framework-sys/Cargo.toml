@@ -1,6 +1,6 @@
 [package]
 name = "security-framework-sys"
-version = "2.3.0"
+version = "2.4.0"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"
@@ -14,7 +14,7 @@ edition = "2018"
 
 [dependencies]
 core-foundation-sys = "0.8.2"
-libc = "0.2.95"
+libc = "0.2.100"
 
 [features]
 default = ["OSX_10_9"]
