@@ -46,10 +46,7 @@ impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
     #[inline]
     pub fn success(self) -> bool {
-        match self {
-            Self::PROCEED | Self::UNSPECIFIED => true,
-            _ => false,
-        }
+        matches!(self, Self::PROCEED | Self::UNSPECIFIED)
     }
 }
 
@@ -69,8 +66,8 @@ impl SecTrust {
         certs: &[SecCertificate],
         policies: &[SecPolicy],
     ) -> Result<Self> {
-        let cert_array = CFArray::from_CFTypes(&certs);
-        let policy_array = CFArray::from_CFTypes(&policies);
+        let cert_array = CFArray::from_CFTypes(certs);
+        let policy_array = CFArray::from_CFTypes(policies);
         let mut trust = ptr::null_mut();
         unsafe {
             cvt(SecTrustCreateWithCertificates(
@@ -84,7 +81,7 @@ impl SecTrust {
 
     /// Sets additional anchor certificates used to validate trust.
     pub fn set_anchor_certificates(&mut self, certs: &[SecCertificate]) -> Result<()> {
-        let certs = CFArray::from_CFTypes(&certs);
+        let certs = CFArray::from_CFTypes(certs);
 
         unsafe {
             cvt(SecTrustSetAnchorCertificates(
@@ -265,7 +262,7 @@ mod test {
         trust.evaluate().unwrap();
         assert!(trust.certificate_at_index(1).is_none());
 
-        let trust = SecTrust::create_with_certificates(&[cert.clone()], &[ssl_policy.clone()]).unwrap();
+        let trust = SecTrust::create_with_certificates(&[cert], &[ssl_policy]).unwrap();
         assert!(trust.evaluate_with_error().is_err());
         assert!(trust.certificate_at_index(1).is_none());
     }

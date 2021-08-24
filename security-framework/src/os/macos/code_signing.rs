@@ -151,6 +151,12 @@ impl GuestAttributes {
     }
 }
 
+impl Default for GuestAttributes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 declare_TCFType! {
     /// A code object representing signed code running on the system.
     SecRequirement, SecRequirementRef

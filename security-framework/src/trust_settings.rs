@@ -28,13 +28,13 @@ pub enum Domain {
     System,
 }
 
-impl Into<SecTrustSettingsDomain> for Domain {
+impl From<Domain> for SecTrustSettingsDomain {
     #[inline]
-    fn into(self) -> SecTrustSettingsDomain {
-        match self {
-            Self::User => kSecTrustSettingsDomainUser,
-            Self::Admin => kSecTrustSettingsDomainAdmin,
-            Self::System => kSecTrustSettingsDomainSystem,
+    fn from (domain: Domain) -> SecTrustSettingsDomain {
+        match domain {
+            Domain::User => kSecTrustSettingsDomainUser,
+            Domain::Admin => kSecTrustSettingsDomainAdmin,
+            Domain::System => kSecTrustSettingsDomainSystem,
         }
     }
 }
@@ -144,10 +144,7 @@ impl TrustSettings {
                     .find(policy_name_key.as_CFTypeRef() as *const _)
                     .map(|name| unsafe { CFString::wrap_under_get_rule(*name as *const _) });
 
-                match maybe_name {
-                    Some(ref name) if name != &ssl_policy_name => true,
-                    _ => false,
-                }
+                matches!(maybe_name, Some(ref name) if name != &ssl_policy_name)
             };
 
             if is_not_ssl_policy {
@@ -166,7 +163,7 @@ impl TrustSettings {
             // "Note that an empty Trust Settings array means "always trust this cert,
             //  with a resulting kSecTrustSettingsResult of kSecTrustSettingsResultTrustRoot"."
             let trust_result = TrustSettingsForCertificate::new(maybe_trust_result
-                .unwrap_or(i64::from(kSecTrustSettingsResultTrustRoot)));
+                .unwrap_or_else(|| i64::from(kSecTrustSettingsResultTrustRoot)));
 
             match trust_result {
                 TrustSettingsForCertificate::Unspecified |
