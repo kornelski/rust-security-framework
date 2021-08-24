@@ -337,6 +337,22 @@ mod test {
         code.check_validity(Flags::NONE, &requirement).unwrap();
     }
 
+    #[cfg(target_arch = "aarch64")]
+    #[test]
+    fn self_is_not_signed_by_apple() {
+        let code = SecCode::for_self(Flags::NONE).unwrap();
+        let requirement: SecRequirement = "anchor apple".parse().unwrap();
+
+        assert_eq!(
+            code.check_validity(Flags::NONE, &requirement)
+                .unwrap_err()
+                .code(),
+            // "code failed to satisfy specified code requirement(s)"
+            -67050
+        );
+    }
+
+    #[cfg(not(target_arch = "aarch64"))]
     #[test]
     fn self_is_not_signed_by_apple() {
         let code = SecCode::for_self(Flags::NONE).unwrap();
