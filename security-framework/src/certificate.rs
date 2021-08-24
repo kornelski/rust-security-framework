@@ -5,8 +5,6 @@ use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::kCFAllocatorDefault;
-#[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
-use num::BigUint;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use std::fmt;
@@ -15,15 +13,17 @@ use std::ptr;
 use crate::base::{Error, Result};
 use crate::cvt;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use crate::{key};
+use crate::key;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::FromVoid;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
 use core_foundation::error::{CFError, CFErrorRef};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::number::CFNumber;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation_sys::base::CFRelease;
+#[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+use num::BigUint;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::base::SecPolicyRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -239,7 +239,7 @@ mod test {
     use crate::test::certificate;
     #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
     use num::BigUint;
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     use x509_parser::prelude::*;
 
     #[test]
@@ -281,7 +281,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
     fn serial_number() {
         let cert = certificate();
         let serial_number = cert.serial_number().unwrap();
