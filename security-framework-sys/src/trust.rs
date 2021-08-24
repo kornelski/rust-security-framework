@@ -31,6 +31,7 @@ extern "C" {
         trust: SecTrustRef,
         anchorCertificatesOnly: Boolean,
     ) -> OSStatus;
+    pub fn SecTrustCopyAnchorCertificates(anchors: *mut CFArrayRef) -> OSStatus;
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
     // it should have been OSX_10_14, but due to back-compat it can't rely on the newer feature flag
     #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
