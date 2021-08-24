@@ -94,7 +94,6 @@ use std::fmt;
 use std::io;
 use std::io::prelude::*;
 use std::marker::PhantomData;
-use std::mem;
 use std::panic::{self, AssertUnwindSafe};
 use std::ptr;
 use std::result;
@@ -307,7 +306,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
                 let policy =
-                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_ref().map(|s| &**s));
+                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_deref());
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
                     #[cfg(feature = "log")]
@@ -1074,7 +1073,7 @@ impl<S> SslStream<S> {
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
             assert!(ret == errSecSuccess);
 
-            mem::transmute(conn)
+            &mut *(conn as *mut Connection<S>)
         }
     }
 
@@ -1084,7 +1083,7 @@ impl<S> SslStream<S> {
             let ret = SSLGetConnection(self.ctx.0, &mut conn);
             assert!(ret == errSecSuccess);
 
-            mem::transmute(conn)
+            &mut *(conn as *mut Connection<S>)
         }
     }
 
