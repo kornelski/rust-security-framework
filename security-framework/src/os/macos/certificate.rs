@@ -10,6 +10,7 @@ use core_foundation::string::CFString;
 use security_framework_sys::certificate::*;
 use std::os::raw::c_void;
 use std::ptr;
+use std::convert::TryInto;
 
 use crate::base::Error;
 use crate::certificate::SecCertificate;
@@ -35,7 +36,7 @@ pub trait SecCertificateExt {
         -> Result<CertificateProperties, CFError>;
 
     /// Returns the SHA-256 fingerprint of the certificate.
-    fn fingerprint(&self) -> Result<Vec<u8>, CFError>;
+    fn fingerprint(&self) -> Result<[u8; 32], CFError> { unimplemented!() }
 }
 
 impl SecCertificateExt for SecCertificate {
@@ -104,13 +105,13 @@ impl SecCertificateExt for SecCertificate {
     }
 
     /// Returns the SHA-256 fingerprint of the certificate.
-    fn fingerprint(&self) -> Result<Vec<u8>, CFError> {
+    fn fingerprint(&self) -> Result<[u8; 32], CFError> {
         let data = CFData::from_buffer(&self.to_der());
         let hash = Builder::new()
             .type_(DigestType::sha2())
             .length(256)
             .execute(&data)?;
-        Ok(hash.bytes().to_vec())
+        Ok(hash.bytes().try_into().unwrap())
     }
 }
 
