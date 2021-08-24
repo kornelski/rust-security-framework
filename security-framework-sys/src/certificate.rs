@@ -58,10 +58,13 @@ extern "C" {
     pub fn SecCertificateCopyNormalizedSubjectSequence(certificate: SecCertificateRef)
         -> CFDataRef;
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. May not work any more. Use SecCertificateCopyKey")]
     pub fn SecCertificateCopyPublicKey(
         certificate: SecCertificateRef,
         key: *mut SecKeyRef,
     ) -> OSStatus;
+    #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+    pub fn SecCertificateCopyKey(certificate: SecCertificateRef) -> SecKeyRef;
     #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
     pub fn SecCertificateCopySerialNumberData(
         certificate: SecCertificateRef,

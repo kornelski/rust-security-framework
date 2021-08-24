@@ -22,6 +22,7 @@ pub trait SecCertificateExt {
     fn common_name(&self) -> Result<String, Error>;
 
     /// Returns the public key associated with the certificate.
+    #[cfg_attr(not(feature = "OSX_10_14"), deprecated(note = "Uses deprecated SecCertificateCopyPublicKey. Enable OSX_10_14 feature to avoid it"))]
     fn public_key(&self) -> Result<SecKey, Error>;
 
     /// Returns the set of properties associated with the certificate.
@@ -44,7 +45,20 @@ impl SecCertificateExt for SecCertificate {
         }
     }
 
+    #[cfg(feature = "OSX_10_14")]
     fn public_key(&self) -> Result<SecKey, Error> {
+        unsafe {
+            let key = SecCertificateCopyKey(self.as_concrete_TypeRef());
+            if key.is_null() {
+                return Err(Error::from_code(-26275));
+            }
+            Ok(SecKey::wrap_under_create_rule(key))
+        }
+    }
+
+    #[cfg(not(feature = "OSX_10_14"))]
+    fn public_key(&self) -> Result<SecKey, Error> {
+        #[allow(deprecated)]
         unsafe {
             let mut key = ptr::null_mut();
             cvt(SecCertificateCopyPublicKey(
@@ -193,6 +207,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn public_key() {
         let certificate = certificate();
         p!(certificate.public_key());
