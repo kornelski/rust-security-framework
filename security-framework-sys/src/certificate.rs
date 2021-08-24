@@ -57,6 +57,7 @@ extern "C" {
     pub fn SecCertificateCopyNormalizedSubjectSequence(certificate: SecCertificateRef)
         -> CFDataRef;
     #[cfg(target_os = "macos")]
+    #[cfg_attr(target_arch = "aarch64", link_name = "SecCertificateCopyPublicKey$LEGACYMAC")]
     #[deprecated(note = "Deprecated by Apple. May not work any more. Use SecCertificateCopyKey")]
     pub fn SecCertificateCopyPublicKey(
         certificate: SecCertificateRef,
