@@ -92,6 +92,7 @@ impl SecTrust {
     }
 
     /// Retrieves the anchor (root) certificates stored by macOS
+    #[cfg(target_os = "macos")]
     pub fn copy_anchor_certificates() -> Result<Vec<SecCertificate>> {
         let mut array: CFArrayRef = ptr::null();
 

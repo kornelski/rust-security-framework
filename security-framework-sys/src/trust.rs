@@ -22,6 +22,7 @@ pub type SecTrustRef = *mut __SecTrust;
 extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
     pub fn SecTrustGetCertificateCount(trust: SecTrustRef) -> CFIndex;
+    #[deprecated(note = "deprecated by Apple")]
     pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef, ix: CFIndex) -> SecCertificateRef;
     pub fn SecTrustSetAnchorCertificates(
         trust: SecTrustRef,
@@ -31,7 +32,9 @@ extern "C" {
         trust: SecTrustRef,
         anchorCertificatesOnly: Boolean,
     ) -> OSStatus;
+    #[cfg(target_os = "macos")]
     pub fn SecTrustCopyAnchorCertificates(anchors: *mut CFArrayRef) -> OSStatus;
+    #[deprecated(note = "deprecated by Apple")]
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
     // it should have been OSX_10_14, but due to back-compat it can't rely on the newer feature flag
     #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
