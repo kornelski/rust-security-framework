@@ -22,8 +22,8 @@ use core_foundation::error::{CFError, CFErrorRef};
 use core_foundation::number::CFNumber;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation_sys::base::CFRelease;
-#[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
-use num::BigUint;
+#[cfg(feature = "serial-number-bigint")]
+use num_bigint::BigUint;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::base::SecPolicyRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -121,17 +121,23 @@ impl SecCertificate {
 
     #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
     /// Returns DER encoded serial number of the certificate.
-    pub fn serial_number(&self) -> Result<BigUint, CFError> {
+    pub fn serial_number_bytes(&self) -> Result<Vec<u8>, CFError> {
         unsafe {
             let mut error: CFErrorRef = ptr::null_mut();
             let serial_number = SecCertificateCopySerialNumberData(self.0, &mut error);
             if !error.is_null() {
                 Err(CFError::wrap_under_create_rule(error))
             } else {
-                let serial_number_bytes = CFData::wrap_under_create_rule(serial_number).to_vec();
-                Ok(BigUint::from_bytes_be(&serial_number_bytes))
+                Ok(CFData::wrap_under_create_rule(serial_number).to_vec())
             }
         }
+    }
+
+    /// Use `BigUint::from_bytes_be(serial_number_bytes())` instead
+    #[deprecated(note = "use serial_number_bytes()")]
+    #[cfg(feature = "serial-number-bigint")]
+    pub fn serial_number(&self) -> Result<BigUint, CFError> {
+        Ok(BigUint::from_bytes_be(&self.serial_number_bytes()?))
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -226,8 +232,8 @@ const EC_DSA_SECP_384_R1_ASN1_HEADER: [u8; 23] = [
 #[cfg(test)]
 mod test {
     use crate::test::certificate;
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
-    use num::BigUint;
+    #[cfg(feature = "serial-number-bigint")]
+    use num_bigint::BigUint;
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     use x509_parser::prelude::*;
 
@@ -270,7 +276,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+    #[cfg(feature = "serial-number-bigint")]
     fn serial_number() {
         let cert = certificate();
         let serial_number = cert.serial_number().unwrap();
