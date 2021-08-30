@@ -167,25 +167,14 @@ impl SecCertificate {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Get public key from certificate
     pub fn public_key(&self) -> Result<key::SecKey> {
-        unsafe {
-            // Create an X509 trust using the using the certificate
-            let mut trust: SecTrustRef = ptr::null_mut();
-            let policy: SecPolicyRef = SecPolicyCreateBasicX509();
-            cvt(SecTrustCreateWithCertificates(
-                self.as_concrete_TypeRef() as _,
-                policy as _,
-                &mut trust,
-            ))?;
+        use crate::trust::SecTrust;
+        use crate::policy::SecPolicy;
+        use std::slice::from_ref;
 
-            // Get a public key reference for the certificate from the trust
-            let mut result: SecTrustResultType = 0;
-            cvt(SecTrustEvaluate(trust, &mut result))?;
-            let public_key = SecTrustCopyPublicKey(trust);
-            CFRelease(policy as _);
-            CFRelease(trust as _);
-
-            Ok(key::SecKey::wrap_under_create_rule(public_key))
-        }
+        let policy = SecPolicy::create_x509();
+        let mut trust = SecTrust::create_with_certificates(from_ref(self), from_ref(&policy))?;
+        trust.evaluate()?;
+        trust.copy_public_key()
     }
 }
 
