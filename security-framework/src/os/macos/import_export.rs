@@ -63,18 +63,21 @@ impl<'a> ImportOptions<'a> {
     /// Sets the filename from which the imported data came.
     ///
     /// The extension of the file will used as a hint for parsing.
+    #[inline]
     pub fn filename(&mut self, filename: &str) -> &mut ImportOptions<'a> {
         self.filename = Some(CFString::from_str(filename).unwrap());
         self
     }
 
     /// Sets the passphrase to be used to decrypt the imported data.
+    #[inline]
     pub fn passphrase(&mut self, passphrase: &str) -> &mut ImportOptions<'a> {
         self.passphrase = Some(CFString::from_str(passphrase).unwrap().as_CFType());
         self
     }
 
     /// Sets the passphrase to be used to decrypt the imported data.
+    #[inline]
     pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut ImportOptions<'a> {
         self.passphrase = Some(CFData::from_buffer(passphrase).as_CFType());
         self
@@ -97,6 +100,7 @@ impl<'a> ImportOptions<'a> {
 
     /// Sets the title of the alert popup used with the `secure_passphrase`
     /// option.
+    #[inline]
     pub fn alert_title(&mut self, alert_title: &str) -> &mut ImportOptions<'a> {
         self.alert_title = Some(CFString::from_str(alert_title).unwrap());
         self
@@ -104,6 +108,7 @@ impl<'a> ImportOptions<'a> {
 
     /// Sets the prompt of the alert popup used with the `secure_passphrase`
     /// option.
+    #[inline]
     pub fn alert_prompt(&mut self, alert_prompt: &str) -> &mut ImportOptions<'a> {
         self.alert_prompt = Some(CFString::from_str(alert_prompt).unwrap());
         self
@@ -119,6 +124,7 @@ impl<'a> ImportOptions<'a> {
     /// Sets the keychain into which items will be imported.
     ///
     /// This must be specified to import `SecIdentity`s.
+    #[inline]
     pub fn keychain(&mut self, keychain: &SecKeychain) -> &mut ImportOptions<'a> {
         self.keychain = Some(keychain.clone());
         self

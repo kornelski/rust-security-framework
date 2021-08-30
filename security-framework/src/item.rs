@@ -86,6 +86,7 @@ impl Limit {
 }
 
 impl From<i64> for Limit {
+    #[inline]
     fn from(limit: i64) -> Self {
         Self::Max(limit)
     }

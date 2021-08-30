@@ -188,6 +188,7 @@ pub struct TrustSettingsIter {
 impl Iterator for TrustSettingsIter {
     type Item = SecCertificate;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= self.array.len() {
             None
@@ -199,6 +200,7 @@ impl Iterator for TrustSettingsIter {
         }
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let left = (self.array.len() as usize).saturating_sub(self.index as usize);
         (left, Some(left))

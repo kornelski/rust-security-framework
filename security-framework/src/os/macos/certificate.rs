@@ -189,6 +189,7 @@ pub struct PropertySectionIter<'a>(CFArrayIterator<'a, CFDictionary>);
 impl<'a> Iterator for PropertySectionIter<'a> {
     type Item = CertificateProperty;
 
+    #[inline]
     fn next(&mut self) -> Option<CertificateProperty> {
         self.0.next().map(|t| CertificateProperty(t.clone()))
     }

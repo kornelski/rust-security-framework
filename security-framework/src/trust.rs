@@ -111,11 +111,13 @@ impl SecTrust {
     /// If set to `true`, only the certificates specified by
     /// `set_anchor_certificates` will be trusted, but not globally trusted
     /// certificates.
+    #[inline]
     pub fn set_trust_anchor_certificates_only(&mut self, only: bool) -> Result<()> {
         unsafe { cvt(SecTrustSetAnchorCertificatesOnly(self.0, only as Boolean)) }
     }
 
     /// Sets the policy used to evaluate trust.
+    #[inline]
     pub fn set_policy(&mut self, policy: &SecPolicy) -> Result<()> {
         unsafe { cvt(SecTrustSetPolicies(self.0, policy.as_CFTypeRef())) }
     }

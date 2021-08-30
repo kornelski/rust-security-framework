@@ -90,6 +90,7 @@ impl AuthorizationItem {
 
     /// The information pertaining to the name field. Do not rely on NULL
     /// termination of string data.
+    #[inline]
     pub fn value(&self) -> Option<&[u8]> {
         if self.0.value.is_null() {
             return None;
