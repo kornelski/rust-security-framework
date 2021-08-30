@@ -131,7 +131,9 @@ impl SecTrust {
     }
 
     /// Evaluates trust.
+    #[deprecated(note = "use evaluate_with_error")]
     pub fn evaluate(&self) -> Result<TrustResult> {
+        #[allow(deprecated)]
         unsafe {
             let mut result = kSecTrustResultInvalid;
             cvt(SecTrustEvaluate(self.0, &mut result))?;
@@ -152,6 +154,7 @@ impl SecTrust {
             Ok(())
         }
         #[cfg(not(feature = "OSX_10_14"))]
+        #[allow(deprecated)]
         {
             use security_framework_sys::base::errSecNotTrusted;
             use security_framework_sys::base::errSecTrustSettingDeny;
@@ -177,7 +180,9 @@ impl SecTrust {
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
     ///
     /// Note: evaluate must first be called on the SecTrust.
+    #[deprecated(note = "deprecated by Apple")]
     pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
+        #[allow(deprecated)]
         unsafe {
             if self.certificate_count() <= ix {
                 None
@@ -211,6 +216,7 @@ mod test {
     use crate::trust::SecTrust;
 
     #[test]
+    #[allow(deprecated)]
     fn create_with_certificates() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
@@ -227,6 +233,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn certificate_count_and_at_index() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
@@ -241,6 +248,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn certificate_count_and_at_index_new() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
@@ -255,6 +263,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn certificate_at_index_out_of_bounds() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
@@ -269,6 +278,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn set_policy() {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io.bogus"));
