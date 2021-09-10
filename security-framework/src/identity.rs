@@ -4,6 +4,7 @@ use core_foundation::base::TCFType;
 use security_framework_sys::base::SecIdentityRef;
 use security_framework_sys::identity::*;
 use std::fmt;
+use std::hash;
 use std::ptr;
 
 use crate::base::Result;
@@ -33,6 +34,17 @@ impl fmt::Debug for SecIdentity {
             builder.field("private_key", &key);
         }
         builder.finish()
+    }
+}
+
+impl hash::Hash for SecIdentity {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        if let Ok(cert) = self.certificate() {
+            cert.hash(state);
+        }
+        if let Ok(key) = self.private_key() {
+            key.hash(state);
+        }
     }
 }
 

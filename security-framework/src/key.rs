@@ -18,6 +18,7 @@ use security_framework_sys::key::{
     SecKeyCopyAttributes, SecKeyCopyExternalRepresentation, SecKeyCreateSignature,
 };
 use std::fmt;
+use std::hash;
 
 declare_TCFType! {
     /// A type representing an encryption key.
@@ -80,5 +81,12 @@ impl fmt::Debug for SecKey {
     #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(fmt, "SecKey")
+    }
+}
+
+// FIXME
+impl hash::Hash for SecKey {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        "SecKey".hash(state);
     }
 }

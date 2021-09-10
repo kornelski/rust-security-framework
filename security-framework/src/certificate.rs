@@ -8,6 +8,7 @@ use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use std::fmt;
+use std::hash;
 use std::ptr;
 
 use crate::base::{Error, Result};
@@ -53,6 +54,12 @@ impl fmt::Debug for SecCertificate {
         fmt.debug_struct("SecCertificate")
             .field("subject", &self.subject_summary())
             .finish()
+    }
+}
+
+impl hash::Hash for SecCertificate {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.to_der().hash(state);
     }
 }
 
