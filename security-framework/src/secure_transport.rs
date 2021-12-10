@@ -1188,7 +1188,9 @@ pub struct ClientBuilder {
     danger_accept_invalid_hostnames: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
+    #[cfg(feature = "alpn")]
     alpn: Option<Vec<String>>,
+    #[cfg(feature = "session-tickets")]
     enable_session_tickets: bool,
 }
 
@@ -1215,7 +1217,9 @@ impl ClientBuilder {
             danger_accept_invalid_hostnames: false,
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
+            #[cfg(feature = "alpn")]
             alpn: None,
+            #[cfg(feature = "session-tickets")]
             enable_session_tickets: false,
         }
     }
