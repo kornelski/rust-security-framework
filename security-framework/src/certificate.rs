@@ -20,21 +20,10 @@ use core_foundation::base::FromVoid;
 use core_foundation::error::{CFError, CFErrorRef};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::number::CFNumber;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use core_foundation_sys::base::CFRelease;
 #[cfg(feature = "serial-number-bigint")]
 use num_bigint::BigUint;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use security_framework_sys::base::SecPolicyRef;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::item::*;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use security_framework_sys::policy::SecPolicyCreateBasicX509;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-use security_framework_sys::trust::{
-    SecTrustCopyPublicKey, SecTrustCreateWithCertificates, SecTrustEvaluate, SecTrustRef,
-    SecTrustResultType,
-};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use std::ops::Deref;
 
@@ -277,6 +266,7 @@ mod test {
 
     #[test]
     #[cfg(feature = "serial-number-bigint")]
+    #[allow(deprecated)]
     fn serial_number() {
         let cert = certificate();
         let serial_number = cert.serial_number().unwrap();
