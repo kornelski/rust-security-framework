@@ -25,7 +25,10 @@ macro_rules! p {
     };
 }
 
-#[cfg(all(not(feature = "OSX_10_13"), any(feature = "alpn", feature = "session-tickets")))]
+#[cfg(all(
+    not(feature = "OSX_10_13"),
+    any(feature = "alpn", feature = "session-tickets")
+))]
 #[macro_use]
 mod dlsym;
 
@@ -39,6 +42,7 @@ pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod os;
+pub mod passwords;
 pub mod policy;
 pub mod random;
 pub mod secure_transport;

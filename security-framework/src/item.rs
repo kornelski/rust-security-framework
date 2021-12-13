@@ -79,8 +79,8 @@ impl Limit {
     #[inline]
     fn to_value(self) -> CFType {
         match self {
-            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() }
-            Self::Max(l) => CFNumber::from(l).as_CFType()
+            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() },
+            Self::Max(l) => CFNumber::from(l).as_CFType(),
         }
     }
 }
@@ -131,7 +131,6 @@ impl ItemSearchOptions {
         self
     }
 
-
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
     #[inline(always)]
@@ -175,7 +174,8 @@ impl ItemSearchOptions {
     /// Sets kSecAttrAccessGroup to kSecAttrAccessGroupToken
     #[inline(always)]
     pub fn access_group_token(&mut self) -> &mut Self {
-        self.access_group = unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
+        self.access_group =
+            unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
         self
     }
 
@@ -219,7 +219,7 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((
                     CFString::wrap_under_get_rule(kSecMatchLimit),
-                    limit.to_value()
+                    limit.to_value(),
                 ));
             }
 
@@ -262,10 +262,7 @@ impl ItemSearchOptions {
     }
 }
 
-#[cfg(target_os = "macos")]
 unsafe fn get_item(item: CFTypeRef) -> SearchResult {
-    use crate::os::macos::keychain_item::SecKeychainItem;
-
     let type_id = CFGetTypeID(item);
 
     if type_id == CFData::type_id() {
@@ -279,24 +276,15 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
         return SearchResult::Dict(CFDictionary::wrap_under_get_rule(item as *mut _));
     }
 
-    let reference = if type_id == SecCertificate::type_id() {
-        Reference::Certificate(SecCertificate::wrap_under_get_rule(item as *mut _))
-    } else if type_id == SecKey::type_id() {
-        Reference::Key(SecKey::wrap_under_get_rule(item as *mut _))
-    } else if type_id == SecIdentity::type_id() {
-        Reference::Identity(SecIdentity::wrap_under_get_rule(item as *mut _))
-    } else if type_id == SecKeychainItem::type_id() {
-        Reference::KeychainItem(SecKeychainItem::wrap_under_get_rule(item as *mut _))
-    } else {
-        panic!("Got bad type from SecItemCopyMatching: {}", type_id);
-    };
-
-    SearchResult::Ref(reference)
-}
-
-#[cfg(not(target_os = "macos"))]
-unsafe fn get_item(item: CFTypeRef) -> SearchResult {
-    let type_id = CFGetTypeID(item);
+    #[cfg(target_os = "macos")]
+    {
+        use crate::os::macos::keychain_item::SecKeychainItem;
+        if type_id == SecKeychainItem::type_id() {
+            return SearchResult::Ref(Reference::KeychainItem(
+                SecKeychainItem::wrap_under_get_rule(item as *mut _),
+            ));
+        }
+    }
 
     let reference = if type_id == SecCertificate::type_id() {
         Reference::Certificate(SecCertificate::wrap_under_get_rule(item as *mut _))
@@ -311,7 +299,10 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     SearchResult::Ref(reference)
 }
 
-/// An enum including all objects which can be found by `ItemSearchOptions`.
+/// An enum including all objects whose references can be returned from a search.
+/// Note that generic _Keychain Items_, such as passwords and preferences, do
+/// not have specific object types; they are modeled using dictionaries and so
+/// are available directly as search results in variant `SearchResult::Dict`.
 #[derive(Debug)]
 pub enum Reference {
     /// A `SecIdentity`.
