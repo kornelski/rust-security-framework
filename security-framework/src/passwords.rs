@@ -23,7 +23,7 @@ use security_framework_sys::keychain_item::{
 
 /// Set a password for the given service and account.  Either creates a
 /// generic password keychain entry or updates the password in an existing entry.
-pub fn set_generic_password(service: &str, account: &str, password: &str) -> Result<()> {
+pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
     let query = vec![
         (
             unsafe { CFString::wrap_under_get_rule(kSecClass) },
@@ -39,7 +39,7 @@ pub fn set_generic_password(service: &str, account: &str, password: &str) -> Res
         ),
         (
             unsafe { CFString::wrap_under_get_rule(kSecValueData) },
-            CFData::from_buffer(password.as_bytes()).as_CFType(),
+            CFData::from_buffer(password).as_CFType(),
         ),
     ];
     let params = CFDictionary::from_CFType_pairs(&query);
@@ -56,7 +56,7 @@ pub fn set_generic_password(service: &str, account: &str, password: &str) -> Res
 
 /// Get the password for the given service and account.  Looks for a
 /// generic password keychain entry for the service and account.
-pub fn get_generic_password(service: &str, account: &str) -> Result<String> {
+pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     let query = vec![
         (
             unsafe { CFString::wrap_under_get_rule(kSecClass) },
@@ -83,7 +83,7 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<String> {
         let val = unsafe { CFData::wrap_under_get_rule(ret as CFDataRef) };
         let mut vec = Vec::new();
         vec.extend_from_slice(val.bytes());
-        return Ok(format!("{}", String::from_utf8_lossy(&vec)));
+        return Ok(vec);
     }
     Err(Error::from_code(errSecParam))
 }
