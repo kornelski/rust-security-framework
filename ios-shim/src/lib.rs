@@ -1,63 +1,59 @@
-use core_foundation::base::OSStatus;
-use security_framework_sys::base::{errSecBadReq, errSecBufferTooSmall, errSecSuccess};
-use std::ffi::CStr;
-use std::os::raw::{c_char, c_uchar, c_ulong};
-use std::ptr::copy_nonoverlapping;
+use core_foundation::base::{CFRetain, OSStatus, TCFType};
+use core_foundation::data::{CFData, CFDataRef};
+use core_foundation::string::{CFString, CFStringRef};
+use security_framework_sys::base::{errSecBadReq, errSecSuccess};
 
 #[no_mangle]
-pub extern "C" fn set_generic_password(
-    service: *const c_char,
-    user: *const c_char,
-    pw: *const c_uchar,
-    pw_len: c_ulong,
+pub extern "C" fn SecSetGenericPassword(
+    service: CFStringRef,
+    user: CFStringRef,
+    password: CFDataRef,
 ) -> OSStatus {
-    let service = unsafe { CStr::from_ptr(service) }.to_str().unwrap_or("");
-    let account = unsafe { CStr::from_ptr(user) }.to_str().unwrap_or("");
-    if service.len() == 0 || account.len() == 0 {
+    if service.is_null() || user.is_null() || password.is_null() {
         return errSecBadReq;
     }
-    let password = unsafe { std::slice::from_raw_parts(pw as *const u8, pw_len as usize) };
-    match security_framework::passwords::set_generic_password(service, account, password) {
+    let service = unsafe { CFString::wrap_under_get_rule(service) }.to_string();
+    let account = unsafe { CFString::wrap_under_get_rule(user) }.to_string();
+    let password = unsafe { CFData::wrap_under_get_rule(password) }.to_vec();
+    match security_framework::passwords::set_generic_password(&service, &account, &password) {
         Ok(_) => 0,
         Err(err) => err.code(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn get_generic_password(
-    service: *const c_char,
-    user: *const c_char,
-    buffer: *mut c_uchar,
-    buf_size: c_ulong,
-    pw_size: *mut c_ulong,
+pub extern "C" fn SecCopyGenericPassword(
+    service: CFStringRef,
+    user: CFStringRef,
+    password: *mut CFDataRef,
 ) -> OSStatus {
-    let service = unsafe { CStr::from_ptr(service) }.to_str().unwrap_or("");
-    let account = unsafe { CStr::from_ptr(user) }.to_str().unwrap_or("");
-    if service.len() == 0 || account.len() == 0 {
+    if service.is_null() || user.is_null() {
         return errSecBadReq;
     }
-    match security_framework::passwords::get_generic_password(service, account) {
+    let service = unsafe { CFString::wrap_under_get_rule(service) }.to_string();
+    let account = unsafe { CFString::wrap_under_get_rule(user) }.to_string();
+    match security_framework::passwords::get_generic_password(&service, &account) {
         Ok(bytes) => {
-            unsafe { *pw_size = bytes.len() as c_ulong };
-            if bytes.len() > buf_size as usize {
-                errSecBufferTooSmall
-            } else {
-                unsafe { copy_nonoverlapping(bytes.as_ptr(), buffer, bytes.len()) }
-                errSecSuccess
+            if !password.is_null() {
+                let data = CFData::from_buffer(bytes.as_slice());
+                // take an extra retain count to hand to our caller
+                unsafe { CFRetain(data.as_CFTypeRef()) };
+                unsafe { *password = data.as_concrete_TypeRef() };
             }
+            errSecSuccess
         }
         Err(err) => err.code(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn delete_generic_password(service: *const c_char, user: *const c_char) -> OSStatus {
-    let service = unsafe { CStr::from_ptr(service) }.to_str().unwrap_or("");
-    let account = unsafe { CStr::from_ptr(user) }.to_str().unwrap_or("");
-    if service.len() == 0 || account.len() == 0 {
+pub extern "C" fn SecDeleteGenericPassword(service: CFStringRef, user: CFStringRef) -> OSStatus {
+    if service.is_null() || user.is_null() {
         return errSecBadReq;
     }
-    match security_framework::passwords::delete_generic_password(service, account) {
+    let service = unsafe { CFString::wrap_under_get_rule(service) }.to_string();
+    let account = unsafe { CFString::wrap_under_get_rule(user) }.to_string();
+    match security_framework::passwords::delete_generic_password(&service, &account) {
         Ok(_) => errSecSuccess,
         Err(err) => err.code(),
     }

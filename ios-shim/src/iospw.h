@@ -5,10 +5,10 @@
 #ifndef RUST_SECURITY_FRAMEWORK_IOSPW_H
 #define RUST_SECURITY_FRAMEWORK_IOSPW_H
 
-#include <stdint.h>
+#include <CoreFoundation/CoreFoundation.h>
 
-extern int32_t set_generic_password(const char *service, const char *user, const uint8_t *pw, uint64_t pw_len);
-extern int32_t get_generic_password(const char *service, const char *user, uint8_t *buffer, uint64_t buf_len, uint64_t *pw_len);
-extern int32_t delete_generic_password(const char *service, const char *user);
+extern OSStatus SecSetGenericPassword(CFStringRef service, CFStringRef account, CFDataRef password);
+extern OSStatus SecCopyGenericPassword(CFStringRef service, CFStringRef account, CFDataRef *password);
+extern OSStatus SecDeleteGenericPassword(CFStringRef service, CFStringRef account);
 
 #endif //RUST_SECURITY_FRAMEWORK_IOSPW_H
