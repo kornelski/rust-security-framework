@@ -8,7 +8,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 
 extern OSStatus SecSetGenericPassword(CFStringRef service, CFStringRef account, CFDataRef password);
-extern OSStatus SecCopyGenericPassword(CFStringRef service, CFStringRef account, CFDataRef *password);
+extern OSStatus SecCopyGenericPassword(CFStringRef service, CFStringRef account, CF_RETURNS_RETAINED CFDataRef *password);
 extern OSStatus SecDeleteGenericPassword(CFStringRef service, CFStringRef account);
 
 #endif //RUST_SECURITY_FRAMEWORK_IOSPW_H
