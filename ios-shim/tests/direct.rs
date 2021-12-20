@@ -33,20 +33,20 @@ fn generate_random_string() -> String {
 #[test]
 fn roundtrip_generic() {
     let name = generate_random_string();
-    set_generic_password(&name, &name, &name).unwrap();
+    set_generic_password(&name, &name, name.as_bytes()).unwrap();
     let pass = get_generic_password(&name, &name).unwrap();
-    assert_eq!(name, pass);
+    assert_eq!(name.as_bytes(), pass);
     delete_generic_password(&name, &name).unwrap()
 }
 
 #[test]
 fn update_generic() {
     let name = generate_random_string();
-    set_generic_password(&name, &name, &name).unwrap();
+    set_generic_password(&name, &name, name.as_bytes()).unwrap();
     let alternate = generate_random_string();
-    set_generic_password(&name, &name, &alternate).unwrap();
+    set_generic_password(&name, &name, alternate.as_bytes()).unwrap();
     let pass = get_generic_password(&name, &name).unwrap();
-    assert_eq!(pass, alternate);
+    assert_eq!(pass, alternate.as_bytes());
     delete_generic_password(&name, &name).unwrap()
 }
 
@@ -59,7 +59,7 @@ fn insert_then_find_generic() {
     let mut names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
-        set_generic_password(&name, &name, &name).unwrap();
+        set_generic_password(&name, &name, name.as_bytes()).unwrap();
         names.push(name);
     }
     let results = ItemSearchOptions::new()
@@ -109,7 +109,7 @@ fn insert_then_find_generic_legacy() {
     let mut modern_names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
-        set_generic_password(&name, &name, &name).unwrap();
+        set_generic_password(&name, &name, name.as_bytes()).unwrap();
         modern_names.push(name);
     }
     // first check to see that the legacy passwords are found by the modern search
