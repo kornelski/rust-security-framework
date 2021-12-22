@@ -5,58 +5,131 @@
 
 use crate::base::Result;
 use crate::{cvt, Error};
-use core_foundation::base::TCFType;
+use core_foundation::base::{CFType, TCFType};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
+use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFGetTypeID, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
 use security_framework_sys::base::{errSecDuplicateItem, errSecParam};
 use security_framework_sys::item::{
-    kSecAttrAccount, kSecAttrService, kSecClass, kSecClassGenericPassword, kSecReturnData,
-    kSecValueData,
+    kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol,
+    kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword,
+    kSecClassInternetPassword, kSecReturnData, kSecValueData,
 };
+use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 use security_framework_sys::keychain_item::{
     SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
 };
 
-/// Set a password for the given service and account.  Either creates a
-/// generic password keychain entry or updates the password in an existing entry.
+/// Set a generic password for the given service.  Either creates a
+/// keychain entry or updates the password in an existing entry.
 pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
-    let query = vec![
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecClass) },
-            unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword) }.as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrService) },
-            CFString::from(service).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-            CFString::from(account).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecValueData) },
-            CFData::from_buffer(password).as_CFType(),
-        ),
-    ];
-    let params = CFDictionary::from_CFType_pairs(&query);
-    let mut ret = std::ptr::null();
-    let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
-    if status == errSecDuplicateItem {
-        let params = CFDictionary::from_CFType_pairs(&query[0..2]);
-        let update = CFDictionary::from_CFType_pairs(&query[3..]);
-        cvt(unsafe { SecItemUpdate(params.as_concrete_TypeRef(), update.as_concrete_TypeRef()) })
-    } else {
-        cvt(status)
-    }
+    let mut query = generic_password_query(service, account);
+    set_password_internal(&mut query, password)
 }
 
 /// Get the password for the given service and account.  Looks for a
 /// generic password keychain entry for the service and account.
 pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
+    let mut query = generic_password_query(service, account);
+    query.push((
+        unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
+        CFBoolean::from(true).as_CFType(),
+    ));
+    let params = CFDictionary::from_CFType_pairs(&query);
+    let mut ret: CFTypeRef = std::ptr::null();
+    cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
+    get_password_internal(ret)
+}
+
+/// Delete the generic password keychain entry for the given service and account.
+pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
+    let query = generic_password_query(service, account);
+    let params = CFDictionary::from_CFType_pairs(&query);
+    cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
+}
+
+/// Set an internet password for the given server info.  Either creates a
+/// keychain entry or updates the password in an existing entry.
+pub fn set_internet_password(
+    server: &str,
+    security_domain: Option<&str>,
+    account: &str,
+    path: &str,
+    port: Option<u16>,
+    protocol: SecProtocolType,
+    authentication_type: SecAuthenticationType,
+    password: &[u8],
+) -> Result<()> {
+    let mut query = internet_password_query(
+        server,
+        security_domain,
+        account,
+        path,
+        port,
+        protocol,
+        authentication_type,
+    );
+    set_password_internal(&mut query, password)
+}
+
+/// Get the password for the given service and account.  Looks for a
+/// generic password keychain entry for the service and account.
+pub fn get_internet_password(
+    server: &str,
+    security_domain: Option<&str>,
+    account: &str,
+    path: &str,
+    port: Option<u16>,
+    protocol: SecProtocolType,
+    authentication_type: SecAuthenticationType,
+) -> Result<Vec<u8>> {
+    let mut query = internet_password_query(
+        server,
+        security_domain,
+        account,
+        path,
+        port,
+        protocol,
+        authentication_type,
+    );
+    query.push((
+        unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
+        CFBoolean::from(true).as_CFType(),
+    ));
+    let params = CFDictionary::from_CFType_pairs(&query);
+    let mut ret: CFTypeRef = std::ptr::null();
+    cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
+    get_password_internal(ret)
+}
+
+/// Delete the generic password keychain entry for the given service and account.
+pub fn delete_internet_password(
+    server: &str,
+    security_domain: Option<&str>,
+    account: &str,
+    path: &str,
+    port: Option<u16>,
+    protocol: SecProtocolType,
+    authentication_type: SecAuthenticationType,
+) -> Result<()> {
+    let query = internet_password_query(
+        server,
+        security_domain,
+        account,
+        path,
+        port,
+        protocol,
+        authentication_type,
+    );
+    let params = CFDictionary::from_CFType_pairs(&query);
+    cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
+}
+
+fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType)> {
     let query = vec![
         (
             unsafe { CFString::wrap_under_get_rule(kSecClass) },
@@ -75,12 +148,81 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
             CFBoolean::from(true).as_CFType(),
         ),
     ];
+    return query;
+}
+
+fn internet_password_query(
+    server: &str,
+    security_domain: Option<&str>,
+    account: &str,
+    path: &str,
+    port: Option<u16>,
+    protocol: SecProtocolType,
+    authentication_type: SecAuthenticationType,
+) -> Vec<(CFString, CFType)> {
+    let mut query = vec![
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecClass) },
+            unsafe { CFString::wrap_under_get_rule(kSecClassInternetPassword) }.as_CFType(),
+        ),
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecAttrServer) },
+            CFString::from(server).as_CFType(),
+        ),
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecAttrPath) },
+            CFString::from(path).as_CFType(),
+        ),
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
+            CFString::from(account).as_CFType(),
+        ),
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecAttrProtocol) },
+            CFNumber::from(protocol as i32).as_CFType(),
+        ),
+        (
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAuthenticationType) },
+            CFNumber::from(authentication_type as i32).as_CFType(),
+        ),
+    ];
+    if security_domain.is_some() {
+        query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
+            CFString::from(security_domain.unwrap()).as_CFType(),
+        ))
+    }
+    if port.is_some() {
+        query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
+            CFNumber::from(port.unwrap() as i32).as_CFType(),
+        ))
+    }
+    query
+}
+
+fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -> Result<()> {
+    let query_len = query.len();
+    query.push((
+        unsafe { CFString::wrap_under_get_rule(kSecValueData) },
+        CFData::from_buffer(password).as_CFType(),
+    ));
     let params = CFDictionary::from_CFType_pairs(&query);
-    let mut ret: CFTypeRef = std::ptr::null();
-    cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
-    let type_id = unsafe { CFGetTypeID(ret) };
+    let mut ret = std::ptr::null();
+    let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
+    if status == errSecDuplicateItem {
+        let params = CFDictionary::from_CFType_pairs(&query[0..query_len]);
+        let update = CFDictionary::from_CFType_pairs(&query[query_len..]);
+        cvt(unsafe { SecItemUpdate(params.as_concrete_TypeRef(), update.as_concrete_TypeRef()) })
+    } else {
+        cvt(status)
+    }
+}
+
+fn get_password_internal(data: CFTypeRef) -> Result<Vec<u8>> {
+    let type_id = unsafe { CFGetTypeID(data) };
     if type_id == CFData::type_id() {
-        let val = unsafe { CFData::wrap_under_get_rule(ret as CFDataRef) };
+        let val = unsafe { CFData::wrap_under_get_rule(data as CFDataRef) };
         let mut vec = Vec::new();
         vec.extend_from_slice(val.bytes());
         return Ok(vec);
@@ -88,23 +230,122 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     Err(Error::from_code(errSecParam))
 }
 
-/// Delete the generic password keychain entry for the given service and account.
-pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
-    let query = vec![
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecClass) },
-            unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword).as_CFType() },
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrService) },
-            CFString::from(service).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-            CFString::from(account).as_CFType(),
-        ),
-    ];
-    let params = CFDictionary::from_CFType_pairs(&query);
-    cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })?;
-    Ok(())
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn missing_generic() {
+        let name = "a string not likely to already be in the keychain as service or account";
+        let password = get_generic_password(name, name);
+        assert!(password.is_err());
+    }
+
+    #[test]
+    fn roundtrip_generic() {
+        let name = "roundtrip_generic";
+        set_generic_password(name, name, name.as_bytes()).expect("set_generic_password");
+        let pass = get_generic_password(name, name).expect("get_generic_password");
+        assert_eq!(name.as_bytes(), pass);
+        delete_generic_password(name, name).expect("delete_generic_password")
+    }
+
+    #[test]
+    fn update_generic() {
+        let name = "update_generic";
+        set_generic_password(name, name, name.as_bytes()).expect("set_generic_password");
+        let alternate = "update_generic_alternate";
+        set_generic_password(name, name, alternate.as_bytes()).expect("set_generic_password");
+        let pass = get_generic_password(name, name).expect("get_generic_password");
+        assert_eq!(pass, alternate.as_bytes());
+        delete_generic_password(name, name).expect("delete_generic_password")
+    }
+
+    #[test]
+    fn missing_internet() {
+        let name = "a string not likely to already be in the keychain as service or account";
+        let (server, domain, account, path, port, protocol, auth) = (
+            name,
+            None,
+            name,
+            "/",
+            Some(8080u16),
+            SecProtocolType::HTTP,
+            SecAuthenticationType::Any,
+        );
+        let password = get_internet_password(server, domain, account, path, port, protocol, auth);
+        assert!(password.is_err());
+    }
+
+    #[test]
+    fn roundtrip_internet() {
+        let name = "roundtrip_internet";
+        let (server, domain, account, path, port, protocol, auth) = (
+            name,
+            None,
+            name,
+            "/",
+            Some(8080u16),
+            SecProtocolType::HTTP,
+            SecAuthenticationType::Any,
+        );
+        set_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+            name.as_bytes(),
+        )
+        .expect("set_internet_password");
+        let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
+            .expect("get_internet_password");
+        assert_eq!(name.as_bytes(), pass);
+        delete_internet_password(server, domain, account, path, port, protocol, auth)
+            .expect("delete_internet_password");
+    }
+
+    #[test]
+    fn update_internet() {
+        let name = "update_internet";
+        let (server, domain, account, path, port, protocol, auth) = (
+            name,
+            None,
+            name,
+            "/",
+            Some(8080u16),
+            SecProtocolType::HTTP,
+            SecAuthenticationType::Any,
+        );
+        set_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+            name.as_bytes(),
+        )
+        .expect("set_internet_password");
+        let alternate = "alternate_internet_password";
+        set_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+            alternate.as_bytes(),
+        )
+        .expect("set_internet_password");
+        let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
+            .expect("get_internet_password");
+        assert_eq!(pass, alternate.as_bytes());
+        delete_internet_password(server, domain, account, path, port, protocol, auth)
+            .expect("delete_internet_password");
+    }
 }

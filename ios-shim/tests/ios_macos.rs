@@ -1,9 +1,6 @@
 //! Tests of legacy macOS versus newer iOS-style APIs.
 //!
-//! NOTE: Because the keychain is a shared resource, each of these tests
-//! is carefully designed to use random names so they don't reuse keys,
-//! as this would lead to ownership collisions between different test runs.
-//! But the some of these tests involve keychain queries for multiple items,
+//! NOTE: Some of these tests involve keychain queries for multiple items,
 //! and experience shows that running multiple keychain queries on separate
 //! threads in the same process simultaneously can produce interference.
 //! So all the query tests have been conditioned to run serially.
@@ -13,9 +10,7 @@ use core_foundation::string::CFString;
 use security_framework::item::{ItemClass, ItemSearchOptions, Limit, SearchResult};
 #[cfg(target_os = "macos")]
 use security_framework::os::macos::keychain::SecKeychain;
-use security_framework::passwords::{
-    delete_generic_password, get_generic_password, set_generic_password,
-};
+use security_framework::passwords::{delete_generic_password, set_generic_password};
 use security_framework_sys::item::{kSecAttrAccount, kSecAttrService};
 use serial_test::serial;
 
@@ -28,26 +23,6 @@ fn generate_random_string() -> String {
         .take(30)
         .map(char::from)
         .collect()
-}
-
-#[test]
-fn roundtrip_generic() {
-    let name = generate_random_string();
-    set_generic_password(&name, &name, name.as_bytes()).unwrap();
-    let pass = get_generic_password(&name, &name).unwrap();
-    assert_eq!(name.as_bytes(), pass);
-    delete_generic_password(&name, &name).unwrap()
-}
-
-#[test]
-fn update_generic() {
-    let name = generate_random_string();
-    set_generic_password(&name, &name, name.as_bytes()).unwrap();
-    let alternate = generate_random_string();
-    set_generic_password(&name, &name, alternate.as_bytes()).unwrap();
-    let pass = get_generic_password(&name, &name).unwrap();
-    assert_eq!(pass, alternate.as_bytes());
-    delete_generic_password(&name, &name).unwrap()
 }
 
 #[test]
