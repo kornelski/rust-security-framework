@@ -79,8 +79,8 @@ impl Limit {
     #[inline]
     fn to_value(self) -> CFType {
         match self {
-            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() },
-            Self::Max(l) => CFNumber::from(l).as_CFType(),
+            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() }
+            Self::Max(l) => CFNumber::from(l).as_CFType()
         }
     }
 }
@@ -131,6 +131,7 @@ impl ItemSearchOptions {
         self
     }
 
+
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
     #[inline(always)]
@@ -174,8 +175,7 @@ impl ItemSearchOptions {
     /// Sets kSecAttrAccessGroup to kSecAttrAccessGroupToken
     #[inline(always)]
     pub fn access_group_token(&mut self) -> &mut Self {
-        self.access_group =
-            unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
+        self.access_group = unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
         self
     }
 
@@ -219,7 +219,7 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((
                     CFString::wrap_under_get_rule(kSecMatchLimit),
-                    limit.to_value(),
+                    limit.to_value()
                 ));
             }
 

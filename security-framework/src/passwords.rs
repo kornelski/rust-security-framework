@@ -1,4 +1,4 @@
-//! Support for generic password entries in the keychain.  Works on both iOS and macOS.
+//! Support for password entries in the keychain.  Works on both iOS and macOS.
 //!
 //! If you want the extended keychain facilities only available on macOS, use the
 //! version of these functions in the macOS extensions module.
@@ -24,15 +24,15 @@ use security_framework_sys::keychain_item::{
     SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
 };
 
-/// Set a generic password for the given service.  Either creates a
-/// keychain entry or updates the password in an existing entry.
+/// Set a generic password for the given service and account.
+/// Creates or updates a keychain entry.
 pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
     let mut query = generic_password_query(service, account);
     set_password_internal(&mut query, password)
 }
 
-/// Get the password for the given service and account.  Looks for a
-/// generic password keychain entry for the service and account.
+/// Get the generic password for the given service and account.  If no matching
+/// keychain entry exists, fails with error code `errSecItemNotFound`.
 pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     let mut query = generic_password_query(service, account);
     query.push((
@@ -46,14 +46,15 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
 }
 
 /// Delete the generic password keychain entry for the given service and account.
+/// If none exists, fails with error code `errSecItemNotFound`.
 pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
     let query = generic_password_query(service, account);
     let params = CFDictionary::from_CFType_pairs(&query);
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
 }
 
-/// Set an internet password for the given server info.  Either creates a
-/// keychain entry or updates the password in an existing entry.
+/// Set an internet password for the given endpoint parameters.
+/// Creates or updates a keychain entry.
 pub fn set_internet_password(
     server: &str,
     security_domain: Option<&str>,
@@ -76,8 +77,8 @@ pub fn set_internet_password(
     set_password_internal(&mut query, password)
 }
 
-/// Get the password for the given service and account.  Looks for a
-/// generic password keychain entry for the service and account.
+/// Get the internet password for the given endpoint parameters.  If no matching
+/// keychain entry exists, fails with error code `errSecItemNotFound`.
 pub fn get_internet_password(
     server: &str,
     security_domain: Option<&str>,
@@ -106,7 +107,8 @@ pub fn get_internet_password(
     get_password_internal(ret)
 }
 
-/// Delete the generic password keychain entry for the given service and account.
+/// Delete the internet password for the given endpoint parameters.
+/// If none exists, fails with error code `errSecItemNotFound`.
 pub fn delete_internet_password(
     server: &str,
     security_domain: Option<&str>,
@@ -129,6 +131,8 @@ pub fn delete_internet_password(
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
 }
 
+// Generic passwords are identified by service and account.  They have other
+// attributes, but this interface doesn't allow specifying them.
 fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType)> {
     let query = vec![
         (
@@ -151,6 +155,8 @@ fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType
     return query;
 }
 
+// Internet passwords are identified by a number of attributes.
+// They can have others, but this interface doesn't allow specifying them.
 fn internet_password_query(
     server: &str,
     security_domain: Option<&str>,
@@ -201,6 +207,8 @@ fn internet_password_query(
     query
 }
 
+// This starts by trying to create the password with the given query params.
+// If the creation attempt reveals that one exists, its password is updated.
 fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -> Result<()> {
     let query_len = query.len();
     query.push((
@@ -219,6 +227,7 @@ fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -
     }
 }
 
+// Having retrieved a password entry, this copies and returns the password.
 fn get_password_internal(data: CFTypeRef) -> Result<Vec<u8>> {
     let type_id = unsafe { CFGetTypeID(data) };
     if type_id == CFData::type_id() {
