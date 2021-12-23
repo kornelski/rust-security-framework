@@ -1,0 +1,4 @@
+.please do not use rustfmt, it destroys well-formatted code
+
+disable_all_formatting = true
+ignore = ["/"]
