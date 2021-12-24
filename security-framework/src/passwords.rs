@@ -11,7 +11,7 @@ use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
-use core_foundation_sys::base::{CFGetTypeID, CFTypeRef};
+use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
 use security_framework_sys::base::{errSecDuplicateItem, errSecParam};
 use security_framework_sys::item::{
@@ -42,7 +42,7 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     let params = CFDictionary::from_CFType_pairs(&query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
-    get_password_internal(ret)
+    get_password_and_release(ret)
 }
 
 /// Delete the generic password keychain entry for the given service and account.
@@ -105,7 +105,7 @@ pub fn get_internet_password(
     let params = CFDictionary::from_CFType_pairs(&query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
-    get_password_internal(ret)
+    get_password_and_release(ret)
 }
 
 /// Delete the internet password for the given endpoint parameters.
@@ -229,13 +229,24 @@ fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -
 }
 
 // Having retrieved a password entry, this copies and returns the password.
-fn get_password_internal(data: CFTypeRef) -> Result<Vec<u8>> {
-    let type_id = unsafe { CFGetTypeID(data) };
-    if type_id == CFData::type_id() {
-        let val = unsafe { CFData::wrap_under_get_rule(data as CFDataRef) };
-        let mut vec = Vec::new();
-        vec.extend_from_slice(val.bytes());
-        return Ok(vec);
+//
+// # Safety
+// The data element passed in is assumed to have been returned from a Copy
+// call, so it's released after we are done with it.
+fn get_password_and_release(data: CFTypeRef) -> Result<Vec<u8>> {
+    if !data.is_null() {
+        let type_id = unsafe { CFGetTypeID(data) };
+        if type_id == CFData::type_id() {
+            let val = unsafe { CFData::wrap_under_create_rule(data as CFDataRef) };
+            let mut vec = Vec::new();
+            vec.extend_from_slice(val.bytes());
+            return Ok(vec);
+        } else {
+            // unexpected: we got a reference to some other type.
+            // Release it to make sure there's no leak, but
+            // we can't return the password in this case.
+            unsafe { CFRelease(data) };
+        }
     }
     Err(Error::from_code(errSecParam))
 }
