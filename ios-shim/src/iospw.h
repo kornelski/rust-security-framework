@@ -5,7 +5,7 @@
 /// the C API entires.  The default analysis is that input-only objects
 /// remain memory managed, but in-out objects are unmanaged.
 ///
-/// In this API, there is one call - `RustSecCopyGenericPassword` - that
+/// In this API, there is one call - `RustShimCopyGenericPassword` - that
 /// retains an output CFData object and passes ownership to the caller.
 /// Although it's named correctly per CF conventions to let the compiler
 /// infer that the output is retained, that's not always reliably done,
@@ -17,8 +17,8 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-extern OSStatus RustSecSetGenericPassword(CFStringRef service, CFStringRef account, CFDataRef password);
-extern OSStatus RustSecCopyGenericPassword(CFStringRef service, CFStringRef account, CF_RETURNS_RETAINED CFDataRef *password);
-extern OSStatus RustSecDeleteGenericPassword(CFStringRef service, CFStringRef account);
+extern OSStatus RustShimSetGenericPassword(CFStringRef service, CFStringRef account, CFDataRef password);
+extern OSStatus RustShimCopyGenericPassword(CFStringRef service, CFStringRef account, CF_RETURNS_RETAINED CFDataRef *password);
+extern OSStatus RustShimDeleteGenericPassword(CFStringRef service, CFStringRef account);
 
 #endif //RUST_SECURITY_FRAMEWORK_IOSPW_H

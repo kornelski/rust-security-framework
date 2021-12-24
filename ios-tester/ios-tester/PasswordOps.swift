@@ -16,7 +16,7 @@ enum PasswordError: Error {
 class PasswordOps {
     static func setPassword(service: String, user: String, password: String) throws {
         let data = Data(password.utf8)
-        let status = RustSecSetGenericPassword(service as CFString, user as CFString, data as CFData)
+        let status = RustShimSetGenericPassword(service as CFString, user as CFString, data as CFData)
         guard status == errSecSuccess else {
             throw PasswordError.unexpected(status)
         }
@@ -24,7 +24,7 @@ class PasswordOps {
     
     static func getPassword(service: String, user: String) throws -> String {
         var result: CFData?
-        let status = RustSecCopyGenericPassword(service as CFString, user as CFString, &result)
+        let status = RustShimCopyGenericPassword(service as CFString, user as CFString, &result)
         if status == errSecItemNotFound {
             throw PasswordError.notFound
         }
@@ -40,7 +40,7 @@ class PasswordOps {
     }
 
     static func deletePassword(service: String, user: String) throws {
-        let status = RustSecDeleteGenericPassword(service as CFString, user as CFString)
+        let status = RustShimDeleteGenericPassword(service as CFString, user as CFString)
         guard status == errSecSuccess else {
             throw PasswordError.unexpected(status)
         }

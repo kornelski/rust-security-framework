@@ -27,7 +27,7 @@ use security_framework_sys::base::{errSecBadReq, errSecSuccess};
 /// Set a generic password for the given service and account.
 /// Creates or updates a keychain entry.
 #[no_mangle]
-pub extern "C" fn RustSecSetGenericPassword(
+pub extern "C" fn RustShimSetGenericPassword(
     service: CFStringRef,
     user: CFStringRef,
     password: CFDataRef,
@@ -47,7 +47,7 @@ pub extern "C" fn RustSecSetGenericPassword(
 /// Get the password for the given service and account.  If no keychain entry
 /// exists for the service and account, returns `errSecItemNotFound`.
 #[no_mangle]
-pub extern "C" fn RustSecCopyGenericPassword(
+pub extern "C" fn RustShimCopyGenericPassword(
     service: CFStringRef,
     user: CFStringRef,
     password: *mut CFDataRef,
@@ -74,7 +74,7 @@ pub extern "C" fn RustSecCopyGenericPassword(
 /// Delete the keychain entry for the given service and account.  If none
 /// exists, returns `errSecItemNotFound`.
 #[no_mangle]
-pub extern "C" fn RustSecDeleteGenericPassword(
+pub extern "C" fn RustShimDeleteGenericPassword(
     service: CFStringRef,
     user: CFStringRef,
 ) -> OSStatus {

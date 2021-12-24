@@ -192,16 +192,16 @@ fn internet_password_query(
             CFNumber::from(authentication_type as i32).as_CFType(),
         ),
     ];
-    if security_domain.is_some() {
+    if let Some(domain) = security_domain {
         query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
-            CFString::from(security_domain.unwrap()).as_CFType(),
+            CFString::from(domain).as_CFType(),
         ))
     }
-    if port.is_some() {
+    if let Some(port) = port {
         query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
-            CFNumber::from(port.unwrap() as i32).as_CFType(),
+            CFNumber::from(port as i32).as_CFType(),
         ))
     }
     query
