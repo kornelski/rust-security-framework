@@ -55,6 +55,7 @@ pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
 
 /// Set an internet password for the given endpoint parameters.
 /// Creates or updates a keychain entry.
+#[allow(clippy::too_many_arguments)]
 pub fn set_internet_password(
     server: &str,
     security_domain: Option<&str>,
@@ -152,7 +153,7 @@ fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType
             CFBoolean::from(true).as_CFType(),
         ),
     ];
-    return query;
+    query
 }
 
 // Internet passwords are identified by a number of attributes.
@@ -215,7 +216,7 @@ fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -
         unsafe { CFString::wrap_under_get_rule(kSecValueData) },
         CFData::from_buffer(password).as_CFType(),
     ));
-    let params = CFDictionary::from_CFType_pairs(&query);
+    let params = CFDictionary::from_CFType_pairs(query);
     let mut ret = std::ptr::null();
     let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
     if status == errSecDuplicateItem {
