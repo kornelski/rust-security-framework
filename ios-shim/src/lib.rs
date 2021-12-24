@@ -46,8 +46,22 @@ pub extern "C" fn RustShimSetGenericPassword(
 
 /// Get the password for the given service and account.  If no keychain entry
 /// exists for the service and account, returns `errSecItemNotFound`.
+///
+/// # Safety
+/// The `password` argument to this function is a mutable pointer to a CFDataRef.
+/// This is an input-output variable, and (as per CF standards) should come in
+/// either as nil (a null pointer) or as the address of a CFDataRef whose value is nil.
+/// If the input passowrd value is nil, then the password will be looked up
+/// and an appropriate status returned, but the password data will not be output.
+/// If the input value is non-nil, then the password will be looked up and,
+/// if found:
+///     1. a new CFData item will be allocated and retained,
+///     2. a copy of the password's bytes will be put into the CFData item, and
+///     3. the CFDataRef will be reset to refer to the allocated, retained item.
+/// Note that the current value of the CFDataRef on input will not be freed, so
+/// if you pass in a CFDataRef to get the password it must be a nil reference.
 #[no_mangle]
-pub extern "C" fn RustShimCopyGenericPassword(
+pub unsafe extern "C" fn RustShimCopyGenericPassword(
     service: CFStringRef,
     user: CFStringRef,
     password: *mut CFDataRef,
@@ -55,15 +69,15 @@ pub extern "C" fn RustShimCopyGenericPassword(
     if service.is_null() || user.is_null() {
         return errSecBadReq;
     }
-    let service = unsafe { CFString::wrap_under_get_rule(service) }.to_string();
-    let account = unsafe { CFString::wrap_under_get_rule(user) }.to_string();
+    let service = CFString::wrap_under_get_rule(service).to_string();
+    let account = CFString::wrap_under_get_rule(user).to_string();
     match security_framework::passwords::get_generic_password(&service, &account) {
         Ok(bytes) => {
             if !password.is_null() {
                 let data = CFData::from_buffer(bytes.as_slice());
                 // take an extra retain count to hand to our caller
-                unsafe { CFRetain(data.as_CFTypeRef()) };
-                unsafe { *password = data.as_concrete_TypeRef() };
+                CFRetain(data.as_CFTypeRef());
+                *password = data.as_concrete_TypeRef();
             }
             errSecSuccess
         }
