@@ -1,6 +1,8 @@
 //! Trust evaluation support.
 
-use core_foundation::array::{CFArray, CFArrayRef};
+use core_foundation::array::CFArray;
+#[cfg(target_os = "macos")]
+use core_foundation::array::CFArrayRef;
 use core_foundation::base::TCFType;
 use core_foundation_sys::base::{Boolean, CFIndex};
 
@@ -143,9 +145,9 @@ impl SecTrust {
         }
     }
 
-    /// Evaluates trust. Requires macOS 10.14, otherwise it just calls `evaluate()`
+    /// Evaluates trust. Requires macOS 10.14 or iOS, otherwise it just calls `evaluate()`
     pub fn evaluate_with_error(&self) -> Result<(), CFError> {
-        #[cfg(feature = "OSX_10_14")]
+        #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
         unsafe {
             let mut error: CFErrorRef = ::std::ptr::null_mut();
             if !SecTrustEvaluateWithError(self.0, &mut error) {
@@ -155,7 +157,7 @@ impl SecTrust {
             }
             Ok(())
         }
-        #[cfg(not(feature = "OSX_10_14"))]
+        #[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
         #[allow(deprecated)]
         {
             use security_framework_sys::base::errSecNotTrusted;
@@ -196,12 +198,12 @@ impl SecTrust {
     }
 }
 
-#[cfg(not(feature = "OSX_10_14"))]
+#[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
 extern "C" {
     fn CFErrorCreate(allocator: core_foundation_sys::base::CFAllocatorRef, domain: core_foundation_sys::string::CFStringRef, code: CFIndex, userInfo: core_foundation_sys::dictionary::CFDictionaryRef) -> CFErrorRef;
 }
 
-#[cfg(not(feature = "OSX_10_14"))]
+#[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
 fn cferror_from_osstatus(code: core_foundation_sys::base::OSStatus) -> CFError {
     unsafe {
         let error = CFErrorCreate(ptr::null_mut(), core_foundation_sys::error::kCFErrorDomainOSStatus, code as _, ptr::null_mut());

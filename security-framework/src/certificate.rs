@@ -6,6 +6,8 @@ use core_foundation::data::CFData;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
+#[cfg(target_os = "ios")]
+use security_framework_sys::base::{errSecSuccess, errSecNotTrusted};
 use security_framework_sys::certificate::*;
 use std::fmt;
 use std::ptr;
@@ -168,7 +170,13 @@ impl SecCertificate {
 
         let policy = SecPolicy::create_x509();
         let mut trust = SecTrust::create_with_certificates(from_ref(self), from_ref(&policy))?;
+        #[cfg(not(target_os = "ios"))]
         trust.evaluate()?;
+        #[cfg(target_os = "ios")]
+        cvt(match trust.evaluate_with_error() {
+            Ok(_) => errSecSuccess,
+            Err(_) => errSecNotTrusted,
+        })?;
         trust.copy_public_key()
     }
 }
