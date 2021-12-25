@@ -34,8 +34,7 @@ impl TrustResult {
     pub const UNSPECIFIED: Self = Self(kSecTrustResultUnspecified);
 
     /// Indicates a trust policy failure that the user can override.
-    pub const RECOVERABLE_TRUST_FAILURE: Self =
-        Self(kSecTrustResultRecoverableTrustFailure);
+    pub const RECOVERABLE_TRUST_FAILURE: Self = Self(kSecTrustResultRecoverableTrustFailure);
 
     /// Indicates a trust policy failure that the user cannot override.
     pub const FATAL_TRUST_FAILURE: Self = Self(kSecTrustResultFatalTrustFailure);

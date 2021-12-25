@@ -30,7 +30,7 @@ pub enum Domain {
 
 impl From<Domain> for SecTrustSettingsDomain {
     #[inline]
-    fn from (domain: Domain) -> SecTrustSettingsDomain {
+    fn from(domain: Domain) -> SecTrustSettingsDomain {
         match domain {
             Domain::User => kSecTrustSettingsDomainUser,
             Domain::Admin => kSecTrustSettingsDomainAdmin,
@@ -193,8 +193,7 @@ impl Iterator for TrustSettingsIter {
         if self.index >= self.array.len() {
             None
         } else {
-            let cert = self.array.get(self.index)
-                .unwrap();
+            let cert = self.array.get(self.index).unwrap();
             self.index += 1;
             Some(cert.clone())
         }
@@ -215,8 +214,7 @@ mod test {
     fn list_for_domain(domain: Domain) {
         println!("--- domain: {:?}", domain);
         let ts = TrustSettings::new(domain);
-        let iterator = ts.iter()
-            .unwrap();
+        let iterator = ts.iter().unwrap();
 
         for (i, cert) in iterator.enumerate() {
             println!("cert({:?}) = {:?}", i, cert);

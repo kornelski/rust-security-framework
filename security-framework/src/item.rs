@@ -79,8 +79,8 @@ impl Limit {
     #[inline]
     fn to_value(self) -> CFType {
         match self {
-            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() }
-            Self::Max(l) => CFNumber::from(l).as_CFType()
+            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() },
+            Self::Max(l) => CFNumber::from(l).as_CFType(),
         }
     }
 }
@@ -130,7 +130,6 @@ impl ItemSearchOptions {
         self.class = Some(class);
         self
     }
-
 
     /// Load Security Framework objects (`SecCertificate`, `SecKey`, etc) for
     /// the results.
@@ -219,7 +218,7 @@ impl ItemSearchOptions {
             if let Some(limit) = self.limit {
                 params.push((
                     CFString::wrap_under_get_rule(kSecMatchLimit),
-                    limit.to_value()
+                    limit.to_value(),
                 ));
             }
 

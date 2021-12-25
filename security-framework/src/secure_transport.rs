@@ -305,8 +305,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 };
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
-                let policy =
-                    SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_deref());
+                let policy = SecPolicy::create_ssl(SslProtocolSide::SERVER, domain.as_deref());
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
                     #[cfg(feature = "log")]
@@ -373,7 +372,8 @@ impl SslClientCertificateState {
     pub const SENT: Self = Self(kSSLClientCertSent);
 
     /// A client certificate has been received but has failed to validate.
-    pub const REJECTED: Self = Self(kSSLClientCertRejected); }
+    pub const REJECTED: Self = Self(kSSLClientCertRejected);
+}
 
 /// Specifies protocol versions.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

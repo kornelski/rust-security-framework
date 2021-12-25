@@ -48,9 +48,11 @@ pub const kSSLConnected: SSLSessionState = 2;
 pub const kSSLClosed: SSLSessionState = 3;
 pub const kSSLAborted: SSLSessionState = 4;
 
-pub type SSLReadFunc =
-    unsafe extern "C" fn(connection: SSLConnectionRef, data: *mut c_void, dataLength: *mut usize)
-        -> OSStatus;
+pub type SSLReadFunc = unsafe extern "C" fn(
+    connection: SSLConnectionRef,
+    data: *mut c_void,
+    dataLength: *mut usize,
+) -> OSStatus;
 
 pub type SSLWriteFunc = unsafe extern "C" fn(
     connection: SSLConnectionRef,

@@ -164,8 +164,8 @@ impl SecCertificate {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Get public key from certificate
     pub fn public_key(&self) -> Result<key::SecKey> {
-        use crate::trust::SecTrust;
         use crate::policy::SecPolicy;
+        use crate::trust::SecTrust;
         use std::slice::from_ref;
 
         let policy = SecPolicy::create_x509();
