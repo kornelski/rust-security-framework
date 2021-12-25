@@ -45,7 +45,7 @@ fn insert_then_find_generic() {
         .unwrap();
     assert!(results.len() >= names.len());
     let mut found = 0;
-    for result in results.iter() {
+    for result in &results {
         match result {
             SearchResult::Dict(_) => {
                 let dict = result.simplify_dict().unwrap();
@@ -59,7 +59,7 @@ fn insert_then_find_generic() {
         }
     }
     assert_eq!(names.len(), found);
-    for name in names.iter() {
+    for name in &names {
         delete_generic_password(name, name).unwrap();
     }
 }
@@ -96,7 +96,7 @@ fn insert_then_find_generic_legacy() {
         .unwrap();
     assert!(results.len() >= legacy_names.len());
     let mut found = 0;
-    for result in results.iter() {
+    for result in &results {
         match result {
             SearchResult::Dict(_) => {
                 let dict = result.simplify_dict().unwrap();
@@ -111,15 +111,15 @@ fn insert_then_find_generic_legacy() {
     }
     assert_eq!(legacy_names.len(), found);
     // next check to see that the modern passwords are found by the legacy search
-    for name in modern_names.iter() {
+    for name in &modern_names {
         keychain.find_generic_password(name, name).unwrap();
     }
     // finally delete both the legacy and the modern passwords
-    for name in legacy_names.iter() {
+    for name in &legacy_names {
         let (_, item) = keychain.find_generic_password(name, name).unwrap();
         item.delete();
     }
-    for name in modern_names.iter() {
+    for name in &modern_names {
         delete_generic_password(name, name).unwrap();
     }
 }
@@ -140,7 +140,7 @@ fn find_leftover_test_generic_passwords() {
         .limit(Limit::All)
         .search()
         .unwrap();
-    for result in results.iter() {
+    for result in &results {
         match result {
             SearchResult::Dict(_) => {
                 let dict = result.simplify_dict().unwrap();
@@ -158,11 +158,7 @@ fn find_leftover_test_generic_passwords() {
             _ => panic!("Got a non-dictionary from a password search"),
         }
     }
-    if found.len() > 0 {
-        panic!(
-            "There are {} entries created by older tests: {:?}",
+    assert!(found.is_empty(), "There are {} entries created by older tests: {:?}",
             found.len(),
-            &found
-        );
-    }
+            &found);
 }
