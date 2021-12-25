@@ -44,4 +44,14 @@ extern "C" {
 
     pub static kSecAttrAccessGroup: CFStringRef;
     pub static kSecAttrAccessGroupToken: CFStringRef;
+
+    pub static kSecAttrAuthenticationType: CFStringRef;
+    pub static kSecAttrPath: CFStringRef;
+    pub static kSecAttrPort: CFStringRef;
+    pub static kSecAttrProtocol: CFStringRef;
+    pub static kSecAttrSecurityDomain: CFStringRef;
+    pub static kSecAttrServer: CFStringRef;
+    pub static kSecAttrService: CFStringRef;
+    pub static kSecAttrAccount: CFStringRef;
+    pub static kSecValueData: CFStringRef;
 }

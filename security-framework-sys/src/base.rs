@@ -1,5 +1,4 @@
 use core_foundation_sys::base::OSStatus;
-#[cfg(target_os = "macos")]
 use core_foundation_sys::string::CFStringRef;
 use std::os::raw::c_void;
 
@@ -48,12 +47,13 @@ pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;
 pub const errSecAuthFailed: OSStatus = -25293;
+pub const errSecDuplicateItem: OSStatus = -25299;
 pub const errSecConversionError: OSStatus = -67594;
 pub const errSecTrustSettingDeny: OSStatus = -67654;
 pub const errSecNotTrusted: OSStatus = -67843;
 pub const errSecNoTrustSettings: OSStatus = -25263;
 
 extern "C" {
-    #[cfg(target_os = "macos")]
+    // this is available on iOS 11.3+, MacOS 10.3+
     pub fn SecCopyErrorMessageString(status: OSStatus, reserved: *mut c_void) -> CFStringRef;
 }

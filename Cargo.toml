@@ -2,5 +2,6 @@
 members = [
     "security-framework-sys",
     "security-framework",
+    "ios-shim",
     "systest"
 ]

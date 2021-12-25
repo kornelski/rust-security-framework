@@ -39,6 +39,7 @@ pub mod import_export;
 pub mod item;
 pub mod key;
 pub mod os;
+pub mod passwords;
 pub mod policy;
 pub mod random;
 pub mod secure_transport;
