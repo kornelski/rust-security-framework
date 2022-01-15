@@ -4,6 +4,9 @@ use core_foundation::array::CFArray;
 #[cfg(target_os = "macos")]
 use core_foundation::array::CFArrayRef;
 use core_foundation::base::TCFType;
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+use core_foundation::data::CFData;
+use core_foundation::date::CFDate;
 use core_foundation_sys::base::{Boolean, CFIndex};
 
 use security_framework_sys::trust::*;
@@ -60,6 +63,27 @@ impl_TCFType!(SecTrust, SecTrustRef, SecTrustGetTypeID);
 unsafe impl Sync for SecTrust {}
 unsafe impl Send for SecTrust {}
 
+#[cfg(target_os = "macos")]
+bitflags::bitflags! {
+    /// The option flags used to configure the evaluation of a `SecTrust`.
+    pub struct TrustOptions: SecTrustOptionFlags {
+        /// Allow expired certificates (except for the root certificate).
+        const ALLOW_EXPIRED = kSecTrustOptionAllowExpired;
+        /// Allow CA certificates as leaf certificates.
+        const LEAF_IS_CA = kSecTrustOptionLeafIsCA;
+        /// Allow network downloads of CA certificates.
+        const FETCH_ISSUER_FROM_NET = kSecTrustOptionFetchIssuerFromNet;
+        /// Allow expired root certificates.
+        const ALLOW_EXPIRED_ROOT = kSecTrustOptionAllowExpiredRoot;
+        /// Require a positive revocation check for each certificate.
+        const REQUIRE_REVOCATION_PER_CERT =  kSecTrustOptionRequireRevPerCert;
+        /// Use TrustSettings instead of anchors.
+        const USE_TRUST_SETTINGS = kSecTrustOptionUseTrustSettings;
+        /// Treat properly self-signed certificates as anchors implicitly.
+        const IMPLICIT_ANCHORS =  kSecTrustOptionImplicitAnchors;
+    }
+}
+
 impl SecTrust {
     /// Creates a SecTrustRef that is configured with a certificate chain, for validating
     /// that chain against a collection of policies.
@@ -78,6 +102,13 @@ impl SecTrust {
             ))?;
             Ok(Self(trust))
         }
+    }
+
+    /// Sets the date and time against which the certificates in this trust object
+    /// are verified.
+    #[inline]
+    pub fn set_trust_verify_date(&mut self, date: &CFDate) -> Result<()> {
+        unsafe { cvt(SecTrustSetVerifyDate(self.0, date.as_concrete_TypeRef())) }
     }
 
     /// Sets additional anchor certificates used to validate trust.
@@ -121,6 +152,65 @@ impl SecTrust {
     #[inline]
     pub fn set_policy(&mut self, policy: &SecPolicy) -> Result<()> {
         unsafe { cvt(SecTrustSetPolicies(self.0, policy.as_CFTypeRef())) }
+    }
+
+    /// Sets option flags for customizing evaluation of a trust object.
+    #[cfg(target_os = "macos")]
+    #[inline]
+    pub fn set_options(&mut self, options: TrustOptions) -> Result<()> {
+        unsafe { cvt(SecTrustSetOptions(self.0, options.bits())) }
+    }
+
+    /// Indicates whether this trust object is permitted to
+    /// fetch missing intermediate certificates from the network.
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    pub fn get_network_fetch_allowed(&mut self) -> Result<bool> {
+        let mut allowed = 0;
+
+        unsafe { cvt(SecTrustGetNetworkFetchAllowed(self.0, &mut allowed))? };
+
+        Ok(allowed != 0)
+    }
+
+    /// Specifies whether this trust object is permitted to
+    /// fetch missing intermediate certificates from the network.
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[inline]
+    pub fn set_network_fetch_allowed(&mut self, allowed: bool) -> Result<()> {
+        unsafe { cvt(SecTrustSetNetworkFetchAllowed(self.0, allowed as u8)) }
+    }
+
+    /// Attaches Online Certificate Status Protocol (OSCP) response data
+    /// to this trust object.
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    pub fn set_trust_ocsp_response<I: Iterator<Item = impl AsRef<[u8]>>>(
+        &mut self,
+        ocsp_response: I,
+    ) -> Result<()> {
+        let response: Vec<CFData> = ocsp_response
+            .into_iter()
+            .map(|bytes| CFData::from_buffer(bytes.as_ref()))
+            .collect();
+
+        let response = CFArray::from_CFTypes(&response);
+
+        unsafe { cvt(SecTrustSetOCSPResponse(self.0, response.as_CFTypeRef())) }
+    }
+
+    /// Attaches signed certificate timestamp data to this trust object.
+    #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+    pub fn set_signed_certificate_timestamps<I: Iterator<Item = impl AsRef<[u8]>>>(
+        &mut self,
+        scts: I,
+    ) -> Result<()> {
+        let scts: Vec<CFData> = scts
+            .into_iter()
+            .map(|bytes| CFData::from_buffer(bytes.as_ref()))
+            .collect();
+
+        let scts = CFArray::from_CFTypes(&scts);
+
+        unsafe { cvt(SecTrustSetSignedCertificateTimestamps(self.0, scts.as_concrete_TypeRef())) }
     }
 
     /// Returns the public key for a leaf certificate after it has been evaluated.

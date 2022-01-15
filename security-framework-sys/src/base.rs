@@ -46,12 +46,16 @@ pub const errSecUnimplemented: OSStatus = -4;
 pub const errSecIO: OSStatus = -36;
 pub const errSecParam: OSStatus = -50;
 pub const errSecBadReq: OSStatus = -909;
+pub const errSecNoTrustSettings: OSStatus = -25263;
 pub const errSecAuthFailed: OSStatus = -25293;
 pub const errSecDuplicateItem: OSStatus = -25299;
+pub const errSecCreateChainFailed: OSStatus = -25318;
 pub const errSecConversionError: OSStatus = -67594;
+pub const errSecHostNameMismatch: OSStatus = -67602;
+pub const errSecInvalidExtendedKeyUsage: OSStatus = -67609;
 pub const errSecTrustSettingDeny: OSStatus = -67654;
+pub const errSecCertificateRevoked: OSStatus = -67820;
 pub const errSecNotTrusted: OSStatus = -67843;
-pub const errSecNoTrustSettings: OSStatus = -25263;
 
 extern "C" {
     // this is available on iOS 11.3+, MacOS 10.3+
