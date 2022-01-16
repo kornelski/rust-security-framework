@@ -1,11 +1,17 @@
 //! Security Policies support.
 use core_foundation::base::TCFType;
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+use core_foundation::base::CFOptionFlags;
 use core_foundation::string::CFString;
 use security_framework_sys::base::SecPolicyRef;
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+use security_framework_sys::base::errSecParam;
 use security_framework_sys::policy::*;
 use std::fmt;
 use std::ptr;
 
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+use crate::Error;
 use crate::secure_transport::SslProtocolSide;
 
 declare_TCFType! {
@@ -24,6 +30,25 @@ impl fmt::Debug for SecPolicy {
     }
 }
 
+#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+bitflags::bitflags! {
+    /// The flags used to specify revocation policy options.
+    pub struct RevocationPolicy: CFOptionFlags {
+        /// Perform revocation checking using OCSP (Online Certificate Status Protocol).
+        const OCSP_METHOD = kSecRevocationOCSPMethod;
+        /// Perform revocation checking using the CRL (Certification Revocation List) method.
+        const CRL_METHOD = kSecRevocationCRLMethod;
+        /// Prefer CRL revocation checking over OCSP; by default, OCSP is preferred.
+        const PREFER_CRL = kSecRevocationPreferCRL;
+        /// Require a positive response to pass the policy.
+        const REQUIRE_POSITIVE_RESPONSE = kSecRevocationRequirePositiveResponse;
+        /// Consult only locally cached replies; do not use network access.
+        const NETWORK_ACCESS_DISABLED = kSecRevocationNetworkAccessDisabled;
+        /// Perform either OCSP or CRL checking.
+        const USE_ANY_METHOD_AVAILABLE = kSecRevocationUseAnyAvailableMethod;
+    }
+}
+
 impl SecPolicy {
     /// Creates a `SecPolicy` for evaluating SSL certificate chains.
     ///
@@ -39,6 +64,21 @@ impl SecPolicy {
         unsafe {
             let policy = SecPolicyCreateSSL(is_server as _, hostname);
             Self::wrap_under_create_rule(policy)
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    /// Creates a `SecPolicy` for checking revocation of certificates.
+    ///
+    /// If you do not specify this policy creating a `SecTrust` object, the system defaults
+    /// will be used during evaluation.
+    pub fn create_revocation(options: RevocationPolicy) -> crate::Result<Self> {
+        let policy = unsafe { SecPolicyCreateRevocation(options.bits()) };
+
+        if policy.is_null() {
+            Err(Error::from_code(errSecParam))
+        } else {
+            Ok(unsafe { Self::wrap_under_create_rule(policy) })
         }
     }
 
