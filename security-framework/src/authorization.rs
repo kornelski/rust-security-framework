@@ -519,9 +519,7 @@ impl<'a> Authorization {
         use std::os::unix::ffi::OsStrExt;
 
         let arguments = arguments
-            .into_iter()
-            .map(|a| CString::new(a.as_ref().as_bytes()))
-            .flatten()
+            .into_iter().flat_map(|a| CString::new(a.as_ref().as_bytes()))
             .collect::<Vec<_>>();
         self.execute_with_privileges_internal(command.as_ref().as_os_str().as_bytes(), &arguments, flags, false)?;
         Ok(())
@@ -545,9 +543,7 @@ impl<'a> Authorization {
         use std::os::unix::ffi::OsStrExt;
 
         let arguments = arguments
-            .into_iter()
-            .map(|a| CString::new(a.as_ref().as_bytes()))
-            .flatten()
+            .into_iter().flat_map(|a| CString::new(a.as_ref().as_bytes()))
             .collect::<Vec<_>>();
         Ok(self.execute_with_privileges_internal(command.as_ref().as_os_str().as_bytes(), &arguments, flags, true)?.unwrap())
     }

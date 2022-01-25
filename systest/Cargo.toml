@@ -3,6 +3,7 @@ name = "systest"
 version = "0.1.0"
 authors = ["Steven Fackler <sfackler@palantir.com>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 core-foundation-sys = "0.8.3"
