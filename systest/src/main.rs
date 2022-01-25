@@ -1,4 +1,5 @@
 #![allow(bad_style)]
+#![allow(unused)]
 #![allow(clippy::all)]
 #![allow(deprecated)]
 #![allow(deref_nullptr)]

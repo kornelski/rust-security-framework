@@ -1,4 +1,4 @@
-#[cfg(target_os = "ios")]
+#[cfg(not(target_os = "macos"))]
 pub type SSLCipherSuite = u16;
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

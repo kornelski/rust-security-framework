@@ -1,4 +1,3 @@
-#[cfg(any(target_os = "macos", target_os = "ios"))]
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, OSStatus};
 use core_foundation_sys::data::CFDataRef;
