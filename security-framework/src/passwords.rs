@@ -148,10 +148,6 @@ fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
             CFString::from(account).as_CFType(),
         ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
-            CFBoolean::from(true).as_CFType(),
-        ),
     ];
     query
 }
