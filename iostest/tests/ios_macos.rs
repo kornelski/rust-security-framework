@@ -1,5 +1,10 @@
 //! Tests of legacy macOS versus newer iOS-style APIs.
 //!
+//! These tests compile under both iOS and macOS.  Of course, there's not
+//! much point compiling them under iOS, since you can't run them under iOS,
+//! but at least the compilation tells you that the interfaces are intact.
+//! For iOS testing, compile the library and use the included ios-test-harness.
+//!
 //! NOTE: Some of these tests involve keychain queries for multiple items,
 //! and experience shows that running multiple keychain queries on separate
 //! threads in the same process simultaneously can produce interference.
@@ -13,17 +18,6 @@ use security_framework::os::macos::keychain::SecKeychain;
 use security_framework::passwords::{delete_generic_password, set_generic_password};
 use security_framework_sys::item::{kSecAttrAccount, kSecAttrService};
 use serial_test::serial;
-
-fn generate_random_string() -> String {
-    // from the Rust Cookbook:
-    // https://rust-lang-nursery.github.io/rust-cookbook/algorithms/randomness.html
-    use rand::{distributions::Alphanumeric, thread_rng, Rng};
-    thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(30)
-        .map(char::from)
-        .collect()
-}
 
 #[test]
 #[serial]
@@ -161,4 +155,15 @@ fn find_leftover_test_generic_passwords() {
     assert!(found.is_empty(), "There are {} entries created by older tests: {:?}",
             found.len(),
             &found);
+}
+
+fn generate_random_string() -> String {
+    // from the Rust Cookbook:
+    // https://rust-lang-nursery.github.io/rust-cookbook/algorithms/randomness.html
+    use rand::{distributions::Alphanumeric, thread_rng, Rng};
+    thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect()
 }

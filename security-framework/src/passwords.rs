@@ -249,13 +249,30 @@ fn get_password_and_release(data: CFTypeRef) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod test {
+    use security_framework_sys::base::errSecItemNotFound;
     use super::*;
 
     #[test]
     fn missing_generic() {
         let name = "a string not likely to already be in the keychain as service or account";
-        let password = get_generic_password(name, name);
-        assert!(password.is_err());
+        let result = delete_generic_password(name, name);
+        match result {
+            Ok(()) => (),   // this is ok because the name _might_ be in the keychain
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_generic: delete failed with status: {}", err.code()),
+        };
+        let result = get_generic_password(name, name);
+        match result {
+            Ok(bytes) => panic!("missing_generic: get returned {:?}", bytes),
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_generic: get failed with status: {}", err.code()),
+        };
+        let result = delete_generic_password(name, name);
+        match result {
+            Ok(()) => panic!("missing_generic: second delete found a password"),
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_generic: delete failed with status: {}", err.code()),
+        };
     }
 
     #[test]
@@ -290,8 +307,48 @@ mod test {
             SecProtocolType::HTTP,
             SecAuthenticationType::Any,
         );
-        let password = get_internet_password(server, domain, account, path, port, protocol, auth);
-        assert!(password.is_err());
+        let result = delete_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+        );
+        match result {
+            Ok(()) => (),   // this is ok because the name _might_ be in the keychain
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
+        };
+        let result = get_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+        );
+        match result {
+            Ok(bytes) => panic!("missing_internet: get returned {:?}", bytes),
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_internet: get failed with status: {}", err.code()),
+        };
+        let result = delete_internet_password(
+            server,
+            domain,
+            account,
+            path,
+            port,
+            protocol,
+            auth,
+        );
+        match result {
+            Ok(()) => panic!("missing_internet: second delete found a password"),
+            Err(err) if err.code() == errSecItemNotFound => (),
+            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
+        };
     }
 
     #[test]
