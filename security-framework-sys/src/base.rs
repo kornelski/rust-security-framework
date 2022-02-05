@@ -49,6 +49,7 @@ pub const errSecBadReq: OSStatus = -909;
 pub const errSecNoTrustSettings: OSStatus = -25263;
 pub const errSecAuthFailed: OSStatus = -25293;
 pub const errSecDuplicateItem: OSStatus = -25299;
+pub const errSecItemNotFound: OSStatus = -25300;
 pub const errSecCreateChainFailed: OSStatus = -25318;
 pub const errSecConversionError: OSStatus = -67594;
 pub const errSecHostNameMismatch: OSStatus = -67602;

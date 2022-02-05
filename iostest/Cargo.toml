@@ -1,11 +1,10 @@
 [package]
-name = "ios-shim"
+name = "iostest"
 version = "0.1.0"
 edition = "2018"
 publish = false
 
 [lib]
-name = "iospw"
 crate-type = ["staticlib"]
 
 [dependencies]

@@ -1,14 +1,12 @@
 //
-//  ios_testerApp.swift
-//  ios-tester
-//
-//  Created by Daniel Brotsky on 12/17/21.
+//  ios_test_harnessApp.swift
+//  ios-test-harness
 //
 
 import SwiftUI
 
 @main
-struct ios_testerApp: App {
+struct ios_test_harnessApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
