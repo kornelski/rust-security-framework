@@ -14,7 +14,7 @@ security-framework-sys = { path = "../security-framework-sys" }
 
 [dev-dependencies]
 rand = "0.8.4"
-serial_test = "0.5.1"
+serial_test = "0.6.0"
 
 [package.metadata.release]
 release = false

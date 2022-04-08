@@ -26,7 +26,7 @@ num-bigint = { version = "0.4.3", optional = true }
 tempdir = "0.3.7"
 hex = "0.4.3"
 env_logger = "0.9.0"
-x509-parser = "0.12.0"
+x509-parser = "0.13.1"
 
 [features]
 default = ["OSX_10_9"]
