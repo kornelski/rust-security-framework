@@ -11,6 +11,8 @@ use core_foundation::base::{CFTypeRef, TCFType};
 use core_foundation::bundle::CFBundleRef;
 use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::string::{CFString, CFStringRef};
+#[cfg(all(target_os = "macos", feature = "job-bless"))]
+use core_foundation::error::CFError;
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
 use std::mem::MaybeUninit;
@@ -546,6 +548,27 @@ impl<'a> Authorization {
             .into_iter().flat_map(|a| CString::new(a.as_ref().as_bytes()))
             .collect::<Vec<_>>();
         Ok(self.execute_with_privileges_internal(command.as_ref().as_os_str().as_bytes(), &arguments, flags, true)?.unwrap())
+    }
+
+    /// Submits the executable for the given label as a `launchd` job.
+    #[cfg(all(target_os = "macos", feature = "job-bless"))]
+    pub fn job_bless(&self, domain: Option<&str>, label: Option<&str>) -> Result<(), CFError> {
+        use service_management_sys::service_management::SMJobBless;
+
+        unsafe {
+            let mut error = std::ptr::null_mut();
+            SMJobBless(
+                optional_str_to_cfref!(domain),
+                optional_str_to_cfref!(label),
+                self.handle,
+                &mut error
+            );
+            if !error.is_null() {
+                return Err(CFError::wrap_under_create_rule(error));
+            }
+
+            Ok(())
+        }
     }
 
     // Runs an executable tool with root privileges.
