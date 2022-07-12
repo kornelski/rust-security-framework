@@ -552,14 +552,14 @@ impl<'a> Authorization {
 
     /// Submits the executable for the given label as a `launchd` job.
     #[cfg(all(target_os = "macos", feature = "job-bless"))]
-    pub fn job_bless(&self, domain: CFStringRef, label: Option<&str>) -> Result<(), CFError> {
+    pub fn job_bless(&self, domain: CFStringRef, label: &str) -> Result<(), CFError> {
         use service_management_sys::service_management::SMJobBless;
 
         unsafe {
             let mut error = std::ptr::null_mut();
             SMJobBless(
                 domain,
-                optional_str_to_cfref!(label),
+                CFString::new(label).as_concrete_TypeRef(),
                 self.handle,
                 &mut error
             );
