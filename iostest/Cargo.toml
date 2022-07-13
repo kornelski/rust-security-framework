@@ -8,13 +8,13 @@ publish = false
 crate-type = ["staticlib"]
 
 [dependencies]
-core-foundation = "0.9.2"
+core-foundation = "0.9.3"
 security-framework = { path = "../security-framework" }
 security-framework-sys = { path = "../security-framework-sys" }
 
 [dev-dependencies]
-rand = "0.8.4"
-serial_test = "0.6.0"
+rand = "0.8.5"
+serial_test = "0.8.0"
 
 [package.metadata.release]
 release = false
