@@ -11,7 +11,8 @@ categories = ["os::macos-apis", "cryptography", "api-bindings"]
 readme = "README.md"
 keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
 security-framework-sys = { version = "2.6.0", default-features = false, path = "../security-framework-sys" }

@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: master
+    branches: main
 
 jobs:
   test:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest ]
-        rust: [ 1.46.0, stable, beta ]
+        rust: [ 1.56.0, stable, beta ]
 
     steps:
       - name: Checkout sources
