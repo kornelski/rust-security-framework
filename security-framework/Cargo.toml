@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "2.6.1"
+version = "2.7.0"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
@@ -22,7 +22,6 @@ bitflags = "1.3.2"
 libc = "0.2.126"
 log = { version = "0.4.17", optional = true }
 num-bigint = { version = "0.4.3", optional = true }
-service-management-sys = { version = "0.1", optional = true }
 
 [dev-dependencies]
 tempdir = "0.3.7"
@@ -35,9 +34,9 @@ time = "0.3, <= 0.3.9"
 default = ["OSX_10_9"]
 alpn = []
 session-tickets = []
+job-bless = []
 # deprecated, do not use
 serial-number-bigint = ["num-bigint"]
-job-bless = ["service-management-sys"]
 
 OSX_10_9 = ["security-framework-sys/OSX_10_9"]
 OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]

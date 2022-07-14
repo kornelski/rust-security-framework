@@ -13,6 +13,10 @@ use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::string::{CFString, CFStringRef};
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::error::CFError;
+#[cfg(all(target_os = "macos", feature = "job-bless"))]
+use core_foundation::error::CFErrorRef;
+#[cfg(all(target_os = "macos", feature = "job-bless"))]
+use core_foundation::base::Boolean;
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
 use std::convert::TryFrom;
@@ -554,7 +558,18 @@ impl Authorization {
     /// Submits the executable for the given label as a `launchd` job.
     #[cfg(all(target_os = "macos", feature = "job-bless"))]
     pub fn job_bless(&self, label: &str) -> Result<(), CFError> {
-        use service_management_sys::service_management::{kSMDomainSystemLaunchd, SMJobBless};
+
+        #[link(name = "ServiceManagement", kind = "framework")]
+        extern "C" {
+            static kSMDomainSystemLaunchd: CFStringRef;
+
+            fn SMJobBless(
+                domain: CFStringRef,
+                executableLabel: CFStringRef,
+                auth: sys::AuthorizationRef,
+                error: *mut CFErrorRef,
+            ) -> Boolean;
+        }
 
         unsafe {
             let mut error = std::ptr::null_mut();
