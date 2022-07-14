@@ -15,13 +15,12 @@ use core_foundation::string::{CFString, CFStringRef};
 use core_foundation::error::CFError;
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
+use std::convert::TryFrom;
+use std::ffi::{CStr, CString};
+use std::fs::File;
 use std::mem::MaybeUninit;
 use std::os::raw::c_void;
-use std::{
-    convert::TryFrom,
-    ffi::{CStr, CString},
-    fs::File,
-};
+use std::ptr::addr_of;
 use std::{convert::TryInto, marker::PhantomData};
 use sys::AuthorizationExternalForm;
 
@@ -240,6 +239,7 @@ impl AuthorizationItemSetBuilder {
 }
 
 /// Used by `Authorization::set_item` to define the rules of he right.
+#[derive(Copy, Clone)]
 pub enum RightDefinition<'a> {
     /// The dictionary will contain the keys and values that define the rules.
     FromDictionary(&'a CFDictionary<CFStringRef, CFTypeRef>),
@@ -281,7 +281,7 @@ impl TryFrom<AuthorizationExternalForm> for Authorization {
     }
 }
 
-impl<'a> Authorization {
+impl Authorization {
     /// Creates an authorization object which has no environment or associated
     /// rights.
     #[inline]
@@ -300,16 +300,17 @@ impl<'a> Authorization {
     /// macOS 10.4 and later, you can also pass a user name and password in
     /// order to authorize a user without user interaction.
     pub fn new(
+        // FIXME: this should have been by reference
         rights: Option<AuthorizationItemSetStorage>,
         environment: Option<AuthorizationItemSetStorage>,
         flags: Flags,
     ) -> Result<Self> {
         let rights_ptr = rights.as_ref().map_or(std::ptr::null(), |r| {
-            &r.set as *const sys::AuthorizationItemSet
+            addr_of!(r.set) as *const sys::AuthorizationItemSet
         });
 
         let env_ptr = environment.as_ref().map_or(std::ptr::null(), |e| {
-            &e.set as *const sys::AuthorizationItemSet
+            addr_of!(e.set) as *const sys::AuthorizationItemSet
         });
 
         let mut handle = MaybeUninit::<sys::AuthorizationRef>::uninit();

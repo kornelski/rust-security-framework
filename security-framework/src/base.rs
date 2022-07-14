@@ -31,12 +31,14 @@ impl Error {
     /// Creates a new `Error` from a status code.
     /// The code must not be zero
     #[inline]
+    #[must_use]
     pub fn from_code(code: OSStatus) -> Self {
         Self(NonZeroI32::new(code as i32).unwrap_or_else(|| NonZeroI32::new(1).unwrap()))
     }
 
     /// Returns a string describing the current error, if available.
     #[inline(always)]
+    #[must_use]
     pub fn message(self) -> Option<String> {
         self.inner_message()
     }
@@ -66,6 +68,7 @@ impl Error {
 
     /// Returns the code of the current error.
     #[inline(always)]
+    #[must_use]
     pub fn code(self) -> OSStatus {
         self.0.get() as _
     }
@@ -73,6 +76,7 @@ impl Error {
 
 impl From<OSStatus> for Error {
     #[inline(always)]
+    #[must_use]
     fn from(code: OSStatus) -> Self {
         Self::from_code(code)
     }

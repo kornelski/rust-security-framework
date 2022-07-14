@@ -63,6 +63,7 @@ impl SecCertificate {
     }
 
     /// Returns DER encoded data describing this certificate.
+    #[must_use]
     pub fn to_der(&self) -> Vec<u8> {
         unsafe {
             let der_data = SecCertificateCopyData(self.0);
@@ -71,6 +72,7 @@ impl SecCertificate {
     }
 
     /// Returns a human readable summary of this certificate.
+    #[must_use]
     pub fn subject_summary(&self) -> String {
         unsafe {
             let summary = SecCertificateCopySubjectSummary(self.0);
@@ -94,6 +96,7 @@ impl SecCertificate {
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Returns DER encoded X.509 distinguished name of the certificate issuer.
+    #[must_use]
     pub fn issuer(&self) -> Vec<u8> {
         unsafe {
             let issuer = SecCertificateCopyNormalizedIssuerSequence(self.0);
@@ -103,6 +106,7 @@ impl SecCertificate {
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Returns DER encoded X.509 distinguished name of the certificate subject.
+    #[must_use]
     pub fn subject(&self) -> Vec<u8> {
         unsafe {
             let subject = SecCertificateCopyNormalizedSubjectSequence(self.0);
@@ -116,10 +120,10 @@ impl SecCertificate {
         unsafe {
             let mut error: CFErrorRef = ptr::null_mut();
             let serial_number = SecCertificateCopySerialNumberData(self.0, &mut error);
-            if !error.is_null() {
-                Err(CFError::wrap_under_create_rule(error))
-            } else {
+            if error.is_null() {
                 Ok(CFData::wrap_under_create_rule(serial_number).to_vec())
+            } else {
+                Err(CFError::wrap_under_create_rule(error))
             }
         }
     }
@@ -142,12 +146,13 @@ impl SecCertificate {
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[must_use]
     fn pk_to_der(&self, public_key: key::SecKey) -> Option<Vec<u8>> {
         let public_key_attributes = public_key.attributes();
         let public_key_type = public_key_attributes
-            .find(unsafe { kSecAttrKeyType } as *const ::std::os::raw::c_void)?;
+            .find(unsafe { kSecAttrKeyType }.cast::<std::os::raw::c_void>())?;
         let public_keysize = public_key_attributes
-            .find(unsafe { kSecAttrKeySizeInBits } as *const ::std::os::raw::c_void)?;
+            .find(unsafe { kSecAttrKeySizeInBits }.cast::<std::os::raw::c_void>())?;
         let public_keysize = unsafe { CFNumber::from_void(*public_keysize.deref()) };
         let public_keysize_val = public_keysize.to_i64()? as u32;
         let hdr_bytes = get_asn1_header_bytes(

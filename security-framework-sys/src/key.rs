@@ -41,17 +41,15 @@ macro_rules! names {
             $(pub static $x: SecKeyAlgorithm;)*
         }
 
+        #[non_exhaustive]
         pub enum Algorithm {
             $( $i, )*
-            #[doc(hidden)]
-            _NonExhaustive,
         }
 
         impl From<Algorithm> for SecKeyAlgorithm {
             fn from(m: Algorithm) -> Self {
                 unsafe { match m {
                     $( Algorithm::$i => $x, )*
-                    Algorithm::_NonExhaustive => kSecKeyAlgorithmRSASignatureMessagePSSSHA512,
                 } }
             }
         }
