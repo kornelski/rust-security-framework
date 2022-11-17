@@ -196,8 +196,7 @@ mod test {
     use hex::FromHex;
 
     use super::*;
-    use crate::key::SecKey;
-    use crate::os::macos::item::KeyType;
+    use crate::key::{SecKey, KeyType};
     use crate::os::macos::key::SecKeyExt;
 
     #[test]
