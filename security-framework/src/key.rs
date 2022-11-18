@@ -13,10 +13,10 @@ use core_foundation::dictionary::CFDictionary;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::error::{CFError, CFErrorRef};
 
-use security_framework_sys::item::{
+use security_framework_sys::{item::{
     kSecAttrKeyTypeRSA, kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
-    kSecAttrKeySizeInBits, kSecPrivateKeyAttrs,
-};
+    kSecAttrKeySizeInBits, kSecPrivateKeyAttrs, kSecValueRef,
+}, keychain_item::SecItemDelete};
 #[cfg(target_os="macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
@@ -33,6 +33,8 @@ use security_framework_sys::key::{
     SecKeyCopyPublicKey,
 };
 use std::fmt;
+
+use crate::base::Error;
 
 /// Types of `SecKey`s.
 #[derive(Debug, Copy, Clone)]
@@ -289,6 +291,20 @@ impl SecKey {
             let output = unsafe { CFData::wrap_under_create_rule(output) };
             Ok(output.to_vec())
         }
+    }
+
+    /// Translates to SecItemDelete, passing in the SecKeyRef
+    pub fn delete(&self) -> Result<(), Error> {
+        let query = CFMutableDictionary::from_CFType_pairs(&[(
+            unsafe { kSecValueRef }.to_void(),
+            self.to_void(),
+        )]);
+
+        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+        if status != 0 {
+            return Err(status.into())
+        }
+        Ok(())
     }
 }
 
