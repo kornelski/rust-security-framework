@@ -1,22 +1,22 @@
 //! Support to search for items in a keychain.
 
 use core_foundation::array::CFArray;
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::{CFType, TCFType, ToVoid, OSStatus};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
-use core_foundation::dictionary::CFDictionary;
+use core_foundation::dictionary::{CFDictionary, CFMutableDictionary};
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
-use security_framework_sys::keychain_item::SecItemCopyMatching;
+use security_framework_sys::keychain_item::{SecItemCopyMatching, SecItemAdd};
 use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
 
-use crate::base::Result;
+use crate::base::{Result, Error};
 use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::identity::SecIdentity;
@@ -430,6 +430,76 @@ impl SearchResult {
             },
             _ => None,
         }
+    }
+}
+
+/// Type of Ref to add to the keychain.
+pub enum AddRef {
+    /// SecKey
+    Key(SecKey),
+    /// SecIdentity
+    Identity(SecIdentity),
+    /// SecCertificate
+    Certificate(SecCertificate),
+}
+
+/// Which keychain to add an item to.
+pub enum AddToKeychain {
+    /// Store the key in the newer DataProtectionKeychain. This is the only
+    /// keychain on iOS. On macOS, this is the newer and more consistent
+    /// keychain implementation. Keys stored in the Secure Enclave _must_ use
+    /// this keychain.
+    /// 
+    /// This keychain requires the calling binary to be codesigned with
+    /// entitlements for the KeychainAccessGroups it is supposed to
+    /// access.
+    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+    DataProtectionKeychain,
+    /// Store in the default file-based keychain. On macOS, defaults to the
+    /// Login keychain.
+    #[cfg(target_os="macos")]
+    DefaultFileKeychain,
+    /// Store the key in a specific file-based keychain.
+    #[cfg(target_os="macos")]
+    FileKeychain(SecKeychain),
+}
+
+/// Translates to SecItemAdd
+pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain) -> Result<()> {
+    let class = match &add_ref {
+        AddRef::Key(_) => unsafe {kSecClassKey},
+        AddRef::Identity(_) => unsafe { kSecClassIdentity },
+        AddRef::Certificate(_) => unsafe { kSecClassCertificate },
+    }.to_void();
+
+    let ref_ = match &add_ref {
+        AddRef::Key(key) => key.to_void(),
+        AddRef::Identity(identity) => identity.to_void(),
+        AddRef::Certificate(cert) => cert.to_void(),
+    };
+
+    let mut add_params = CFMutableDictionary::from_CFType_pairs(&[
+        ( unsafe { kSecClass }.to_void(), class),
+        ( unsafe { kSecValueRef }.to_void(), ref_),
+    ]);
+    
+    match &to_keychain {
+        AddToKeychain::DataProtectionKeychain => {
+            add_params.add(&unsafe { kSecUseDataProtectionKeychain }.to_void(), &CFBoolean::true_value().to_void());
+        },
+        #[cfg(target_os="macos")]
+        AddToKeychain::DefaultFileKeychain => {},
+        #[cfg(target_os="macos")]
+        AddToKeychain::FileKeychain(keychain) => {
+            add_params.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
+        },
+    }
+    
+    let res = unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) };
+    if res == 0 {
+        return Ok(())
+    } else {
+        return Err(res)?;
     }
 }
 

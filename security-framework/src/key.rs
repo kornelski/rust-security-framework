@@ -140,12 +140,12 @@ pub enum Location {
     /// access.
     #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
     DataProtectionKeychain,
-    #[cfg(target_os="macos")]
     /// Store the key in the default file-based keychain. On
     /// macOS, defaults to the Login keychain.
-    DefaultFileKeychain,
     #[cfg(target_os="macos")]
+    DefaultFileKeychain,
     /// Store the key in a specific file-based keychain.
+    #[cfg(target_os="macos")]
     FileKeychain(crate::os::macos::keychain::SecKeychain)
 }
 
