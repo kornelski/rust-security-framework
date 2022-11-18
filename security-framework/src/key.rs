@@ -13,7 +13,7 @@ use core_foundation::dictionary::CFDictionary;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::error::{CFError, CFErrorRef};
 
-use security_framework_sys::base::SecKeyRef;
+use security_framework_sys::{base::SecKeyRef, key::SecKeyCopyPublicKey};
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeRSA, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
     kSecAttrKeyTypeDES, kSecAttrKeyTypeRC4, kSecAttrKeyTypeCAST, kSecAttrIsPermanent,
@@ -223,6 +223,23 @@ impl SecKey {
             return None;
         }
         Some(unsafe { CFData::wrap_under_create_rule(data) })
+    }
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    /// Translates to SecKeyCopyPublicKey -> SecKeyCopyExternalRepresentation
+    pub fn public_key_data(&self) -> Result<Option<Vec<u8>>, CFError> {
+        let mut error: CFErrorRef = ::std::ptr::null_mut();
+
+        let pub_seckey = unsafe {SecKeyCopyPublicKey(self.0 as *mut _, &mut error)};
+        if !error.is_null() {
+            return Err(unsafe { CFError::wrap_under_create_rule(error) })
+        }
+        if pub_seckey.is_null() {
+            return Ok(None);
+        }
+        let pub_seckey = unsafe { SecKey::wrap_under_create_rule(pub_seckey)};
+
+        Ok(pub_seckey.external_representation().map(|cfdata| cfdata.to_vec()))
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]

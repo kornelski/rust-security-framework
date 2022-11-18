@@ -30,6 +30,8 @@ extern "C" {
     pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCopyAttributes(key: SecKeyRef) -> CFDictionaryRef;
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyCopyPublicKey(key: SecKeyRef, error: *mut CFErrorRef) -> SecKeyRef;
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCreateSignature(
