@@ -13,19 +13,24 @@ use core_foundation::dictionary::CFDictionary;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::error::{CFError, CFErrorRef};
 
-use security_framework_sys::{base::SecKeyRef, key::SecKeyCopyPublicKey};
 use security_framework_sys::item::{
-    kSecAttrKeyType3DES, kSecAttrKeyTypeRSA, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
-    kSecAttrKeyTypeDES, kSecAttrKeyTypeRC4, kSecAttrKeyTypeCAST, kSecAttrIsPermanent,
-    kSecAttrLabel, kSecAttrKeyType, kSecAttrKeySizeInBits, kSecPrivateKeyAttrs,
+    kSecAttrKeyTypeRSA, kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
+    kSecAttrKeySizeInBits, kSecPrivateKeyAttrs,
+};
+#[cfg(target_os="macos")]
+use security_framework_sys::item::{
+    kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
+    kSecAttrKeyTypeDES, kSecAttrKeyTypeRC4, kSecAttrKeyTypeCAST,
 };
 
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-pub use security_framework_sys::key::{Algorithm, SecKeyCreateRandomKey};
 use security_framework_sys::key::SecKeyGetTypeID;
+use security_framework_sys::base::SecKeyRef;
+
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::key::{
-    SecKeyCopyAttributes, SecKeyCopyExternalRepresentation, SecKeyCreateSignature,
+    SecKeyCopyAttributes, SecKeyCopyExternalRepresentation,
+    SecKeyCreateSignature, Algorithm, SecKeyCreateRandomKey,
+    SecKeyCopyPublicKey,
 };
 use std::fmt;
 
@@ -40,37 +45,43 @@ impl KeyType {
         unsafe { Self(kSecAttrKeyTypeRSA) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn dsa() -> Self {
         unsafe { Self(kSecAttrKeyTypeDSA) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn aes() -> Self {
         unsafe { Self(kSecAttrKeyTypeAES) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn des() -> Self {
         unsafe { Self(kSecAttrKeyTypeDES) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn triple_des() -> Self {
         unsafe { Self(kSecAttrKeyType3DES) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn rc4() -> Self {
         unsafe { Self(kSecAttrKeyTypeRC4) }
     }
 
+    #[cfg(target_os="macos")]
     #[inline(always)]
     pub fn cast() -> Self {
         unsafe { Self(kSecAttrKeyTypeCAST) }
     }
 
-    #[cfg(feature = "OSX_10_9")]
+    #[cfg(any(feature = "OSX_10_9", target_os="ios"))]
     #[inline(always)]
     pub fn ec() -> Self {
         use security_framework_sys::item::kSecAttrKeyTypeEC;

@@ -50,7 +50,7 @@ extern "C" {
     pub static kSecAttrKeyTypeRC2: CFStringRef;
     #[cfg(target_os = "macos")]
     pub static kSecAttrKeyTypeCAST: CFStringRef;
-    #[cfg(feature = "OSX_10_9")]
+    #[cfg(any(feature = "OSX_10_9", target_os="ios"))]
     pub static kSecAttrKeyTypeEC: CFStringRef;
 
     pub static kSecAttrAccessGroup: CFStringRef;
