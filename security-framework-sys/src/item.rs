@@ -22,6 +22,12 @@ extern "C" {
     pub static kSecAttrLabel: CFStringRef;
     pub static kSecAttrIsPermanent: CFStringRef;
     pub static kSecPrivateKeyAttrs: CFStringRef;
+    pub static kSecPublicKeyAttrs: CFStringRef;
+
+    pub static kSecAttrKeyClass: CFStringRef;
+    pub static kSecAttrKeyClassPublic: CFStringRef;
+    pub static kSecAttrKeyClassPrivate: CFStringRef;
+    pub static kSecAttrKeyClassSymmetric: CFStringRef;
 
     pub static kSecUseKeychain: CFStringRef;
     #[cfg(any(feature = "OSX_10_15", target_os="ios"))]

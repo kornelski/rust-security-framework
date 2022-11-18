@@ -160,8 +160,16 @@ impl SecKey {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Translates to SecKeyCreateRandomKey
     pub fn generate(key_type : KeyType, size_in_bits: u32, label: Option<&str>, persistence: Persistence) -> Result<Self, CFError> {
-        use security_framework_sys::item::{kSecUseKeychain, kSecUseDataProtectionKeychain, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave};
+        use security_framework_sys::item::{kSecUseKeychain, kSecUseDataProtectionKeychain, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
         let private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
+            unsafe { kSecAttrIsPermanent }.to_void(),
+            match persistence.location {
+                Location::None => CFBoolean::false_value(),
+                _ => CFBoolean::true_value(),
+            }.to_void()
+        )]);
+
+        let public_attributes = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecAttrIsPermanent }.to_void(),
             match persistence.location {
                 Location::None => CFBoolean::false_value(),
@@ -181,6 +189,10 @@ impl SecKey {
             (
                 unsafe { kSecPrivateKeyAttrs }.to_void(),
                 private_attributes.to_void(),
+            ),
+            (
+                unsafe { kSecPublicKeyAttrs }.to_void(),
+                public_attributes.to_void(),
             ),
         ];
         let label = label.map(CFString::new);
@@ -237,8 +249,8 @@ impl SecKey {
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    /// Translates to SecKeyCopyPublicKey -> SecKeyCopyExternalRepresentation
-    pub fn public_key_data(&self) -> Result<Option<Vec<u8>>, CFError> {
+    /// Translates to SecKeyCopyPublicKey
+    pub fn public_key(&self) -> Result<Option<Self>, CFError> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
 
         let pub_seckey = unsafe {SecKeyCopyPublicKey(self.0 as *mut _, &mut error)};
@@ -248,9 +260,8 @@ impl SecKey {
         if pub_seckey.is_null() {
             return Ok(None);
         }
-        let pub_seckey = unsafe { SecKey::wrap_under_create_rule(pub_seckey)};
 
-        Ok(pub_seckey.external_representation().map(|cfdata| cfdata.to_vec()))
+        Ok(Some(unsafe { SecKey::wrap_under_create_rule(pub_seckey)}))
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
