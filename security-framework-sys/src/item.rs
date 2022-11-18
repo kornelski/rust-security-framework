@@ -23,6 +23,15 @@ extern "C" {
     pub static kSecAttrIsPermanent: CFStringRef;
     pub static kSecPrivateKeyAttrs: CFStringRef;
 
+    pub static kSecUseKeychain: CFStringRef;
+    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+    pub static kSecUseDataProtectionKeychain: CFStringRef;
+    #[cfg(any(feature = "OSX_10_12", target_os="ios"))]
+    pub static kSecAttrTokenID: CFStringRef;
+    #[cfg(any(feature = "OSX_10_12", target_os="ios"))]
+    pub static kSecAttrTokenIDSecureEnclave: CFStringRef;
+
+
     pub static kSecAttrKeySizeInBits: CFStringRef;
 
     pub static kSecAttrKeyTypeECSECPrimeRandom: CFStringRef;

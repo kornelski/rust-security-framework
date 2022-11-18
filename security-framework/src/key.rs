@@ -92,33 +92,108 @@ impl_TCFType!(SecKey, SecKeyRef, SecKeyGetTypeID);
 unsafe impl Sync for SecKey {}
 unsafe impl Send for SecKey {}
 
+/// Whether to store the key in a keychain. 
+pub enum StoreInKeychain {
+    /// Don't store the key.
+    None, 
+    /// Store in the default keychain. On iOS, there is only one keychain. On
+    /// macOS, defaults to the Login keychain.
+    Default, 
+    #[cfg(target_os="macos")]
+    /// Store the key in a specific keychain.
+    Keychain(crate::os::macos::keychain::SecKeychain),
+}
+
+/// Options related to key storage. Recommended reading:
+/// https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains
+pub struct Persistence {
+    /// Where to generate the key.
+    pub token: Token,
+    /// Where to store the key.
+    pub location: Location
+}
+
+/// Which, if any, keychain to store the key in.
+pub enum Location {
+    /// Don't store the key.
+    None,
+    /// Store the key in the newer DataProtectionKeychain. This is the only
+    /// keychain on iOS. On macOS, this is the newer and more consistent
+    /// keychain implementation. Keys stored in the Secure Enclave _must_ use
+    /// this keychain.
+    /// 
+    /// This keychain requires the calling binary to be codesigned with
+    /// entitlements for the KeychainAccessGroups it is supposed to
+    /// access.
+    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+    DataProtectionKeychain,
+    #[cfg(target_os="macos")]
+    /// Store the key in the default file-based keychain. On
+    /// macOS, defaults to the Login keychain.
+    DefaultFileKeychain,
+    #[cfg(target_os="macos")]
+    /// Store the key in a specific file-based keychain.
+    FileKeychain(crate::os::macos::keychain::SecKeychain)
+}
+
+/// Where to generate the key.
+pub enum Token {
+    /// Generate the key in software, compatible with all `KeyType`s.
+    Software, 
+    /// Generate the key in the Secure Enclave such that the private key is not
+    /// extractable. Only compatible with `KeyType::ec()`.
+    SecureEnclave,
+}
+
 impl SecKey {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Translates to SecKeyCreateRandomKey
-    pub fn generate(key_type : KeyType, size_in_bits: u32, label: Option<&str>, store_in_keychain: bool) -> Result<Self, CFError> {
-        
+    pub fn generate(key_type : KeyType, size_in_bits: u32, label: Option<&str>, persistence: Persistence) -> Result<Self, CFError> {
+        use security_framework_sys::item::{kSecUseKeychain, kSecUseDataProtectionKeychain, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave};
         let private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
-            unsafe { kSecAttrIsPermanent } as *const _,
-            if store_in_keychain{CFBoolean::true_value()} else {CFBoolean::false_value()}.to_void(),
+            unsafe { kSecAttrIsPermanent }.to_void(),
+            match persistence.location {
+                Location::None => CFBoolean::false_value(),
+                _ => CFBoolean::true_value(),
+            }.to_void()
         )]);
 
-        //  keep attributes alive until after SecKeyCreateRandomKey is called
+        //  Keep attributes alive until after SecKeyCreateRandomKey is called
         let key_type = key_type.to_str();
         let size_in_bits = CFNumber::from(size_in_bits as i32);
         let mut attribute_key_values = vec![
-            (unsafe{ kSecAttrKeyType} as *const _, key_type.to_void()),
+            (unsafe{ kSecAttrKeyType}.to_void(), key_type.to_void()),
             (
-                unsafe { kSecAttrKeySizeInBits } as *const _,
+                unsafe { kSecAttrKeySizeInBits }.to_void(),
                 size_in_bits.to_void(),
             ),
             (
-                unsafe { kSecPrivateKeyAttrs } as *const _,
+                unsafe { kSecPrivateKeyAttrs }.to_void(),
                 private_attributes.to_void(),
             ),
         ];
         let label = label.map(CFString::new);
         if let Some(label) = &label {
-            attribute_key_values.push((unsafe{ kSecAttrLabel} as *const _, label.to_void()));
+            attribute_key_values.push((unsafe{ kSecAttrLabel}.to_void(), label.to_void()));
+        }
+
+        #[cfg(target_os="macos")]
+        match &persistence.location {
+            #[cfg(feature = "OSX_10_15")]
+            Location::DataProtectionKeychain =>{
+                attribute_key_values.push(( unsafe{ kSecUseDataProtectionKeychain }.to_void(), CFBoolean::true_value().to_void()));
+            }
+            Location::FileKeychain(keychain) => {
+                attribute_key_values.push(( unsafe{ kSecUseKeychain }.to_void(), keychain.as_concrete_TypeRef().to_void()));
+            }
+            _ => {}
+        }
+
+        match persistence.token {
+            Token::Software => {},
+            Token::SecureEnclave => {
+                attribute_key_values.push(( unsafe{ kSecAttrTokenID }.to_void(), unsafe {kSecAttrTokenIDSecureEnclave}.to_void()));
+            }
         }
 
         let attributes = CFMutableDictionary::from_CFType_pairs(&attribute_key_values);
