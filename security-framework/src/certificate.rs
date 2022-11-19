@@ -1,14 +1,16 @@
 //! Certificate support.
 
 use core_foundation::array::{CFArray, CFArrayRef};
-use core_foundation::base::TCFType;
+use core_foundation::base::{TCFType, ToVoid};
 use core_foundation::data::CFData;
+use core_foundation::dictionary::CFMutableDictionary;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::kCFAllocatorDefault;
 use security_framework_sys::base::{errSecParam, SecCertificateRef};
 #[cfg(target_os = "ios")]
 use security_framework_sys::base::{errSecSuccess, errSecNotTrusted};
 use security_framework_sys::certificate::*;
+use security_framework_sys::keychain_item::SecItemDelete;
 use std::fmt;
 use std::ptr;
 
@@ -183,6 +185,20 @@ impl SecCertificate {
             Err(_) => errSecNotTrusted,
         })?;
         trust.copy_public_key()
+    }
+
+    /// Translates to SecItemDelete, passing in the SecCertificateRef
+    pub fn delete(&self) -> Result<(), Error> {
+        let query = CFMutableDictionary::from_CFType_pairs(&[(
+            unsafe { kSecValueRef }.to_void(),
+            self.to_void(),
+        )]);
+
+        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+        if status != 0 {
+            return Err(status.into())
+        }
+        Ok(())
     }
 }
 
