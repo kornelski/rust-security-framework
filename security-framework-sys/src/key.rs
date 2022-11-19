@@ -40,6 +40,15 @@ extern "C" {
         dataToSign: CFDataRef,
         error: *mut CFErrorRef,
     ) -> CFDataRef;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyVerifySignature(
+        key: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        signedData: CFDataRef,
+        signature: CFDataRef,
+        error: *mut CFErrorRef,
+    ) -> core_foundation_sys::base::Boolean;
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -50,6 +59,7 @@ macro_rules! names {
         }
 
         #[non_exhaustive]
+        #[derive(Copy, Clone)]
         pub enum Algorithm {
             $( $i, )*
         }

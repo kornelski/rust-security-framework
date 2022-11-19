@@ -293,6 +293,32 @@ impl SecKey {
         }
     }
 
+    /// Verifies the cryptographic signature for a block of data using a public
+    /// key and specified algorithm.
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn verify_signature(
+        &self,
+        algorithm: Algorithm,
+        signed_data: impl AsRef<[u8]>,
+        signature: impl AsRef<[u8]>,
+    ) -> Result<bool, CFError> {
+        use security_framework_sys::key::SecKeyVerifySignature;
+        let mut error: CFErrorRef = std::ptr::null_mut();
+
+        let valid = unsafe { SecKeyVerifySignature(
+            self.as_concrete_TypeRef(),
+            algorithm.into(),
+            CFData::from_buffer(signed_data.as_ref()).as_concrete_TypeRef(),
+            CFData::from_buffer(signature.as_ref()).as_concrete_TypeRef(),
+            &mut error,
+        )};
+
+        if !error.is_null() {
+            return Err(unsafe { CFError::wrap_under_create_rule(error) })?;
+        }
+        return Ok(valid != 0)
+    }
+
     /// Translates to SecItemDelete, passing in the SecKeyRef
     pub fn delete(&self) -> Result<(), Error> {
         let query = CFMutableDictionary::from_CFType_pairs(&[(
