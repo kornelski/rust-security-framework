@@ -1,11 +1,16 @@
 //! Identity support.
 
 use core_foundation::base::TCFType;
+use core_foundation::base::ToVoid;
+use core_foundation::dictionary::CFMutableDictionary;
 use security_framework_sys::base::SecIdentityRef;
 use security_framework_sys::identity::*;
+use security_framework_sys::item::kSecValueRef;
+use security_framework_sys::keychain_item::SecItemDelete;
 use std::fmt;
 use std::ptr;
 
+use crate::base::Error;
 use crate::base::Result;
 use crate::certificate::SecCertificate;
 use crate::cvt;
@@ -53,6 +58,20 @@ impl SecIdentity {
             cvt(SecIdentityCopyPrivateKey(self.0, &mut key))?;
             Ok(SecKey::wrap_under_create_rule(key))
         }
+    }
+
+    /// Translates to SecItemDelete, passing in the SecIdentityRef
+    pub fn delete(&self) -> Result<(), Error> {
+        let query = CFMutableDictionary::from_CFType_pairs(&[(
+            unsafe { kSecValueRef }.to_void(),
+            self.to_void(),
+        )]);
+
+        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+        if status != 0 {
+            return Err(status.into())
+        }
+        Ok(())
     }
 }
 

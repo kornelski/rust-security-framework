@@ -1,7 +1,7 @@
 //! Support to search for items in a keychain.
 
 use core_foundation::array::CFArray;
-use core_foundation::base::{CFType, TCFType, ToVoid, OSStatus};
+use core_foundation::base::{CFType, TCFType, ToVoid};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
 
-use crate::base::{Result, Error};
+use crate::base::Result;
 use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::identity::SecIdentity;
@@ -465,12 +465,14 @@ pub enum AddToKeychain {
 }
 
 /// Translates to SecItemAdd
-pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain) -> Result<()> {
+pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain, label: Option<&str>) -> Result<()> {
     let class = match &add_ref {
-        AddRef::Key(_) => unsafe {kSecClassKey},
-        AddRef::Identity(_) => unsafe { kSecClassIdentity },
-        AddRef::Certificate(_) => unsafe { kSecClassCertificate },
-    }.to_void();
+        AddRef::Key(_) => Some(unsafe {kSecClassKey}),
+        //  kSecClass should not be specified when adding a SecIdentityRef:
+        //  https://developer.apple.com/forums/thread/25751
+        AddRef::Identity(_) => None,
+        AddRef::Certificate(_) => Some(unsafe { kSecClassCertificate }),
+    }.as_ref().map(ToVoid::to_void);
 
     let ref_ = match &add_ref {
         AddRef::Key(key) => key.to_void(),
@@ -479,9 +481,12 @@ pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain) -> Result<()> {
     };
 
     let mut add_params = CFMutableDictionary::from_CFType_pairs(&[
-        ( unsafe { kSecClass }.to_void(), class),
         ( unsafe { kSecValueRef }.to_void(), ref_),
     ]);
+
+    if let Some(class) = class {
+        add_params.add(&unsafe{kSecClass}.to_void(), &class);
+    }
     
     match &to_keychain {
         AddToKeychain::DataProtectionKeychain => {
@@ -494,7 +499,12 @@ pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain) -> Result<()> {
             add_params.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
         },
     }
-    
+
+    let label = label.map(CFString::from);
+    if let Some(label) = &label {
+        add_params.add(&unsafe { kSecAttrLabel }.to_void(), &label.to_void());
+    }
+
     let res = unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) };
     if res == 0 {
         return Ok(())
