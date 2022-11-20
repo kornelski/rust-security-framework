@@ -43,7 +43,7 @@ impl Error {
         self.inner_message()
     }
 
-    #[cfg(target_os = "macos")]
+    #[inline(always)]
     #[cold]
     fn inner_message(self) -> Option<String> {
         use core_foundation::base::TCFType;
@@ -58,12 +58,6 @@ impl Error {
                 Some(CFString::wrap_under_create_rule(s).to_string())
             }
         }
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    #[inline(always)]
-    fn inner_message(&self) -> Option<String> {
-        None
     }
 
     /// Returns the code of the current error.
