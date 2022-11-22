@@ -1,6 +1,5 @@
 //! Support types for other modules.
 
-#[cfg(target_os = "macos")]
 use core_foundation::string::CFString;
 use core_foundation_sys::base::OSStatus;
 use std::error;
