@@ -489,6 +489,7 @@ pub fn add_item_ref(add_ref: AddRef, to_keychain: AddToKeychain, label: Option<&
     }
     
     match &to_keychain {
+        #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
         AddToKeychain::DataProtectionKeychain => {
             add_params.add(&unsafe { kSecUseDataProtectionKeychain }.to_void(), &CFBoolean::true_value().to_void());
         },

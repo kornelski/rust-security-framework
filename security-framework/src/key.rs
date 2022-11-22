@@ -4,7 +4,6 @@ use core_foundation::{
     base::TCFType, string::{CFStringRef, CFString},
     boolean::CFBoolean, dictionary::CFMutableDictionary, number::CFNumber,
 };
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::ToVoid;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::data::CFData;

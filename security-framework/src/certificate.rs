@@ -26,7 +26,6 @@ use core_foundation::error::{CFError, CFErrorRef};
 use core_foundation::number::CFNumber;
 #[cfg(feature = "serial-number-bigint")]
 use num_bigint::BigUint;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::item::*;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use std::ops::Deref;
