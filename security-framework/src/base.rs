@@ -43,7 +43,6 @@ impl Error {
         self.inner_message()
     }
 
-    #[inline(always)]
     #[cold]
     fn inner_message(self) -> Option<String> {
         use core_foundation::base::TCFType;
