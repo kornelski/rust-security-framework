@@ -20,6 +20,23 @@ extern "C" {
 
     pub static kSecAttrKeyType: CFStringRef;
     pub static kSecAttrLabel: CFStringRef;
+    pub static kSecAttrIsPermanent: CFStringRef;
+    pub static kSecPrivateKeyAttrs: CFStringRef;
+    pub static kSecPublicKeyAttrs: CFStringRef;
+
+    pub static kSecAttrKeyClass: CFStringRef;
+    pub static kSecAttrKeyClassPublic: CFStringRef;
+    pub static kSecAttrKeyClassPrivate: CFStringRef;
+    pub static kSecAttrKeyClassSymmetric: CFStringRef;
+
+    pub static kSecUseKeychain: CFStringRef;
+    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+    pub static kSecUseDataProtectionKeychain: CFStringRef;
+    #[cfg(any(feature = "OSX_10_12", target_os="ios"))]
+    pub static kSecAttrTokenID: CFStringRef;
+    #[cfg(any(feature = "OSX_10_12", target_os="ios"))]
+    pub static kSecAttrTokenIDSecureEnclave: CFStringRef;
+
 
     pub static kSecAttrKeySizeInBits: CFStringRef;
 
@@ -39,7 +56,7 @@ extern "C" {
     pub static kSecAttrKeyTypeRC2: CFStringRef;
     #[cfg(target_os = "macos")]
     pub static kSecAttrKeyTypeCAST: CFStringRef;
-    #[cfg(feature = "OSX_10_9")]
+    #[cfg(any(feature = "OSX_10_9", target_os="ios"))]
     pub static kSecAttrKeyTypeEC: CFStringRef;
 
     pub static kSecAttrAccessGroup: CFStringRef;
@@ -54,4 +71,5 @@ extern "C" {
     pub static kSecAttrService: CFStringRef;
     pub static kSecAttrAccount: CFStringRef;
     pub static kSecValueData: CFStringRef;
+    pub static kSecValueRef: CFStringRef;
 }

@@ -1,65 +1,10 @@
 //! OSX specific functionality for items.
-
-use core_foundation::base::TCFType;
-use core_foundation::string::CFString;
-use core_foundation_sys::string::CFStringRef;
-use security_framework_sys::item::*;
-
 use crate::item::ItemSearchOptions;
 use crate::os::macos::keychain::SecKeychain;
 use crate::ItemSearchOptionsInternals;
 
-/// Types of `SecKey`s.
-#[derive(Debug, Copy, Clone)]
-pub struct KeyType(CFStringRef);
-
-#[allow(missing_docs)]
-impl KeyType {
-    #[inline(always)]
-    pub fn rsa() -> Self {
-        unsafe { Self(kSecAttrKeyTypeRSA) }
-    }
-
-    #[inline(always)]
-    pub fn dsa() -> Self {
-        unsafe { Self(kSecAttrKeyTypeDSA) }
-    }
-
-    #[inline(always)]
-    pub fn aes() -> Self {
-        unsafe { Self(kSecAttrKeyTypeAES) }
-    }
-
-    #[inline(always)]
-    pub fn des() -> Self {
-        unsafe { Self(kSecAttrKeyTypeDES) }
-    }
-
-    #[inline(always)]
-    pub fn triple_des() -> Self {
-        unsafe { Self(kSecAttrKeyType3DES) }
-    }
-
-    #[inline(always)]
-    pub fn rc4() -> Self {
-        unsafe { Self(kSecAttrKeyTypeRC4) }
-    }
-
-    #[inline(always)]
-    pub fn cast() -> Self {
-        unsafe { Self(kSecAttrKeyTypeCAST) }
-    }
-
-    #[cfg(feature = "OSX_10_9")]
-    #[inline(always)]
-    pub fn ec() -> Self {
-        unsafe { Self(kSecAttrKeyTypeEC) }
-    }
-
-    pub(crate) fn to_str(self) -> CFString {
-        unsafe { CFString::wrap_under_get_rule(self.0) }
-    }
-}
+// Moved to crate::Key
+pub use crate::key::KeyType;
 
 /// An extension trait adding OSX specific functionality to `ItemSearchOptions`.
 pub trait ItemSearchOptionsExt {
