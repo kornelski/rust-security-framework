@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest ]
+        # NOTE: when changing the MSRV version, change it below as well
         rust: [ 1.56.0, stable, beta ]
 
     steps:
@@ -27,10 +28,13 @@ jobs:
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
+        # `x509_parser` dev-dependency has transitive dependency `time` which
+        # has a 6-month MSRV policy, don't run tests on MSRV version since they
+        # will always fail.
+        if: ${{ matrix.rust != '1.56.0' }}
         with:
           command: test
           args: --all-features
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
 
       - name: Check default features
         uses: actions-rs/cargo@v1
