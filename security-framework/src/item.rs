@@ -533,12 +533,7 @@ pub enum Location {
 /// Translates to SecItemAdd. Use `ItemAddOptions` to build an `add_params`
 /// `CFDictionary`.
 pub fn add_item(add_params: CFDictionary) -> Result<()> {
-    let res = unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) };
-    if res == 0 {
-        return Ok(())
-    } else {
-        return Err(res)?;
-    }
+    cvt(unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) })
 }
 
 #[cfg(test)]

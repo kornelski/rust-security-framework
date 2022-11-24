@@ -1,5 +1,6 @@
 //! Encryption key support
 
+use crate::cvt;
 use core_foundation::{
     base::TCFType, string::{CFStringRef, CFString},
     boolean::CFBoolean, dictionary::CFMutableDictionary, number::CFNumber,
@@ -199,11 +200,7 @@ impl SecKey {
             self.to_void(),
         )]);
 
-        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
-        if status != 0 {
-            return Err(status.into())
-        }
-        Ok(())
+        cvt(unsafe { SecItemDelete(query.as_concrete_TypeRef()) })
     }
 }
 
