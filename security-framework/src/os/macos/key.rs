@@ -5,7 +5,7 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
 use security_framework_sys::item::kSecAttrKeyType;
-use security_framework_sys::key::*;
+use security_framework_sys::key::SecKeyCreateFromData;
 use std::ptr;
 
 use crate::key::{SecKey, KeyType};

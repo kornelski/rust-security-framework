@@ -20,42 +20,42 @@ pub struct DigestType(CFStringRef);
 #[allow(missing_docs)]
 impl DigestType {
     #[inline(always)]
-    pub fn hmac_md5() -> Self {
+    #[must_use] pub fn hmac_md5() -> Self {
         unsafe { Self(kSecDigestHMACMD5) }
     }
 
     #[inline(always)]
-    pub fn hmac_sha1() -> Self {
+    #[must_use] pub fn hmac_sha1() -> Self {
         unsafe { Self(kSecDigestHMACSHA1) }
     }
 
     #[inline(always)]
-    pub fn hmac_sha2() -> Self {
+    #[must_use] pub fn hmac_sha2() -> Self {
         unsafe { Self(kSecDigestHMACSHA2) }
     }
 
     #[inline(always)]
-    pub fn md2() -> Self {
+    #[must_use] pub fn md2() -> Self {
         unsafe { Self(kSecDigestMD2) }
     }
 
     #[inline(always)]
-    pub fn md4() -> Self {
+    #[must_use] pub fn md4() -> Self {
         unsafe { Self(kSecDigestMD4) }
     }
 
     #[inline(always)]
-    pub fn md5() -> Self {
+    #[must_use] pub fn md5() -> Self {
         unsafe { Self(kSecDigestMD5) }
     }
 
     #[inline(always)]
-    pub fn sha1() -> Self {
+    #[must_use] pub fn sha1() -> Self {
         unsafe { Self(kSecDigestSHA1) }
     }
 
     #[inline(always)]
-    pub fn sha2() -> Self {
+    #[must_use] pub fn sha2() -> Self {
         unsafe { Self(kSecDigestSHA2) }
     }
 
@@ -82,7 +82,7 @@ impl Default for Builder {
 impl Builder {
     /// Returns a new builder with default settings.
     #[inline(always)]
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self {
             digest_type: None,
             digest_length: None,

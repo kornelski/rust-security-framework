@@ -81,14 +81,14 @@ pub struct TrustSettings {
 }
 
 impl TrustSettings {
-    /// Create a new TrustSettings for the given domain.
+    /// Create a new `TrustSettings` for the given domain.
     ///
     /// You can call `iter()` to discover the certificates with settings in this domain.
     ///
     /// Then you can call `tls_trust_settings_for_certificate()` with a given certificate
     /// to learn what the aggregate trust setting for that certificate within this domain.
     #[inline(always)]
-    pub fn new(domain: Domain) -> Self {
+    #[must_use] pub fn new(domain: Domain) -> Self {
         Self { domain }
     }
 
@@ -141,8 +141,8 @@ impl TrustSettings {
                 let ssl_policy_name = CFString::from_static_string("sslServer");
 
                 let maybe_name: Option<CFString> = settings
-                    .find(policy_name_key.as_CFTypeRef() as *const _)
-                    .map(|name| unsafe { CFString::wrap_under_get_rule(*name as *const _) });
+                    .find(policy_name_key.as_CFTypeRef().cast())
+                    .map(|name| unsafe { CFString::wrap_under_get_rule((*name).cast()) });
 
                 matches!(maybe_name, Some(ref name) if name != &ssl_policy_name)
             };
@@ -155,8 +155,8 @@ impl TrustSettings {
             let maybe_trust_result = {
                 let settings_result_key = CFString::from_static_string("kSecTrustSettingsResult");
                 settings
-                    .find(settings_result_key.as_CFTypeRef() as *const _)
-                    .map(|num| unsafe { CFNumber::wrap_under_get_rule(*num as *const _) })
+                    .find(settings_result_key.as_CFTypeRef().cast())
+                    .map(|num| unsafe { CFNumber::wrap_under_get_rule((*num).cast()) })
                     .and_then(|num| num.to_i64())
             };
 

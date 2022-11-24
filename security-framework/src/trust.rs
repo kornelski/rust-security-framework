@@ -49,7 +49,7 @@ impl TrustResult {
 impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
     #[inline]
-    pub fn success(self) -> bool {
+    #[must_use] pub fn success(self) -> bool {
         matches!(self, Self::PROCEED | Self::UNSPECIFIED)
     }
 }
@@ -85,7 +85,7 @@ bitflags::bitflags! {
 }
 
 impl SecTrust {
-    /// Creates a SecTrustRef that is configured with a certificate chain, for validating
+    /// Creates a `SecTrustRef` that is configured with a certificate chain, for validating
     /// that chain against a collection of policies.
     pub fn create_with_certificates(
         certs: &[SecCertificate],
@@ -264,24 +264,24 @@ impl SecTrust {
 
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
-    /// Note: evaluate must first be called on the SecTrust.
+    /// Note: evaluate must first be called on the `SecTrust`.
     #[inline(always)]
-    pub fn certificate_count(&self) -> CFIndex {
+    #[must_use] pub fn certificate_count(&self) -> CFIndex {
         unsafe { SecTrustGetCertificateCount(self.0) }
     }
 
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
     ///
-    /// Note: evaluate must first be called on the SecTrust.
+    /// Note: evaluate must first be called on the `SecTrust`.
     #[deprecated(note = "deprecated by Apple")]
-    pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
+    #[must_use] pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         #[allow(deprecated)]
         unsafe {
             if self.certificate_count() <= ix {
                 None
             } else {
                 let certificate = SecTrustGetCertificateAtIndex(self.0, ix);
-                Some(SecCertificate::wrap_under_get_rule(certificate as *mut _))
+                Some(SecCertificate::wrap_under_get_rule(certificate.cast()))
             }
         }
     }

@@ -2,9 +2,9 @@
 
 /// # Potential improvements
 ///
-/// * When generic specialization stabilizes prevent copying from CString
+/// * When generic specialization stabilizes prevent copying from `CString`
 ///   arguments.
-/// * AuthorizationCopyRightsAsync
+/// * `AuthorizationCopyRightsAsync`
 /// * Provide constants for well known item names
 use crate::base::{Error, Result};
 use core_foundation::base::{CFTypeRef, TCFType};
@@ -170,11 +170,11 @@ impl AuthorizationItemSetBuilder {
     /// Creates a new `AuthorizationItemSetStore`, which simplifies creating
     /// owned vectors of `AuthorizationItem`s.
     #[inline(always)]
-    pub fn new() -> AuthorizationItemSetBuilder {
+    #[must_use] pub fn new() -> AuthorizationItemSetBuilder {
         Default::default()
     }
 
-    /// Adds an AuthorizationItem with the name set to a right and an empty
+    /// Adds an `AuthorizationItem` with the name set to a right and an empty
     /// value.
     ///
     /// If `name` isn't convertable to a `CString` it will return
@@ -185,7 +185,7 @@ impl AuthorizationItemSetBuilder {
         Ok(self)
     }
 
-    /// Adds an AuthorizationItem with arbitrary data.
+    /// Adds an `AuthorizationItem` with arbitrary data.
     ///
     /// If `name` isn't convertable to a `CString` it will return
     /// Err(errSecConversionError).
@@ -199,7 +199,7 @@ impl AuthorizationItemSetBuilder {
         Ok(self)
     }
 
-    /// Adds an AuthorizationItem with NULL terminated string data.
+    /// Adds an `AuthorizationItem` with NULL terminated string data.
     ///
     /// If `name` or `value` isn't convertable to a `CString` it will return
     /// Err(errSecConversionError).
@@ -217,7 +217,7 @@ impl AuthorizationItemSetBuilder {
 
     /// Creates the `sys::AuthorizationItemSet`, and gives you ownership of the
     /// data it points to.
-    pub fn build(mut self) -> AuthorizationItemSetStorage {
+    #[must_use] pub fn build(mut self) -> AuthorizationItemSetStorage {
         self.storage.items = self
             .storage
             .names
@@ -252,8 +252,8 @@ pub enum RightDefinition<'a> {
     FromExistingRight(&'a str),
 }
 
-/// A wrapper around AuthorizationCreate and functions which operate on an
-/// AuthorizationRef.
+/// A wrapper around `AuthorizationCreate` and functions which operate on an
+/// `AuthorizationRef`.
 #[derive(Debug)]
 pub struct Authorization {
     handle: sys::AuthorizationRef,
@@ -806,7 +806,7 @@ mod tests {
                 | Flags::EXTEND_RIGHTS,
         )?;
 
-        let file = auth.execute_with_privileges_piped("/bin/ls", &["/"], Flags::DEFAULTS)?;
+        let file = auth.execute_with_privileges_piped("/bin/ls", ["/"], Flags::DEFAULTS)?;
 
         use std::io::{self, BufRead};
         for line in io::BufReader::new(file).lines() {

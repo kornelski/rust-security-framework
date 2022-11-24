@@ -69,7 +69,7 @@ impl SecKeychainItem {
                 self.as_CFTypeRef() as *mut _,
                 ptr::null(),
                 password.len() as u32,
-                password.as_ptr() as *const _,
+                password.as_ptr().cast(),
             ))?;
         }
         Ok(())
@@ -113,9 +113,9 @@ pub fn find_generic_password(
         cvt(SecKeychainFindGenericPassword(
             keychains_or_null,
             service.len() as u32,
-            service.as_ptr() as *const _,
+            service.as_ptr().cast(),
             account.len() as u32,
-            account.as_ptr() as *const _,
+            account.as_ptr().cast(),
             &mut data_len,
             &mut data,
             &mut item,
@@ -165,14 +165,14 @@ pub fn find_internet_password(
         cvt(SecKeychainFindInternetPassword(
             keychains_or_null,
             server.len() as u32,
-            server.as_ptr() as *const _,
+            server.as_ptr().cast(),
             security_domain.map_or(0, |s| s.len() as u32),
             security_domain
-                .map_or(ptr::null(), |s| s.as_ptr() as *const _),
+                .map_or(ptr::null(), |s| s.as_ptr().cast()),
             account.len() as u32,
-            account.as_ptr() as *const _,
+            account.as_ptr().cast(),
             path.len() as u32,
-            path.as_ptr() as *const _,
+            path.as_ptr().cast(),
             port.unwrap_or(0),
             protocol,
             authentication_type,
@@ -295,11 +295,11 @@ impl SecKeychain {
             cvt(SecKeychainAddGenericPassword(
                 self.as_CFTypeRef() as *mut _,
                 service.len() as u32,
-                service.as_ptr() as *const _,
+                service.as_ptr().cast(),
                 account.len() as u32,
-                account.as_ptr() as *const _,
+                account.as_ptr().cast(),
                 password.len() as u32,
-                password.as_ptr() as *const _,
+                password.as_ptr().cast(),
                 ptr::null_mut(),
             ))?;
         }
@@ -326,19 +326,19 @@ impl SecKeychain {
             cvt(SecKeychainAddInternetPassword(
                 self.as_CFTypeRef() as *mut _,
                 server.len() as u32,
-                server.as_ptr() as *const _,
+                server.as_ptr().cast(),
                 security_domain.map_or(0, |s| s.len() as u32),
                 security_domain
-                    .map_or(ptr::null(), |s| s.as_ptr() as *const _),
+                    .map_or(ptr::null(), |s| s.as_ptr().cast()),
                 account.len() as u32,
-                account.as_ptr() as *const _,
+                account.as_ptr().cast(),
                 path.len() as u32,
-                path.as_ptr() as *const _,
+                path.as_ptr().cast(),
                 port.unwrap_or(0),
                 protocol,
                 authentication_type,
                 password.len() as u32,
-                password.as_ptr() as *const _,
+                password.as_ptr().cast(),
                 ptr::null_mut(),
             ))?;
         }

@@ -31,37 +31,37 @@ pub struct ItemClass(CFStringRef);
 impl ItemClass {
     /// Look for `SecKeychainItem`s corresponding to generic passwords.
     #[inline(always)]
-    pub fn generic_password() -> Self {
+    #[must_use] pub fn generic_password() -> Self {
         unsafe { Self(kSecClassGenericPassword) }
     }
 
     /// Look for `SecKeychainItem`s corresponding to internet passwords.
     #[inline(always)]
-    pub fn internet_password() -> Self {
+    #[must_use] pub fn internet_password() -> Self {
         unsafe { Self(kSecClassInternetPassword) }
     }
 
     /// Look for `SecCertificate`s.
     #[inline(always)]
-    pub fn certificate() -> Self {
+    #[must_use] pub fn certificate() -> Self {
         unsafe { Self(kSecClassCertificate) }
     }
 
     /// Look for `SecKey`s.
     #[inline(always)]
-    pub fn key() -> Self {
+    #[must_use] pub fn key() -> Self {
         unsafe { Self(kSecClassKey) }
     }
 
     /// Look for `SecIdentity`s.
     #[inline(always)]
-    pub fn identity() -> Self {
+    #[must_use] pub fn identity() -> Self {
         unsafe { Self(kSecClassIdentity) }
     }
 
     #[inline]
     fn to_value(self) -> CFType {
-        unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
+        unsafe { CFType::wrap_under_get_rule(self.0.cast()) }
     }
 }
 
@@ -120,7 +120,7 @@ impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
 impl ItemSearchOptions {
     /// Creates a new builder with default options.
     #[inline(always)]
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self::default()
     }
 
@@ -171,7 +171,7 @@ impl ItemSearchOptions {
         self
     }
 
-    /// Sets kSecAttrAccessGroup to kSecAttrAccessGroupToken
+    /// Sets `kSecAttrAccessGroup` to `kSecAttrAccessGroupToken`
     #[inline(always)]
     pub fn access_group_token(&mut self) -> &mut Self {
         self.access_group = unsafe { Some(CFString::wrap_under_get_rule(kSecAttrAccessGroupToken)) };
@@ -358,21 +358,21 @@ impl fmt::Debug for SearchResult {
 impl SearchResult {
     /// If the search result is a `CFDict`, simplify that to a
     /// `HashMap<String, String>`. This transformation isn't
-    /// comprehensive, it only supports CFString, CFDate, and CFData
+    /// comprehensive, it only supports `CFString`, `CFDate`, and `CFData`
     /// value types.
-    pub fn simplify_dict(&self) -> Option<HashMap<String, String>> {
+    #[must_use] pub fn simplify_dict(&self) -> Option<HashMap<String, String>> {
         match *self {
             Self::Dict(ref d) => unsafe {
                 let mut retmap = HashMap::new();
                 let (keys, values) = d.get_keys_and_values();
                 for (k, v) in keys.iter().zip(values.iter()) {
-                    let keycfstr = CFString::wrap_under_get_rule(*k as *const _);
+                    let keycfstr = CFString::wrap_under_get_rule((*k).cast());
                     let val: String = match CFGetTypeID(*v) {
                         cfstring if cfstring == CFString::type_id() => {
-                            format!("{}", CFString::wrap_under_get_rule(*v as *const _))
+                            format!("{}", CFString::wrap_under_get_rule((*v).cast()))
                         }
                         cfdata if cfdata == CFData::type_id() => {
-                            let buf = CFData::wrap_under_get_rule(*v as *const _);
+                            let buf = CFData::wrap_under_get_rule((*v).cast());
                             let mut vec = Vec::new();
                             vec.extend_from_slice(buf.bytes());
                             format!("{}", String::from_utf8_lossy(&vec))

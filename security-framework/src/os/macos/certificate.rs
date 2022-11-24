@@ -134,14 +134,14 @@ pub struct CertificateProperty(CFDictionary);
 
 impl CertificateProperty {
     /// Returns the label of this property.
-    pub fn label(&self) -> CFString {
+    #[must_use] pub fn label(&self) -> CFString {
         unsafe {
-            CFString::wrap_under_get_rule(*self.0.get(kSecPropertyKeyLabel.to_void()) as *const _)
+            CFString::wrap_under_get_rule((*self.0.get(kSecPropertyKeyLabel.to_void())).cast())
         }
     }
 
     /// Returns an enum of the underlying data for this property.
-    pub fn get(&self) -> PropertyType {
+    #[must_use] pub fn get(&self) -> PropertyType {
         unsafe {
             let type_ =
                 CFString::wrap_under_get_rule(*self.0.get(kSecPropertyKeyType.to_void()) as *mut _);
@@ -149,10 +149,10 @@ impl CertificateProperty {
 
             if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeSection) {
                 PropertyType::Section(PropertySection(CFArray::wrap_under_get_rule(
-                    *value as *const _,
+                    (*value).cast(),
                 )))
             } else if type_ == CFString::wrap_under_get_rule(kSecPropertyTypeString) {
-                PropertyType::String(CFString::wrap_under_get_rule(*value as *const _))
+                PropertyType::String(CFString::wrap_under_get_rule((*value).cast()))
             } else {
                 PropertyType::__Unknown
             }
@@ -168,7 +168,7 @@ pub struct PropertySection(CFArray<CFDictionary>);
 impl PropertySection {
     /// Returns an iterator over the properties in this section.
     #[inline(always)]
-    pub fn iter(&self) -> PropertySectionIter<'_> {
+    #[must_use] pub fn iter(&self) -> PropertySectionIter<'_> {
         PropertySectionIter(self.0.iter())
     }
 }

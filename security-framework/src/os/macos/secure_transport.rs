@@ -125,7 +125,7 @@ impl SslContextExt for SslContext {
             if ptr.is_null() {
                 Ok(None)
             } else {
-                Ok(Some(slice::from_raw_parts(ptr as *const u8, len)))
+                Ok(Some(slice::from_raw_parts(ptr.cast::<u8>(), len)))
             }
         }
     }
@@ -134,7 +134,7 @@ impl SslContextExt for SslContext {
         unsafe {
             cvt(SSLSetDiffieHellmanParams(
                 self.as_inner(),
-                dh_params.as_ptr() as *const _,
+                dh_params.as_ptr().cast(),
                 dh_params.len(),
             ))
         }

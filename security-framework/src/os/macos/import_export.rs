@@ -56,7 +56,7 @@ pub struct ImportOptions<'a> {
 impl<'a> ImportOptions<'a> {
     /// Creates a new builder with default options.
     #[inline(always)]
-    pub fn new() -> ImportOptions<'a> {
+    #[must_use] pub fn new() -> ImportOptions<'a> {
         ImportOptions::default()
     }
 
@@ -178,7 +178,7 @@ impl<'a> ImportOptions<'a> {
 
         let mut raw_items = ptr::null();
         let items_ref = match self.items {
-            Some(_) => &mut raw_items as *mut _,
+            Some(_) => std::ptr::addr_of_mut!(raw_items),
             None => ptr::null_mut(),
         };
 

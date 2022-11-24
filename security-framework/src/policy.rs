@@ -83,7 +83,7 @@ impl SecPolicy {
     }
 
     /// Returns a policy object for the default X.509 policy.
-    pub fn create_x509() -> Self {
+    #[must_use] pub fn create_x509() -> Self {
         unsafe {
             let policy = SecPolicyCreateBasicX509();
             Self::wrap_under_create_rule(policy)

@@ -32,7 +32,7 @@ impl Error {
     #[inline]
     #[must_use]
     pub fn from_code(code: OSStatus) -> Self {
-        Self(NonZeroI32::new(code as i32).unwrap_or_else(|| NonZeroI32::new(1).unwrap()))
+        Self(NonZeroI32::new(code).unwrap_or_else(|| NonZeroI32::new(1).unwrap()))
     }
 
     /// Returns a string describing the current error, if available.

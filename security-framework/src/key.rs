@@ -42,49 +42,49 @@ pub struct KeyType(CFStringRef);
 #[allow(missing_docs)]
 impl KeyType {
     #[inline(always)]
-    pub fn rsa() -> Self {
+    #[must_use] pub fn rsa() -> Self {
         unsafe { Self(kSecAttrKeyTypeRSA) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn dsa() -> Self {
+    #[must_use] pub fn dsa() -> Self {
         unsafe { Self(kSecAttrKeyTypeDSA) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn aes() -> Self {
+    #[must_use] pub fn aes() -> Self {
         unsafe { Self(kSecAttrKeyTypeAES) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn des() -> Self {
+    #[must_use] pub fn des() -> Self {
         unsafe { Self(kSecAttrKeyTypeDES) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn triple_des() -> Self {
+    #[must_use] pub fn triple_des() -> Self {
         unsafe { Self(kSecAttrKeyType3DES) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn rc4() -> Self {
+    #[must_use] pub fn rc4() -> Self {
         unsafe { Self(kSecAttrKeyTypeRC4) }
     }
 
     #[cfg(target_os="macos")]
     #[inline(always)]
-    pub fn cast() -> Self {
+    #[must_use] pub fn cast() -> Self {
         unsafe { Self(kSecAttrKeyTypeCAST) }
     }
 
     #[cfg(any(feature = "OSX_10_9", target_os="ios"))]
     #[inline(always)]
-    pub fn ec() -> Self {
+    #[must_use] pub fn ec() -> Self {
         use security_framework_sys::item::kSecAttrKeyTypeEC;
 
         unsafe { Self(kSecAttrKeyTypeEC) }
@@ -106,9 +106,9 @@ unsafe impl Send for SecKey {}
 
 impl SecKey {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    /// Translates to SecKeyCreateRandomKey
+    /// Translates to `SecKeyCreateRandomKey`
     /// `GenerateKeyOptions` provides a helper to create an attribute
-    /// CFDictionary.
+    /// `CFDictionary`.
     pub fn generate(attributes: CFDictionary) -> Result<Self, CFError> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let sec_key = unsafe { SecKeyCreateRandomKey(attributes.as_concrete_TypeRef(), &mut error)};
@@ -120,15 +120,15 @@ impl SecKey {
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    /// Translates to SecKeyCopyAttributes
-    pub fn attributes(&self) -> CFDictionary {
+    /// Translates to `SecKeyCopyAttributes`
+    #[must_use] pub fn attributes(&self) -> CFDictionary {
         let pka = unsafe { SecKeyCopyAttributes(self.to_void() as _) };
         unsafe { CFDictionary::wrap_under_create_rule(pka) }
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    /// Translates to SecKeyCopyExternalRepresentation
-    pub fn external_representation(&self) -> Option<CFData> {
+    /// Translates to `SecKeyCopyExternalRepresentation`
+    #[must_use] pub fn external_representation(&self) -> Option<CFData> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let data = unsafe { SecKeyCopyExternalRepresentation(self.to_void() as _, &mut error) };
         if data.is_null() {
@@ -138,9 +138,9 @@ impl SecKey {
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    /// Translates to SecKeyCopyPublicKey
-    pub fn public_key(&self) -> Option<Self> {
-        let pub_seckey = unsafe {SecKeyCopyPublicKey(self.0 as *mut _)};
+    /// Translates to `SecKeyCopyPublicKey`
+    #[must_use] pub fn public_key(&self) -> Option<Self> {
+        let pub_seckey = unsafe {SecKeyCopyPublicKey(self.0.cast())};
         if pub_seckey.is_null() {
             return None;
         }
@@ -194,10 +194,10 @@ impl SecKey {
         if !error.is_null() {
             return Err(unsafe { CFError::wrap_under_create_rule(error) })?;
         }
-        return Ok(valid != 0)
+        Ok(valid != 0)
     }
 
-    /// Translates to SecItemDelete, passing in the SecKeyRef
+    /// Translates to `SecItemDelete`, passing in the `SecKeyRef`
     pub fn delete(&self) -> Result<(), Error> {
         let query = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecValueRef }.to_void(),
@@ -288,7 +288,7 @@ impl GenerateKeyOptions {
         self
     }
 
-    /// Collect options into a CFDictioanry
+    /// Collect options into a `CFDictioanry`
     pub fn to_dictionary(&self) -> CFDictionary {
         #[cfg(feature = "OSX_10_15")]
         use security_framework_sys::item::kSecUseDataProtectionKeychain;

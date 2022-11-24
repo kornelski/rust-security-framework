@@ -198,7 +198,7 @@ fn internet_password_query(
     if let Some(port) = port {
         query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
-            CFNumber::from(port as i32).as_CFType(),
+            CFNumber::from(i32::from(port)).as_CFType(),
         ))
     }
     query
