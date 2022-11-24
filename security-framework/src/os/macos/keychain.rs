@@ -48,13 +48,14 @@ impl SecKeychain {
 
     /// Opens a keychain from a file.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let path_name = path.as_ref().as_os_str().as_bytes();
-        // FIXME
-        let path_name = CString::new(path_name).unwrap();
+        let path_name = [
+            path.as_ref().as_os_str().as_bytes(),
+            std::slice::from_ref(&0)
+        ].concat();
 
         unsafe {
             let mut keychain = ptr::null_mut();
-            cvt(SecKeychainOpen(path_name.as_ptr(), &mut keychain))?;
+            cvt(SecKeychainOpen(path_name.as_ptr().cast(), &mut keychain))?;
             Ok(Self::wrap_under_create_rule(keychain))
         }
     }
