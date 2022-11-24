@@ -281,6 +281,11 @@ impl ItemSearchOptions {
 
             let mut ret = ptr::null();
             cvt(SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret))?;
+            if ret.is_null() {
+                //  SecItemCopyMatching returns NULL if no load_* was specified,
+                //  causing a segfault.
+                return Ok(vec![]);
+            }
             let type_id = CFGetTypeID(ret);
 
             let mut items = vec![];
