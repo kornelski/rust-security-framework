@@ -151,18 +151,14 @@ impl SecKey {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Creates the cryptographic signature for a block of data using a private
     /// key and specified algorithm.
-    pub fn create_signature(
-        &self,
-        algorithm: Algorithm,
-        input: impl AsRef<[u8]>,
-    ) -> Result<Vec<u8>, CFError> {
+    pub fn create_signature(&self, algorithm: Algorithm, input: &[u8]) -> Result<Vec<u8>, CFError> {
         let mut error: CFErrorRef = std::ptr::null_mut();
 
         let output = unsafe {
             SecKeyCreateSignature(
                 self.as_concrete_TypeRef(),
                 algorithm.into(),
-                CFData::from_buffer(input.as_ref()).as_concrete_TypeRef(),
+                CFData::from_buffer(input).as_concrete_TypeRef(),
                 &mut error,
             )
         };
@@ -181,8 +177,8 @@ impl SecKey {
     pub fn verify_signature(
         &self,
         algorithm: Algorithm,
-        signed_data: impl AsRef<[u8]>,
-        signature: impl AsRef<[u8]>,
+        signed_data: &[u8],
+        signature: &[u8],
     ) -> Result<bool, CFError> {
         use security_framework_sys::key::SecKeyVerifySignature;
         let mut error: CFErrorRef = std::ptr::null_mut();
@@ -190,8 +186,8 @@ impl SecKey {
         let valid = unsafe { SecKeyVerifySignature(
             self.as_concrete_TypeRef(),
             algorithm.into(),
-            CFData::from_buffer(signed_data.as_ref()).as_concrete_TypeRef(),
-            CFData::from_buffer(signature.as_ref()).as_concrete_TypeRef(),
+            CFData::from_buffer(signed_data).as_concrete_TypeRef(),
+            CFData::from_buffer(signature).as_concrete_TypeRef(),
             &mut error,
         )};
 
