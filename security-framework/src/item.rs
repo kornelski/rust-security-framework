@@ -1,17 +1,17 @@
 //! Support to search for items in a keychain.
 
 use core_foundation::array::CFArray;
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::{CFType, TCFType, ToVoid};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
-use core_foundation::dictionary::CFDictionary;
+use core_foundation::dictionary::{CFDictionary, CFMutableDictionary};
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
-use security_framework_sys::keychain_item::SecItemCopyMatching;
+use security_framework_sys::keychain_item::{SecItemCopyMatching, SecItemAdd};
 use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
@@ -389,6 +389,155 @@ impl SearchResult {
             },
             _ => None,
         }
+    }
+}
+
+/// Builder-pattern struct for specifying options for `add_item` (`SecAddItem`
+/// wrapper).
+///
+/// When finished populating options, call `to_dictionary()` and pass the
+/// resulting CFDictionary to `add_item`.
+pub struct ItemAddOptions {
+    /// The value (by ref or data) of the item to add, required.
+    pub value: ItemAddValue,
+    /// Optional kSecAttrLabel attribute.
+    pub label: Option<String>,
+    /// Optional keychain location.
+    pub location: Option<Location>,
+}
+
+impl ItemAddOptions {
+    /// Specifies the item to add.
+    pub fn new(value: ItemAddValue) -> Self {
+        Self{ value, label: None, location: None }
+    }
+    /// Specifies the kSecAttrLabel attribute.
+    pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
+        self.label = Some(label.into());
+        self
+    }
+    /// Specifies which keychain to add the item to.
+    pub fn set_location(&mut self, location: Location) -> &mut Self {
+        self.location = Some(location);
+        self
+    }
+    /// Populates a CFDictionary to be passed to
+    pub fn to_dictionary(&self) -> CFDictionary {
+        let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
+
+        let class_opt = match &self.value {
+            ItemAddValue::Ref(ref_) => ref_.class(),
+            ItemAddValue::Data { class, .. } => Some(class.clone()),
+        };
+        if let Some(class) = class_opt {
+            dict.add(&unsafe{kSecClass}.to_void(), &class.0.to_void());
+        }
+
+        let value_pair = match &self.value{
+            ItemAddValue::Ref(ref_) => (unsafe {kSecValueRef}.to_void(), ref_.ref_()),
+            ItemAddValue::Data { data, ..} => (unsafe {kSecValueData}.to_void(), data.to_void()),
+        };
+        dict.add(&value_pair.0, &value_pair.1);
+
+
+        if let Some(location) = &self.location {
+            match location{
+                #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+                Location::DataProtectionKeychain => {
+                    dict.add(&unsafe { kSecUseDataProtectionKeychain }.to_void(), &CFBoolean::true_value().to_void());
+                },
+                #[cfg(target_os="macos")]
+                Location::DefaultFileKeychain => {},
+                #[cfg(target_os="macos")]
+                Location::FileKeychain(keychain) => {
+                    dict.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
+                },
+            }
+        }
+
+        let label = self.label.as_deref().map(CFString::from);
+        if let Some(label) = &label {
+            dict.add(&unsafe {kSecAttrLabel}.to_void(), &label.to_void());
+        }
+
+        dict.to_immutable()
+    }
+}
+
+/// Value of an item to add to the keychain.
+pub enum ItemAddValue {
+    /// Pass item by Ref (kSecValueRef)
+    Ref(AddRef),
+    /// Pass item by Data (kSecValueData)
+    Data{
+        /// The item class (kSecClass).
+        class: ItemClass,
+        /// The item data.
+        data: CFData
+    },
+}
+
+
+/// Type of Ref to add to the keychain.
+pub enum AddRef {
+    /// SecKey
+    Key(SecKey),
+    /// SecIdentity
+    Identity(SecIdentity),
+    /// SecCertificate
+    Certificate(SecCertificate),
+}
+
+impl AddRef {
+    fn class(&self) -> Option<ItemClass> {
+        match self {
+            AddRef::Key(_) => Some(ItemClass::key()),
+            //  kSecClass should not be specified when adding a SecIdentityRef:
+            //  https://developer.apple.com/forums/thread/25751
+            AddRef::Identity(_) => None,
+            AddRef::Certificate(_) => Some(ItemClass::certificate()),
+        }
+    }
+    fn ref_(&self) -> CFTypeRef {
+        match self {
+            AddRef::Key(key) => key.as_CFTypeRef(),
+            AddRef::Identity(id) => id.as_CFTypeRef(),
+            AddRef::Certificate(cert) => cert.as_CFTypeRef(),
+        }
+    }
+}
+
+/// Which keychain to add an item to.
+///
+/// https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains
+pub enum Location {
+    /// Store the item in the newer DataProtectionKeychain. This is the only
+    /// keychain on iOS. On macOS, this is the newer and more consistent
+    /// keychain implementation. Keys stored in the Secure Enclave _must_ use
+    /// this keychain.
+    ///
+    /// This keychain requires the calling binary to be codesigned with
+    /// entitlements for the KeychainAccessGroups it is supposed to
+    /// access.
+    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
+    DataProtectionKeychain,
+    /// Store the key in the default file-based keychain. On macOS, defaults to
+    /// the Login keychain.
+    #[cfg(target_os="macos")]
+    DefaultFileKeychain,
+    /// Store the key in a specific file-based keychain.
+    #[cfg(target_os="macos")]
+    FileKeychain(crate::os::macos::keychain::SecKeychain)
+}
+
+/// Translates to SecItemAdd. Use `ItemAddOptions` to build an `add_params`
+/// `CFDictionary`.
+pub fn add_item(add_params: CFDictionary) -> Result<()> {
+    let res = unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) };
+    if res == 0 {
+        return Ok(())
+    } else {
+        return Err(res)?;
     }
 }
 

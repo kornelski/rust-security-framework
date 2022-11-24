@@ -33,7 +33,7 @@ use security_framework_sys::key::{
 };
 use std::fmt;
 
-use crate::base::Error;
+use crate::{base::Error, item::Location};
 
 /// Types of `SecKey`s.
 #[derive(Debug, Copy, Clone)]
@@ -210,27 +210,6 @@ impl SecKey {
         }
         Ok(())
     }
-}
-
-/// Which keychain to store the key in.
-pub enum Location {
-    /// Store the key in the newer DataProtectionKeychain. This is the only
-    /// keychain on iOS. On macOS, this is the newer and more consistent
-    /// keychain implementation. Keys stored in the Secure Enclave _must_ use
-    /// this keychain.
-    ///
-    /// This keychain requires the calling binary to be codesigned with
-    /// entitlements for the KeychainAccessGroups it is supposed to
-    /// access.
-    #[cfg(any(feature = "OSX_10_15", target_os="ios"))]
-    DataProtectionKeychain,
-    /// Store the key in the default file-based keychain. On
-    /// macOS, defaults to the Login keychain.
-    #[cfg(target_os="macos")]
-    DefaultFileKeychain,
-    /// Store the key in a specific file-based keychain.
-    #[cfg(target_os="macos")]
-    FileKeychain(crate::os::macos::keychain::SecKeychain)
 }
 
 /// Where to generate the key.
