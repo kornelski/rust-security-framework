@@ -18,6 +18,7 @@ extern "C" {
 
     pub static kSecMatchSearchList: CFStringRef;
 
+    pub static kSecAttrApplicationLabel: CFStringRef;
     pub static kSecAttrKeyType: CFStringRef;
     pub static kSecAttrLabel: CFStringRef;
     pub static kSecAttrIsPermanent: CFStringRef;

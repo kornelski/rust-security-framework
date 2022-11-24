@@ -32,6 +32,8 @@ use security_framework_sys::key::{
     SecKeyCreateSignature, Algorithm, SecKeyCreateRandomKey,
     SecKeyCopyPublicKey,
 };
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use security_framework_sys::item::kSecAttrApplicationLabel;
 use std::fmt;
 
 use crate::{base::Error, item::Location};
@@ -118,6 +120,14 @@ impl SecKey {
         } else {
             Ok(unsafe { SecKey::wrap_under_create_rule(sec_key) })
         }
+    }
+
+    /// Returns the programmatic identifier for the key. For keys of class 
+    /// kSecAttrKeyClassPublic and kSecAttrKeyClassPrivate, the value is the 
+    /// hash of the public key.
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn application_label(&self) -> Option<Vec<u8>> {
+        self.attributes().find(unsafe { kSecAttrApplicationLabel.to_void() }).map(|v| unsafe { CFData::wrap_under_get_rule(v.cast()) }.to_vec())
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
