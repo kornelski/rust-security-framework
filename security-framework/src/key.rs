@@ -174,12 +174,7 @@ impl SecKey {
     /// Verifies the cryptographic signature for a block of data using a public
     /// key and specified algorithm.
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    pub fn verify_signature(
-        &self,
-        algorithm: Algorithm,
-        signed_data: &[u8],
-        signature: &[u8],
-    ) -> Result<bool, CFError> {
+    pub fn verify_signature(&self, algorithm: Algorithm, signed_data: &[u8], signature: &[u8]) -> Result<bool, CFError> {
         use security_framework_sys::key::SecKeyVerifySignature;
         let mut error: CFErrorRef = std::ptr::null_mut();
 
@@ -269,25 +264,17 @@ impl GenerateKeyOptions {
 
     /// Collect options into a `CFDictioanry`
     pub fn to_dictionary(&self) -> CFDictionary {
-        #[cfg(feature = "OSX_10_15")]
-        use security_framework_sys::item::kSecUseDataProtectionKeychain;
         use security_framework_sys::item::{kSecUseKeychain, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
+
+        let is_permanent = CFBoolean::from(self.location.is_some());
         let private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecAttrIsPermanent }.to_void(),
-            if self.location.is_some() {
-                CFBoolean::true_value()
-            } else {
-                CFBoolean::false_value()
-            }.to_void()
+            is_permanent.to_void(),
         )]);
 
         let public_attributes = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecAttrIsPermanent }.to_void(),
-            if self.location.is_some() {
-                CFBoolean::true_value()
-            } else {
-                CFBoolean::false_value()
-            }.to_void()
+            is_permanent.to_void(),
         )]);
 
         let key_type = self.key_type.unwrap_or(KeyType::rsa()).to_str();
@@ -322,7 +309,8 @@ impl GenerateKeyOptions {
         #[cfg(target_os="macos")]
         match &self.location {
             #[cfg(feature = "OSX_10_15")]
-            Some(Location::DataProtectionKeychain) =>{
+            Some(Location::DataProtectionKeychain) => {
+                use security_framework_sys::item::kSecUseDataProtectionKeychain;
                 attribute_key_values.push(( unsafe{ kSecUseDataProtectionKeychain }.to_void(), CFBoolean::true_value().to_void()));
             }
             Some(Location::FileKeychain(keychain)) => {
@@ -342,10 +330,9 @@ impl GenerateKeyOptions {
     }
 }
 
-// FIXME
 impl fmt::Debug for SecKey {
     #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(fmt, "SecKey")
+        fmt.debug_struct("SecKey").finish_non_exhaustive()
     }
 }

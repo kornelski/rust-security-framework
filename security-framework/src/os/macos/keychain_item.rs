@@ -18,10 +18,9 @@ impl_TCFType!(
 unsafe impl Sync for SecKeychainItem {}
 unsafe impl Send for SecKeychainItem {}
 
-// FIXME
 impl fmt::Debug for SecKeychainItem {
     #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str("SecKeychainItem")
+        fmt.debug_struct("SecKeychainItem").finish_non_exhaustive()
     }
 }
