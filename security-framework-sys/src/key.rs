@@ -13,6 +13,12 @@ pub type SecKeyAlgorithm = CFStringRef;
 extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;
 
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyCreateRandomKey(
+        parameters: CFDictionaryRef,
+        error: *mut CFErrorRef,
+    ) -> SecKeyRef;
+
     #[cfg(target_os = "macos")]
     pub fn SecKeyCreateFromData(
         parameters: CFDictionaryRef,
@@ -24,6 +30,8 @@ extern "C" {
     pub fn SecKeyCopyExternalRepresentation(key: SecKeyRef, error: *mut CFErrorRef) -> CFDataRef;
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCopyAttributes(key: SecKeyRef) -> CFDictionaryRef;
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyCopyPublicKey(key: SecKeyRef) -> SecKeyRef;
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn SecKeyCreateSignature(
@@ -32,6 +40,15 @@ extern "C" {
         dataToSign: CFDataRef,
         error: *mut CFErrorRef,
     ) -> CFDataRef;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyVerifySignature(
+        key: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        signedData: CFDataRef,
+        signature: CFDataRef,
+        error: *mut CFErrorRef,
+    ) -> core_foundation_sys::base::Boolean;
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -42,6 +59,7 @@ macro_rules! names {
         }
 
         #[non_exhaustive]
+        #[derive(Copy, Clone)]
         pub enum Algorithm {
             $( $i, )*
         }
