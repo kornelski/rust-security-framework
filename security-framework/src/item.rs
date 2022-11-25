@@ -65,6 +65,33 @@ impl ItemClass {
     }
 }
 
+/// Specifies the type of keys to search for.
+#[derive(Debug, Copy, Clone)]
+pub struct KeyClass(CFStringRef);
+
+impl KeyClass {
+    /// kSecAttrKeyClassPublic
+    #[inline(always)]
+    pub fn public() -> Self {
+        unsafe { Self(kSecAttrKeyClassPublic) }
+    }
+    /// kSecAttrKeyClassPrivate
+    #[inline(always)]
+    pub fn private() -> Self {
+        unsafe { Self(kSecAttrKeyClassPrivate) }
+    }
+    /// kSecAttrKeyClassSymmetric
+    #[inline(always)]
+    pub fn symmetric() -> Self {
+        unsafe { Self(kSecAttrKeyClassSymmetric) }
+    }
+
+    #[inline]
+    fn to_value(self) -> CFType {
+        unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
+    }
+}
+
 /// Specifies the number of results returned by a search
 #[derive(Debug, Copy, Clone)]
 pub enum Limit {
@@ -100,6 +127,7 @@ pub struct ItemSearchOptions {
     #[cfg(not(target_os = "macos"))]
     keychains: Option<CFArray<CFType>>,
     class: Option<ItemClass>,
+    key_class: Option<KeyClass>,
     load_refs: bool,
     load_attributes: bool,
     load_data: bool,
@@ -128,6 +156,15 @@ impl ItemSearchOptions {
     #[inline(always)]
     pub fn class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
+        self
+    }
+
+    /// Search only for keys of the specified class. Also sets self.class to
+    /// ItemClass::key().
+    #[inline(always)]
+    pub fn key_class(&mut self, key_class: KeyClass) -> &mut Self {
+        self.class(ItemClass::key());
+        self.key_class = Some(key_class);
         self
     }
 
@@ -192,6 +229,10 @@ impl ItemSearchOptions {
 
             if let Some(class) = self.class {
                 params.push((CFString::wrap_under_get_rule(kSecClass), class.to_value()));
+            }
+
+            if let Some(key_class) = self.key_class {
+                params.push((CFString::wrap_under_get_rule(kSecAttrKeyClass), key_class.to_value()));
             }
 
             if self.load_refs {
