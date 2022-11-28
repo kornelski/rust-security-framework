@@ -134,6 +134,7 @@ pub struct ItemSearchOptions {
     limit: Option<Limit>,
     label: Option<CFString>,
     access_group: Option<CFString>,
+    pub_key_hash: Option<CFData>,
 }
 
 #[cfg(target_os = "macos")]
@@ -215,6 +216,13 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Search for a certificate with the given public key hash;
+    #[inline(always)]
+    pub fn pub_key_hash(&mut self, pub_key_hash: &[u8]) -> &mut Self {
+        self.pub_key_hash = Some(CFData::from_buffer(pub_key_hash));
+        self
+    }
+
     /// Search for objects.
     pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
@@ -274,6 +282,13 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrAccessGroup),
                     access_group.as_CFType(),
+                ));
+            }
+
+            if let Some(ref pub_key_hash) = self.pub_key_hash {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrPublicKeyHash),
+                    pub_key_hash.as_CFType(),
                 ));
             }
 
