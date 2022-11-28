@@ -176,6 +176,7 @@ impl SecCertificate {
 
         let policy = SecPolicy::create_x509();
         let mut trust = SecTrust::create_with_certificates(from_ref(self), from_ref(&policy))?;
+        #[allow(deprecated)]
         #[cfg(not(target_os = "ios"))]
         trust.evaluate()?;
         #[cfg(target_os = "ios")]
