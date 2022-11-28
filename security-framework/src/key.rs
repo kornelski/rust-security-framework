@@ -274,7 +274,7 @@ impl GenerateKeyOptions {
             is_permanent.to_void(),
         )]);
 
-        let key_type = self.key_type.unwrap_or(KeyType::rsa()).to_str();
+        let key_type = self.key_type.unwrap_or_else(KeyType::rsa).to_str();
 
         let size_in_bits = self.size_in_bits.unwrap_or(match () {
             _ if key_type == KeyType::rsa().to_str() => 2048,

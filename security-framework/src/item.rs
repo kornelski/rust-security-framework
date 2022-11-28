@@ -473,7 +473,7 @@ impl ItemAddOptions {
 
         let class_opt = match &self.value {
             ItemAddValue::Ref(ref_) => ref_.class(),
-            ItemAddValue::Data { class, .. } => Some(class.clone()),
+            ItemAddValue::Data { class, .. } => Some(*class),
         };
         if let Some(class) = class_opt {
             dict.add(&unsafe{kSecClass}.to_void(), &class.0.to_void());
