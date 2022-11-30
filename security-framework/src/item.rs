@@ -135,6 +135,7 @@ pub struct ItemSearchOptions {
     label: Option<CFString>,
     access_group: Option<CFString>,
     pub_key_hash: Option<CFData>,
+    app_label: Option<CFData>,
 }
 
 #[cfg(target_os = "macos")]
@@ -216,10 +217,25 @@ impl ItemSearchOptions {
         self
     }
 
-    /// Search for a certificate with the given public key hash;
+    /// Search for a certificate with the given public key hash.
+    /// 
+    /// This is only compatible with [ItemClass::certificate], to search for 
+    /// a key by public key hash use [ItemSearchOptions::application_label]
+    /// instead.
     #[inline(always)]
     pub fn pub_key_hash(&mut self, pub_key_hash: &[u8]) -> &mut Self {
         self.pub_key_hash = Some(CFData::from_buffer(pub_key_hash));
+        self
+    }
+
+    /// Search for a key with the given public key hash.
+    /// 
+    /// This is only compatible with [ItemClass::key], to search for a 
+    /// certificate by the public key hash use [ItemSearchOptions::pub_key_hash] 
+    /// instead.
+    #[inline(always)]
+    pub fn application_label(&mut self, app_label: &[u8]) -> &mut Self {
+        self.app_label = Some(CFData::from_buffer(app_label));
         self
     }
 
@@ -289,6 +305,13 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrPublicKeyHash),
                     pub_key_hash.as_CFType(),
+                ));
+            }
+
+            if let Some(ref app_label) = self.app_label {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrApplicationLabel),
+                    app_label.as_CFType(),
                 ));
             }
 
