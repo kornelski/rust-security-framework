@@ -3,20 +3,29 @@
 use crate::cvt;
 use core_foundation::{
     base::TCFType, string::{CFStringRef, CFString},
-    boolean::CFBoolean, dictionary::CFMutableDictionary, number::CFNumber,
+    dictionary::CFMutableDictionary,
 };
 use core_foundation::base::ToVoid;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use core_foundation::boolean::CFBoolean;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::data::CFData;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::dictionary::CFDictionary;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use core_foundation::number::CFNumber;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::error::{CFError, CFErrorRef};
 
+use security_framework_sys::{
+    item::{kSecAttrKeyTypeRSA, kSecValueRef}, 
+    keychain_item::SecItemDelete
+};
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::{item::{
-    kSecAttrKeyTypeRSA, kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
-    kSecAttrKeySizeInBits, kSecPrivateKeyAttrs, kSecValueRef,
-}, keychain_item::SecItemDelete};
+    kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
+    kSecAttrKeySizeInBits, kSecPrivateKeyAttrs
+}};
 #[cfg(target_os="macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
@@ -36,7 +45,9 @@ use security_framework_sys::key::{
 use security_framework_sys::item::kSecAttrApplicationLabel;
 use std::fmt;
 
-use crate::{base::Error, item::Location};
+use crate::base::Error;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+use crate::item::Location;
 
 /// Types of `SecKey`s.
 #[derive(Debug, Copy, Clone)]
@@ -225,7 +236,7 @@ pub enum Token {
 
 /// Helper for creating `CFDictionary` attributes for `SecKey::generate`
 /// Recommended reading:
-/// https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains
+/// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
 #[derive(Default)]
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 pub struct GenerateKeyOptions {

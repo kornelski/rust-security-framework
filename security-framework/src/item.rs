@@ -570,7 +570,7 @@ impl AddRef {
 
 /// Which keychain to add an item to.
 ///
-/// https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains
+/// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
 pub enum Location {
     /// Store the item in the newer DataProtectionKeychain. This is the only
     /// keychain on iOS. On macOS, this is the newer and more consistent
