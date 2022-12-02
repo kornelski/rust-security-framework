@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "2.8.0-alpha.1"
+version = "2.8.0-beta.1"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
@@ -15,7 +15,7 @@ edition = "2021"
 rust-version = "1.56"
 
 [dependencies]
-security-framework-sys = { version = "2.8.0-alpha.1", default-features = false, path = "../security-framework-sys" }
+security-framework-sys = { version = "2.8.0-beta.1", default-features = false, path = "../security-framework-sys" }
 core-foundation = "0.9.3"
 core-foundation-sys = "0.8.3"
 bitflags = "1.3.2"
