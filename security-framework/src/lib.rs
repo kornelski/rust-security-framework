@@ -32,17 +32,25 @@ mod dlsym;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod certificate;
 pub mod cipher_suite;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod identity;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod import_export;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod item;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod key;
 pub mod os;
 pub mod passwords;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod policy;
 pub mod random;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod secure_transport;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod trust;
 #[cfg(target_os = "macos")]
 pub mod trust_settings;

@@ -11,6 +11,7 @@ pub mod access;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod certificate;
 #[cfg(target_os = "macos")]
 pub mod certificate_oids;
