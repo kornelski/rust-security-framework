@@ -282,7 +282,9 @@ impl GenerateKeyOptions {
 
     /// Collect options into a `CFDictioanry`
     pub fn to_dictionary(&self) -> CFDictionary {
-        use security_framework_sys::item::{kSecUseKeychain, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
+        use security_framework_sys::item::{kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
+        #[cfg(target_os="macos")]
+        use security_framework_sys::item::kSecUseKeychain;
 
         let is_permanent = CFBoolean::from(self.location.is_some());
         let private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
