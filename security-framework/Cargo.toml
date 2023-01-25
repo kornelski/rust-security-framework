@@ -12,7 +12,7 @@ readme = "README.md"
 keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.60"
 
 [dependencies]
 security-framework-sys = { version = "2.8.0", default-features = false, path = "../security-framework-sys" }
@@ -36,7 +36,7 @@ alpn = []
 session-tickets = []
 job-bless = []
 # deprecated, do not use
-serial-number-bigint = ["num-bigint"]
+serial-number-bigint = ["dep:num-bigint"]
 
 OSX_10_9 = ["security-framework-sys/OSX_10_9"]
 OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]
