@@ -27,11 +27,11 @@ mod test {
     use crate::os::macos::certificate::SecCertificateExt;
     use crate::os::macos::item::ItemSearchOptionsExt;
     use crate::os::macos::test::keychain;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     #[test]
     fn find_certificate() {
-        let dir = p!(TempDir::new("find_certificate"));
+        let dir = p!(tempdir());
         let keychain = keychain(dir.path());
         let results = p!(ItemSearchOptions::new()
             .keychains(&[keychain])

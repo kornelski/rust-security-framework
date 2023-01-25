@@ -250,13 +250,13 @@ impl Drop for KeychainUserInteractionLock {
 
 #[cfg(test)]
 mod test {
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     use super::*;
 
     #[test]
     fn create_options() {
-        let dir = TempDir::new("keychain").unwrap();
+        let dir = tempdir().unwrap();
 
         let mut keychain = CreateOptions::new()
             .password("foobar")

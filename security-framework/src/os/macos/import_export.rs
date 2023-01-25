@@ -243,7 +243,7 @@ mod test {
     use crate::import_export::*;
     use crate::os::macos::keychain;
     use hex;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     #[test]
     fn certificate() {
@@ -275,7 +275,7 @@ mod test {
 
     #[test]
     fn identity() {
-        let dir = TempDir::new("identity").unwrap();
+        let dir = tempdir().unwrap();
         let keychain = keychain::CreateOptions::new()
             .password("password")
             .create(dir.path().join("identity.keychain"))
@@ -298,7 +298,7 @@ mod test {
     #[test]
     #[ignore] // since it requires manual intervention
     fn secure_passphrase_identity() {
-        let dir = TempDir::new("identity").unwrap();
+        let dir = tempdir().unwrap();
         let keychain = keychain::CreateOptions::new()
             .password("password")
             .create(dir.path().join("identity.keychain"))
@@ -324,7 +324,7 @@ mod test {
     fn pkcs12_import() {
         use super::Pkcs12ImportOptionsExt;
 
-        let dir = TempDir::new("pkcs12_import").unwrap();
+        let dir = tempdir().unwrap();
         let keychain = keychain::CreateOptions::new()
             .password("password")
             .create(dir.path().join("pkcs12_import"))

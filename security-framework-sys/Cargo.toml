@@ -14,7 +14,7 @@ edition = "2018"
 
 [dependencies]
 core-foundation-sys = "0.8.3"
-libc = "0.2.112"
+libc = "0.2.139"
 
 [features]
 default = ["OSX_10_9"]
