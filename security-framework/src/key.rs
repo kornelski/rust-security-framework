@@ -36,9 +36,12 @@ use security_framework_sys::key::SecKeyGetTypeID;
 use security_framework_sys::base::SecKeyRef;
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub use security_framework_sys::key::Algorithm;
+
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use security_framework_sys::key::{
     SecKeyCopyAttributes, SecKeyCopyExternalRepresentation,
-    SecKeyCreateSignature, Algorithm, SecKeyCreateRandomKey,
+    SecKeyCreateSignature, SecKeyCreateRandomKey,
     SecKeyCopyPublicKey,
 };
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
