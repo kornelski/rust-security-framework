@@ -71,6 +71,7 @@ extern "C" {
     pub static kSecAttrSecurityDomain: CFStringRef;
     pub static kSecAttrServer: CFStringRef;
     pub static kSecAttrService: CFStringRef;
+    pub static kSecAttrAccessControl: CFStringRef;
     pub static kSecAttrAccount: CFStringRef;
     pub static kSecValueData: CFStringRef;
     pub static kSecValueRef: CFStringRef;

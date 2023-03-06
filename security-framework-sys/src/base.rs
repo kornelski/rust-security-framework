@@ -32,6 +32,8 @@ pub type SecCertificateRef = *mut OpaqueSecCertificateRef;
 pub enum OpaqueSecAccessRef {}
 pub type SecAccessRef = *mut OpaqueSecAccessRef;
 
+pub type SecAccessControlRef = CFStringRef;
+
 pub enum OpaqueSecKeyRef {}
 pub type SecKeyRef = *mut OpaqueSecKeyRef;
 

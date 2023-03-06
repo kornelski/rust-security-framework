@@ -14,6 +14,7 @@ fn main() {
 
     if env::var("TARGET").unwrap().contains("darwin") {
         test.header("Security/SecAccess.h")
+            .header("Security/SecAccessControl.h")
             .header("Security/SecDigestTransform.h")
             .header("Security/SecEncryptTransform.h")
             .header("Security/SecKeychain.h")

@@ -3,9 +3,11 @@
 //! If you want the extended keychain facilities only available on macOS, use the
 //! version of these functions in the macOS extensions module.
 
+use std::ptr::{self, null};
+
 use crate::base::Result;
 use crate::{cvt, Error};
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::{CFType, TCFType, CFOptionFlags, kCFAllocatorDefault};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
@@ -13,9 +15,10 @@ use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
+use security_framework_sys::access_control::*;
 use security_framework_sys::base::{errSecDuplicateItem, errSecParam};
 use security_framework_sys::item::{
-    kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol,
+    kSecAttrAccessControl, kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol,
     kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword,
     kSecClassInternetPassword, kSecReturnData, kSecValueData,
 };
@@ -26,9 +29,9 @@ use security_framework_sys::keychain_item::{
 
 /// Set a generic password for the given service and account.
 /// Creates or updates a keychain entry.
-pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
+pub fn set_generic_password(service: &str, account: &str, password: &[u8], access_control_options: Option<AccessControlOptions>) -> Result<()> {
     let mut query = generic_password_query(service, account);
-    set_password_internal(&mut query, password)
+    set_password_internal(&mut query, password, access_control_options)
 }
 
 /// Get the generic password for the given service and account.  If no matching
@@ -65,6 +68,7 @@ pub fn set_internet_password(
     protocol: SecProtocolType,
     authentication_type: SecAuthenticationType,
     password: &[u8],
+    access_control_options: Option<AccessControlOptions>,
 ) -> Result<()> {
     let mut query = internet_password_query(
         server,
@@ -75,7 +79,7 @@ pub fn set_internet_password(
         protocol,
         authentication_type,
     );
-    set_password_internal(&mut query, password)
+    set_password_internal(&mut query, password, access_control_options)
 }
 
 /// Get the internet password for the given endpoint parameters.  If no matching
@@ -204,14 +208,47 @@ fn internet_password_query(
     query
 }
 
+bitflags::bitflags! {
+    /// The option flags used to configure the evaluation of a `SecAccessControl`.
+    pub struct AccessControlOptions: CFOptionFlags {
+        /** Constraint to access an item with either biometry or passcode. */
+        const USER_PRESENCE = kSecAccessControlUserPresence;
+        /** Constraint to access an item with Touch ID for any enrolled fingers, or Face ID. */
+        const BIOMETRY_ANY = kSecAccessControlBiometryAny;
+        /** Constraint to access an item with Touch ID for currently enrolled fingers, or from Face ID with the currently enrolled user. */
+        const BIOMETRY_CURRENT_SET = kSecAccessControlBiometryCurrentSet;
+        /** Constraint to access an item with a passcode. */
+        const DEVICE_PASSCODE = kSecAccessControlDevicePasscode;
+        /** Constraint to access an item with a watch. */
+        const WATCH = kSecAccessControlWatch;
+        /** Indicates that at least one constraint must be satisfied. */
+        const OR = kSecAccessControlOr;
+        /** Indicates that all constraints must be satisfied. */
+        const AND = kSecAccessControlAnd;
+        /** Enable a private key to be used in signing a block of data or verifying a signed block. */
+        const PRIVATE_KEY_USAGE = kSecAccessControlPrivateKeyUsage;
+        /** Option to use an application-provided password for data encryption key generation. */
+        const APPLICATION_PASSWORD = kSecAccessControlApplicationPassword;
+    }
+}
+
 // This starts by trying to create the password with the given query params.
 // If the creation attempt reveals that one exists, its password is updated.
-fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -> Result<()> {
+fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8], access_control_options: Option<AccessControlOptions>) -> Result<()> {
     let query_len = query.len();
     query.push((
         unsafe { CFString::wrap_under_get_rule(kSecValueData) },
         CFData::from_buffer(password).as_CFType(),
     ));
+
+    if let Some(options) = access_control_options {
+        let error = ptr::null_mut();
+        query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
+            unsafe { CFString::wrap_under_get_rule(SecAccessControlCreateWithFlags(kCFAllocatorDefault, null(), options.bits(), error)).as_CFType() }
+        ));
+    }
+    
     let params = CFDictionary::from_CFType_pairs(query);
     let mut ret = std::ptr::null();
     let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
@@ -278,7 +315,7 @@ mod test {
     #[test]
     fn roundtrip_generic() {
         let name = "roundtrip_generic";
-        set_generic_password(name, name, name.as_bytes()).expect("set_generic_password");
+        set_generic_password(name, name, name.as_bytes(), None).expect("set_generic_password");
         let pass = get_generic_password(name, name).expect("get_generic_password");
         assert_eq!(name.as_bytes(), pass);
         delete_generic_password(name, name).expect("delete_generic_password")
@@ -287,9 +324,9 @@ mod test {
     #[test]
     fn update_generic() {
         let name = "update_generic";
-        set_generic_password(name, name, name.as_bytes()).expect("set_generic_password");
+        set_generic_password(name, name, name.as_bytes(), None).expect("set_generic_password");
         let alternate = "update_generic_alternate";
-        set_generic_password(name, name, alternate.as_bytes()).expect("set_generic_password");
+        set_generic_password(name, name, alternate.as_bytes(), None).expect("set_generic_password");
         let pass = get_generic_password(name, name).expect("get_generic_password");
         assert_eq!(pass, alternate.as_bytes());
         delete_generic_password(name, name).expect("delete_generic_password")
@@ -354,7 +391,7 @@ mod test {
     #[test]
     fn roundtrip_internet() {
         let name = "roundtrip_internet";
-        let (server, domain, account, path, port, protocol, auth) = (
+        let (server, domain, account, path, port, protocol, auth, access) = (
             name,
             None,
             name,
@@ -362,6 +399,7 @@ mod test {
             Some(8080u16),
             SecProtocolType::HTTP,
             SecAuthenticationType::Any,
+            None,
         );
         set_internet_password(
             server,
@@ -372,6 +410,7 @@ mod test {
             protocol,
             auth,
             name.as_bytes(),
+            access,
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
@@ -384,7 +423,7 @@ mod test {
     #[test]
     fn update_internet() {
         let name = "update_internet";
-        let (server, domain, account, path, port, protocol, auth) = (
+        let (server, domain, account, path, port, protocol, auth, access) = (
             name,
             None,
             name,
@@ -392,6 +431,7 @@ mod test {
             Some(8080u16),
             SecProtocolType::HTTP,
             SecAuthenticationType::Any,
+            None,
         );
         set_internet_password(
             server,
@@ -402,6 +442,7 @@ mod test {
             protocol,
             auth,
             name.as_bytes(),
+            access
         )
         .expect("set_internet_password");
         let alternate = "alternate_internet_password";
@@ -414,6 +455,7 @@ mod test {
             protocol,
             auth,
             alternate.as_bytes(),
+            access
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
