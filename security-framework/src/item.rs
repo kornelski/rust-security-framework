@@ -133,6 +133,8 @@ pub struct ItemSearchOptions {
     load_data: bool,
     limit: Option<Limit>,
     label: Option<CFString>,
+    service: Option<CFString>,
+    account: Option<CFString>,
     access_group: Option<CFString>,
     pub_key_hash: Option<CFData>,
     app_label: Option<CFData>,
@@ -207,6 +209,20 @@ impl ItemSearchOptions {
     #[inline(always)]
     pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
+        self
+    }
+
+    /// Search for an item with the given service.
+    #[inline(always)]
+    pub fn service(&mut self, service: &str) -> &mut Self {
+        self.service = Some(CFString::new(service));
+        self
+    }
+
+    /// Search for an item with the given account.
+    #[inline(always)]
+    pub fn account(&mut self, account: &str) -> &mut Self {
+        self.account = Some(CFString::new(account));
         self
     }
 
@@ -291,6 +307,20 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrLabel),
                     label.as_CFType(),
+                ));
+            }
+
+            if let Some(ref service) = self.service {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrService),
+                    service.as_CFType(),
+                ));
+            }
+
+            if let Some(ref account) = self.account {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecAttrAccount),
+                    account.as_CFType(),
                 ));
             }
 
