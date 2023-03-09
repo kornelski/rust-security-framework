@@ -45,6 +45,7 @@ pub mod item;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod key;
 pub mod os;
+pub mod passwords_options;
 pub mod passwords;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod policy;

@@ -28,7 +28,7 @@ fn insert_then_find_generic() {
     let mut names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
-        set_generic_password(&name, &name, name.as_bytes(), None).unwrap();
+        set_generic_password(&name, &name, name.as_bytes()).unwrap();
         names.push(name);
     }
     let results = ItemSearchOptions::new()
@@ -78,7 +78,7 @@ fn insert_then_find_generic_legacy() {
     let mut modern_names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
-        set_generic_password(&name, &name, name.as_bytes(), None).unwrap();
+        set_generic_password(&name, &name, name.as_bytes()).unwrap();
         modern_names.push(name);
     }
     // first check to see that the legacy passwords are found by the modern search
