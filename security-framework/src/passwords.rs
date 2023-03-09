@@ -3,11 +3,10 @@
 //! If you want the extended keychain facilities only available on macOS, use the
 //! version of these functions in the macOS extensions module.
 
-use std::ptr::{self, null};
-
 use crate::base::Result;
 use crate::{cvt, Error};
-use core_foundation::base::{CFType, TCFType, CFOptionFlags, kCFAllocatorDefault};
+use crate::access_control::SecAccessControl;
+use core_foundation::base::{CFType, TCFType, CFOptionFlags};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
@@ -242,10 +241,9 @@ fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8], a
     ));
 
     if let Some(options) = access_control_options {
-        let error = ptr::null_mut();
         query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
-            unsafe { CFString::wrap_under_get_rule(SecAccessControlCreateWithFlags(kCFAllocatorDefault, null(), options.bits(), error)).as_CFType() }
+            SecAccessControl::create_with_flags(options.bits()).unwrap().as_CFType()
         ));
     }
     

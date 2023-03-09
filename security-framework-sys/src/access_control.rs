@@ -1,4 +1,4 @@
-use core_foundation_sys::base::{CFAllocatorRef, CFTypeRef};
+use core_foundation_sys::base::{CFAllocatorRef, CFTypeRef, CFTypeID};
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::base::CFOptionFlags;
 
@@ -21,5 +21,12 @@ mod access_control_flags {
 pub use access_control_flags::*;
 
 extern "C" {
-    pub fn SecAccessControlCreateWithFlags(allocator: CFAllocatorRef, protection: CFTypeRef, flags: CFOptionFlags, error: *mut CFErrorRef) -> SecAccessControlRef;
+    pub fn SecAccessControlGetTypeID() -> CFTypeID;
+
+    pub fn SecAccessControlCreateWithFlags(
+        allocator: CFAllocatorRef,
+        protection: CFTypeRef,
+        flags: CFOptionFlags,
+        error: *mut CFErrorRef
+    ) -> SecAccessControlRef;
 }

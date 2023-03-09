@@ -29,6 +29,7 @@ macro_rules! p {
 #[macro_use]
 mod dlsym;
 
+pub mod access_control;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;
