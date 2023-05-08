@@ -6,6 +6,7 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 
+use core_foundation_sys::base::CFTypeRef;
 use security_framework_sys::base::errSecNoTrustSettings;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::trust_settings::*;
@@ -112,6 +113,19 @@ impl TrustSettings {
 
         Ok(TrustSettingsIter { index: 0, array })
     }
+    ///set trust settings to ""always trust this root certificate regardless of use.".
+    ///It is not possible to modify per-user trust settings when not running in a GUI environment
+    pub fn set_trust_settings(&self, cert: &SecCertificate) -> Result<()> {
+        let domain = self.domain;
+        let trust_settings: CFTypeRef = ptr::null_mut();
+        cvt(unsafe {
+            SecTrustSettingsSetTrustSettings(
+                cert.as_CFTypeRef() as *mut _,
+                domain.into(),
+                trust_settings,
+            )
+        })
+    }
 
     /// Returns the aggregate trust setting for the given certificate.
     ///
@@ -210,6 +224,7 @@ impl Iterator for TrustSettingsIter {
 
 #[cfg(test)]
 mod test {
+    use security_framework_sys::base::errSecDuplicateItem;
     use super::*;
     use crate::test::certificate;
 
@@ -274,4 +289,23 @@ mod test {
                    .message(),
                    Some("The specified item could not be found in the keychain.".into()));
     }
+
+    #[test]
+    fn test_set_trust_to_cert(){
+        use crate::certificate::SecCertificate;
+        use crate::os::macos::keychain::SecKeychain;
+        use std::{fs, path::Path};
+        
+        let der = fs::read("./test/server.der").unwrap();
+        let cert = SecCertificate::from_der(&der).unwrap();
+
+        let kch = SecKeychain::open(&Path::new("/Library/Keychains/System.keychain")).unwrap();
+
+        cert.add_to_keychain(Some(kch))
+            .unwrap_or_else(|err| if err.code() != errSecDuplicateItem {panic!("Error loading cert to kchain")});
+        TrustSettings::new(Domain::Admin)
+            .set_trust_settings(&cert)
+            .unwrap();
+    }
 }
+
