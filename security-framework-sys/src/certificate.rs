@@ -9,6 +9,7 @@ use core_foundation_sys::string::CFStringRef;
 
 use crate::base::SecCertificateRef;
 use crate::base::SecKeyRef;
+use crate::base::SecKeychainRef;
 
 extern "C" {
     #[cfg(target_os = "macos")]
@@ -40,6 +41,10 @@ extern "C" {
         allocator: CFAllocatorRef,
         data: CFDataRef,
     ) -> SecCertificateRef;
+    pub fn SecCertificateAddToKeychain(
+        certificate: SecCertificateRef,
+        keychain: SecKeychainRef,
+    ) -> OSStatus;
     pub fn SecCertificateCopyData(certificate: SecCertificateRef) -> CFDataRef;
     pub fn SecCertificateCopySubjectSummary(certificate: SecCertificateRef) -> CFStringRef;
     pub fn SecCertificateCopyCommonName(

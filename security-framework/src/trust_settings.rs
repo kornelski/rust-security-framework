@@ -19,13 +19,14 @@ use crate::cvt;
 
 /// Which set of trust settings to query
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(u32)]
 pub enum Domain {
     /// Per-user trust settings
-    User,
+    User = kSecTrustSettingsDomainUser,
     /// Locally administered, system-wide trust settings
-    Admin,
+    Admin = kSecTrustSettingsDomainAdmin,
     /// System trust settings
-    System,
+    System = kSecTrustSettingsDomainSystem,
 }
 
 impl From<Domain> for SecTrustSettingsDomain {

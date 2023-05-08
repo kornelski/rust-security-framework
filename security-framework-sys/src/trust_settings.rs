@@ -1,5 +1,6 @@
 use crate::base::SecCertificateRef;
 use core_foundation_sys::array::CFArrayRef;
+use core_foundation_sys::base::CFTypeRef;
 use core_foundation_sys::base::OSStatus;
 
 pub type SecTrustSettingsDomain = u32;
@@ -25,5 +26,10 @@ extern "C" {
         certificateRef: SecCertificateRef,
         domain: SecTrustSettingsDomain,
         trustSettings: *mut CFArrayRef,
+    ) -> OSStatus;
+    pub fn SecTrustSettingsSetTrustSettings(
+        certificateRef: SecCertificateRef,
+        domain: SecTrustSettingsDomain,
+        trustSettingsDictOrArray: CFTypeRef,
     ) -> OSStatus;
 }
