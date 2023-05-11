@@ -76,7 +76,10 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          components: clippy
+          components: clippy, rustfmt
+
+      - name: DO NOT USE RUSTFMT
+        run: "if cargo fmt --quiet --check -- --config-path=/dev/null; then echo >&2 'Do not reformat the code with rustfmt. This project does not use rustfmt.'; fi"
 
       - name: Run cargo clippy
         run: cargo clippy --all-features
