@@ -6,7 +6,6 @@ license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"
 repository = "https://github.com/kornelski/rust-security-framework"
 homepage = "https://lib.rs/crates/security-framework-sys"
-documentation = "https://kornelski.github.io/rust-security-framework/doc/security_framework_sys"
 readme = "README.md"
 keywords = ["ffi", "iOS", "TLS", "SSL", "crypto"]
 categories = ["os::macos-apis", "external-ffi-bindings"]
