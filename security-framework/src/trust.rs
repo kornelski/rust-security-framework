@@ -49,7 +49,8 @@ impl TrustResult {
 impl TrustResult {
     /// Returns true if the result is "successful" - specifically `PROCEED` or `UNSPECIFIED`.
     #[inline]
-    #[must_use] pub fn success(self) -> bool {
+    #[must_use]
+    pub fn success(self) -> bool {
         matches!(self, Self::PROCEED | Self::UNSPECIFIED)
     }
 }
@@ -266,7 +267,8 @@ impl SecTrust {
     ///
     /// Note: evaluate must first be called on the `SecTrust`.
     #[inline(always)]
-    #[must_use] pub fn certificate_count(&self) -> CFIndex {
+    #[must_use]
+    pub fn certificate_count(&self) -> CFIndex {
         unsafe { SecTrustGetCertificateCount(self.0) }
     }
 
@@ -274,7 +276,8 @@ impl SecTrust {
     ///
     /// Note: evaluate must first be called on the `SecTrust`.
     #[deprecated(note = "deprecated by Apple")]
-    #[must_use] pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
+    #[must_use]
+    pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         #[allow(deprecated)]
         unsafe {
             if self.certificate_count() <= ix {

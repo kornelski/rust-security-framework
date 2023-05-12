@@ -6,7 +6,7 @@
 use crate::base::Result;
 use crate::passwords_options::PasswordOptions;
 use crate::{cvt, Error};
-use core_foundation::base::{TCFType};
+use core_foundation::base::TCFType;
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
@@ -14,7 +14,7 @@ use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
 use security_framework_sys::base::{errSecDuplicateItem, errSecParam};
-use security_framework_sys::item::{kSecReturnData, kSecValueData,};
+use security_framework_sys::item::{kSecReturnData, kSecValueData};
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 use security_framework_sys::keychain_item::{
     SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
@@ -60,7 +60,7 @@ pub fn set_internet_password(
     port: Option<u16>,
     protocol: SecProtocolType,
     authentication_type: SecAuthenticationType,
-    password: &[u8]
+    password: &[u8],
 ) -> Result<()> {
     let mut options = PasswordOptions::new_internet_password(
         server,
@@ -69,7 +69,7 @@ pub fn set_internet_password(
         path,
         port,
         protocol,
-        authentication_type
+        authentication_type,
     );
     set_password_internal(&mut options, password)
 }
@@ -136,7 +136,7 @@ fn set_password_internal(options: &mut PasswordOptions, password: &[u8]) -> Resu
         unsafe { CFString::wrap_under_get_rule(kSecValueData) },
         CFData::from_buffer(password).as_CFType(),
     ));
-    
+
     let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret = std::ptr::null();
     let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
@@ -174,15 +174,15 @@ fn get_password_and_release(data: CFTypeRef) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod test {
-    use security_framework_sys::base::errSecItemNotFound;
     use super::*;
+    use security_framework_sys::base::errSecItemNotFound;
 
     #[test]
     fn missing_generic() {
         let name = "a string not likely to already be in the keychain as service or account";
         let result = delete_generic_password(name, name);
         match result {
-            Ok(()) => (),   // this is ok because the name _might_ be in the keychain
+            Ok(()) => (), // this is ok because the name _might_ be in the keychain
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_generic: delete failed with status: {}", err.code()),
         };
@@ -232,47 +232,29 @@ mod test {
             SecProtocolType::HTTP,
             SecAuthenticationType::Any,
         );
-        let result = delete_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-        );
+        let result = delete_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
-            Ok(()) => (),   // this is ok because the name _might_ be in the keychain
+            Ok(()) => (), // this is ok because the name _might_ be in the keychain
             Err(err) if err.code() == errSecItemNotFound => (),
-            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
+            Err(err) => panic!(
+                "missing_internet: delete failed with status: {}",
+                err.code()
+            ),
         };
-        let result = get_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-        );
+        let result = get_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
             Ok(bytes) => panic!("missing_internet: get returned {:?}", bytes),
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_internet: get failed with status: {}", err.code()),
         };
-        let result = delete_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-        );
+        let result = delete_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
             Ok(()) => panic!("missing_internet: second delete found a password"),
             Err(err) if err.code() == errSecItemNotFound => (),
-            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
+            Err(err) => panic!(
+                "missing_internet: delete failed with status: {}",
+                err.code()
+            ),
         };
     }
 
@@ -286,7 +268,7 @@ mod test {
             "/",
             Some(8080u16),
             SecProtocolType::HTTP,
-            SecAuthenticationType::Any
+            SecAuthenticationType::Any,
         );
         set_internet_password(
             server,
@@ -296,7 +278,7 @@ mod test {
             port,
             protocol,
             auth,
-            name.as_bytes()
+            name.as_bytes(),
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
@@ -316,7 +298,7 @@ mod test {
             "/",
             Some(8080u16),
             SecProtocolType::HTTP,
-            SecAuthenticationType::Any
+            SecAuthenticationType::Any,
         );
         set_internet_password(
             server,
@@ -326,7 +308,7 @@ mod test {
             port,
             protocol,
             auth,
-            name.as_bytes()
+            name.as_bytes(),
         )
         .expect("set_internet_password");
         let alternate = "alternate_internet_password";
@@ -338,7 +320,7 @@ mod test {
             port,
             protocol,
             auth,
-            alternate.as_bytes()
+            alternate.as_bytes(),
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)

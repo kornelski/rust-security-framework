@@ -56,7 +56,8 @@ pub struct ImportOptions<'a> {
 impl<'a> ImportOptions<'a> {
     /// Creates a new builder with default options.
     #[inline(always)]
-    #[must_use] pub fn new() -> ImportOptions<'a> {
+    #[must_use]
+    pub fn new() -> ImportOptions<'a> {
         ImportOptions::default()
     }
 

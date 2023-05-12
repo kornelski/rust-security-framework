@@ -7,16 +7,16 @@
 /// * `AuthorizationCopyRightsAsync`
 /// * Provide constants for well known item names
 use crate::base::{Error, Result};
+#[cfg(all(target_os = "macos", feature = "job-bless"))]
+use core_foundation::base::Boolean;
 use core_foundation::base::{CFTypeRef, TCFType};
 use core_foundation::bundle::CFBundleRef;
 use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
-use core_foundation::string::{CFString, CFStringRef};
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::error::CFError;
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::error::CFErrorRef;
-#[cfg(all(target_os = "macos", feature = "job-bless"))]
-use core_foundation::base::Boolean;
+use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
 use std::convert::TryFrom;
@@ -170,7 +170,8 @@ impl AuthorizationItemSetBuilder {
     /// Creates a new `AuthorizationItemSetStore`, which simplifies creating
     /// owned vectors of `AuthorizationItem`s.
     #[inline(always)]
-    #[must_use] pub fn new() -> AuthorizationItemSetBuilder {
+    #[must_use]
+    pub fn new() -> AuthorizationItemSetBuilder {
         Default::default()
     }
 
@@ -217,7 +218,8 @@ impl AuthorizationItemSetBuilder {
 
     /// Creates the `sys::AuthorizationItemSet`, and gives you ownership of the
     /// data it points to.
-    #[must_use] pub fn build(mut self) -> AuthorizationItemSetStorage {
+    #[must_use]
+    pub fn build(mut self) -> AuthorizationItemSetStorage {
         self.storage.items = self
             .storage
             .names
@@ -558,7 +560,6 @@ impl Authorization {
     /// Submits the executable for the given label as a `launchd` job.
     #[cfg(all(target_os = "macos", feature = "job-bless"))]
     pub fn job_bless(&self, label: &str) -> Result<(), CFError> {
-
         #[link(name = "ServiceManagement", kind = "framework")]
         extern "C" {
             static kSMDomainSystemLaunchd: CFStringRef;
@@ -577,7 +578,7 @@ impl Authorization {
                 kSMDomainSystemLaunchd,
                 CFString::new(label).as_concrete_TypeRef(),
                 self.handle,
-                &mut error
+                &mut error,
             );
             if !error.is_null() {
                 return Err(CFError::wrap_under_create_rule(error));

@@ -1,6 +1,6 @@
-use core_foundation_sys::base::{CFAllocatorRef, CFTypeRef, CFTypeID};
-use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::base::CFOptionFlags;
+use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, CFTypeRef};
+use core_foundation_sys::error::CFErrorRef;
 
 use crate::base::SecAccessControlRef;
 
@@ -27,6 +27,6 @@ extern "C" {
         allocator: CFAllocatorRef,
         protection: CFTypeRef,
         flags: CFOptionFlags,
-        error: *mut CFErrorRef
+        error: *mut CFErrorRef,
     ) -> SecAccessControlRef;
 }

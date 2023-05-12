@@ -175,7 +175,8 @@ pub struct MidHandshakeSslStream<S> {
 impl<S> MidHandshakeSslStream<S> {
     /// Returns a shared reference to the inner stream.
     #[inline(always)]
-    #[must_use] pub fn get_ref(&self) -> &S {
+    #[must_use]
+    pub fn get_ref(&self) -> &S {
         self.stream.get_ref()
     }
 
@@ -187,7 +188,8 @@ impl<S> MidHandshakeSslStream<S> {
 
     /// Returns a shared reference to the `SslContext` of the stream.
     #[inline(always)]
-    #[must_use] pub fn context(&self) -> &SslContext {
+    #[must_use]
+    pub fn context(&self) -> &SslContext {
         self.stream.context()
     }
 
@@ -200,27 +202,31 @@ impl<S> MidHandshakeSslStream<S> {
     /// Returns `true` iff `break_on_server_auth` was set and the handshake has
     /// progressed to that point.
     #[inline(always)]
-    #[must_use] pub fn server_auth_completed(&self) -> bool {
+    #[must_use]
+    pub fn server_auth_completed(&self) -> bool {
         self.error.code() == errSSLPeerAuthCompleted
     }
 
     /// Returns `true` iff `break_on_cert_requested` was set and the handshake
     /// has progressed to that point.
     #[inline(always)]
-    #[must_use] pub fn client_cert_requested(&self) -> bool {
+    #[must_use]
+    pub fn client_cert_requested(&self) -> bool {
         self.error.code() == errSSLClientCertRequested
     }
 
     /// Returns `true` iff the underlying stream returned an error with the
     /// `WouldBlock` kind.
     #[inline(always)]
-    #[must_use] pub fn would_block(&self) -> bool {
+    #[must_use]
+    pub fn would_block(&self) -> bool {
         self.error.code() == errSSLWouldBlock
     }
 
     /// Returns the error which caused the handshake interruption.
     #[inline(always)]
-    #[must_use] pub fn error(&self) -> &Error {
+    #[must_use]
+    pub fn error(&self) -> &Error {
         &self.error
     }
 
@@ -244,7 +250,8 @@ pub struct MidHandshakeClientBuilder<S> {
 impl<S> MidHandshakeClientBuilder<S> {
     /// Returns a shared reference to the inner stream.
     #[inline(always)]
-    #[must_use] pub fn get_ref(&self) -> &S {
+    #[must_use]
+    pub fn get_ref(&self) -> &S {
         self.stream.get_ref()
     }
 
@@ -256,7 +263,8 @@ impl<S> MidHandshakeClientBuilder<S> {
 
     /// Returns the error which caused the handshake interruption.
     #[inline(always)]
-    #[must_use] pub fn error(&self) -> &Error {
+    #[must_use]
+    pub fn error(&self) -> &Error {
         self.stream.error()
     }
 
@@ -542,13 +550,7 @@ impl SslContext {
     /// previous session can be resumed without requiring a full handshake.
     #[inline]
     pub fn set_peer_id(&mut self, peer_id: &[u8]) -> Result<()> {
-        unsafe {
-            cvt(SSLSetPeerID(
-                self.0,
-                peer_id.as_ptr().cast(),
-                peer_id.len(),
-            ))
-        }
+        unsafe { cvt(SSLSetPeerID(self.0, peer_id.as_ptr().cast(), peer_id.len())) }
     }
 
     /// Returns the peer ID of this session.
@@ -1033,7 +1035,8 @@ impl<S> SslStream<S> {
 
     /// Returns a shared reference to the inner stream.
     #[inline(always)]
-    #[must_use] pub fn get_ref(&self) -> &S {
+    #[must_use]
+    pub fn get_ref(&self) -> &S {
         &self.connection().stream
     }
 
@@ -1045,7 +1048,8 @@ impl<S> SslStream<S> {
 
     /// Returns a shared reference to the `SslContext` of the stream.
     #[inline(always)]
-    #[must_use] pub fn context(&self) -> &SslContext {
+    #[must_use]
+    pub fn context(&self) -> &SslContext {
         &self.ctx
     }
 
@@ -1204,7 +1208,8 @@ impl Default for ClientBuilder {
 impl ClientBuilder {
     /// Creates a new builder with default options.
     #[inline]
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             identity: None,
             certs: Vec::new(),
@@ -1438,7 +1443,8 @@ pub struct ServerBuilder {
 impl ServerBuilder {
     /// Creates a new `ServerBuilder` which will use the specified identity
     /// and certificate chain for handshakes.
-    #[must_use] pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> Self {
+    #[must_use]
+    pub fn new(identity: &SecIdentity, certs: &[SecCertificate]) -> Self {
         Self {
             identity: identity.clone(),
             certs: certs.to_owned(),

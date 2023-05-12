@@ -11,18 +11,25 @@ declare_TCFType! {
     /// A type representing sec access control settings.
     SecAccessControl, SecAccessControlRef
 }
-impl_TCFType!(SecAccessControl, SecAccessControlRef, SecAccessControlGetTypeID);
+impl_TCFType!(
+    SecAccessControl,
+    SecAccessControlRef,
+    SecAccessControlGetTypeID
+);
 
 unsafe impl Sync for SecAccessControl {}
 unsafe impl Send for SecAccessControl {}
 
-
 impl SecAccessControl {
-
     /// Create `AccessControl` object from flags
     pub fn create_with_flags(flags: CFOptionFlags) -> Result<Self> {
-        unsafe { 
-            let access_control = SecAccessControlCreateWithFlags(kCFAllocatorDefault, null(), flags, ptr::null_mut());
+        unsafe {
+            let access_control = SecAccessControlCreateWithFlags(
+                kCFAllocatorDefault,
+                null(),
+                flags,
+                ptr::null_mut(),
+            );
             if access_control.is_null() {
                 Err(Error::from_code(errSecParam))
             } else {

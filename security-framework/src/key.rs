@@ -59,49 +59,57 @@ pub struct KeyType(CFStringRef);
 #[allow(missing_docs)]
 impl KeyType {
     #[inline(always)]
-    #[must_use] pub fn rsa() -> Self {
+    #[must_use]
+    pub fn rsa() -> Self {
         unsafe { Self(kSecAttrKeyTypeRSA) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn dsa() -> Self {
+    #[must_use]
+    pub fn dsa() -> Self {
         unsafe { Self(kSecAttrKeyTypeDSA) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn aes() -> Self {
+    #[must_use]
+    pub fn aes() -> Self {
         unsafe { Self(kSecAttrKeyTypeAES) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn des() -> Self {
+    #[must_use]
+    pub fn des() -> Self {
         unsafe { Self(kSecAttrKeyTypeDES) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn triple_des() -> Self {
+    #[must_use]
+    pub fn triple_des() -> Self {
         unsafe { Self(kSecAttrKeyType3DES) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn rc4() -> Self {
+    #[must_use]
+    pub fn rc4() -> Self {
         unsafe { Self(kSecAttrKeyTypeRC4) }
     }
 
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     #[inline(always)]
-    #[must_use] pub fn cast() -> Self {
+    #[must_use]
+    pub fn cast() -> Self {
         unsafe { Self(kSecAttrKeyTypeCAST) }
     }
 
-    #[cfg(any(feature = "OSX_10_9", target_os="ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
     #[inline(always)]
-    #[must_use] pub fn ec() -> Self {
+    #[must_use]
+    pub fn ec() -> Self {
         use security_framework_sys::item::kSecAttrKeyTypeEC;
 
         unsafe { Self(kSecAttrKeyTypeEC) }
@@ -136,24 +144,28 @@ impl SecKey {
         }
     }
 
-    /// Returns the programmatic identifier for the key. For keys of class 
-    /// kSecAttrKeyClassPublic and kSecAttrKeyClassPrivate, the value is the 
+    /// Returns the programmatic identifier for the key. For keys of class
+    /// kSecAttrKeyClassPublic and kSecAttrKeyClassPrivate, the value is the
     /// hash of the public key.
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     pub fn application_label(&self) -> Option<Vec<u8>> {
-        self.attributes().find(unsafe { kSecAttrApplicationLabel.to_void() }).map(|v| unsafe { CFData::wrap_under_get_rule(v.cast()) }.to_vec())
+        self.attributes()
+            .find(unsafe { kSecAttrApplicationLabel.to_void() })
+            .map(|v| unsafe { CFData::wrap_under_get_rule(v.cast()) }.to_vec())
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Translates to `SecKeyCopyAttributes`
-    #[must_use] pub fn attributes(&self) -> CFDictionary {
+    #[must_use]
+    pub fn attributes(&self) -> CFDictionary {
         let pka = unsafe { SecKeyCopyAttributes(self.to_void() as _) };
         unsafe { CFDictionary::wrap_under_create_rule(pka) }
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Translates to `SecKeyCopyExternalRepresentation`
-    #[must_use] pub fn external_representation(&self) -> Option<CFData> {
+    #[must_use]
+    pub fn external_representation(&self) -> Option<CFData> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let data = unsafe { SecKeyCopyExternalRepresentation(self.to_void() as _, &mut error) };
         if data.is_null() {
@@ -164,13 +176,14 @@ impl SecKey {
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     /// Translates to `SecKeyCopyPublicKey`
-    #[must_use] pub fn public_key(&self) -> Option<Self> {
-        let pub_seckey = unsafe {SecKeyCopyPublicKey(self.0.cast())};
+    #[must_use]
+    pub fn public_key(&self) -> Option<Self> {
+        let pub_seckey = unsafe { SecKeyCopyPublicKey(self.0.cast()) };
         if pub_seckey.is_null() {
             return None;
         }
 
-        Some(unsafe { SecKey::wrap_under_create_rule(pub_seckey)})
+        Some(unsafe { SecKey::wrap_under_create_rule(pub_seckey) })
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
@@ -203,13 +216,15 @@ impl SecKey {
         use security_framework_sys::key::SecKeyVerifySignature;
         let mut error: CFErrorRef = std::ptr::null_mut();
 
-        let valid = unsafe { SecKeyVerifySignature(
-            self.as_concrete_TypeRef(),
-            algorithm.into(),
-            CFData::from_buffer(signed_data).as_concrete_TypeRef(),
-            CFData::from_buffer(signature).as_concrete_TypeRef(),
-            &mut error,
-        )};
+        let valid = unsafe {
+            SecKeyVerifySignature(
+                self.as_concrete_TypeRef(),
+                algorithm.into(),
+                CFData::from_buffer(signed_data).as_concrete_TypeRef(),
+                CFData::from_buffer(signature).as_concrete_TypeRef(),
+                &mut error,
+            )
+        };
 
         if !error.is_null() {
             return Err(unsafe { CFError::wrap_under_create_rule(error) })?;
@@ -244,7 +259,7 @@ pub enum Token {
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 pub struct GenerateKeyOptions {
     /// kSecAttrKeyType
-    pub key_type : Option<KeyType>,
+    pub key_type: Option<KeyType>,
     /// kSecAttrKeySizeInBits
     pub size_in_bits: Option<u32>,
     /// kSecAttrLabel
@@ -285,9 +300,11 @@ impl GenerateKeyOptions {
 
     /// Collect options into a `CFDictioanry`
     pub fn to_dictionary(&self) -> CFDictionary {
-        use security_framework_sys::item::{kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
-        #[cfg(target_os="macos")]
+        #[cfg(target_os = "macos")]
         use security_framework_sys::item::kSecUseKeychain;
+        use security_framework_sys::item::{
+            kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs,
+        };
 
         let is_permanent = CFBoolean::from(self.location.is_some());
         let private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
@@ -310,7 +327,7 @@ impl GenerateKeyOptions {
         let size_in_bits = CFNumber::from(size_in_bits as i32);
 
         let mut attribute_key_values = vec![
-            (unsafe{ kSecAttrKeyType}.to_void(), key_type.to_void()),
+            (unsafe { kSecAttrKeyType }.to_void(), key_type.to_void()),
             (
                 unsafe { kSecAttrKeySizeInBits }.to_void(),
                 size_in_bits.to_void(),
@@ -326,18 +343,24 @@ impl GenerateKeyOptions {
         ];
         let label = self.label.as_deref().map(CFString::new);
         if let Some(label) = &label {
-            attribute_key_values.push((unsafe{ kSecAttrLabel}.to_void(), label.to_void()));
+            attribute_key_values.push((unsafe { kSecAttrLabel }.to_void(), label.to_void()));
         }
 
-        #[cfg(target_os="macos")]
+        #[cfg(target_os = "macos")]
         match &self.location {
             #[cfg(feature = "OSX_10_15")]
             Some(Location::DataProtectionKeychain) => {
                 use security_framework_sys::item::kSecUseDataProtectionKeychain;
-                attribute_key_values.push(( unsafe{ kSecUseDataProtectionKeychain }.to_void(), CFBoolean::true_value().to_void()));
+                attribute_key_values.push((
+                    unsafe { kSecUseDataProtectionKeychain }.to_void(),
+                    CFBoolean::true_value().to_void(),
+                ));
             }
             Some(Location::FileKeychain(keychain)) => {
-                attribute_key_values.push(( unsafe{ kSecUseKeychain }.to_void(), keychain.as_concrete_TypeRef().to_void()));
+                attribute_key_values.push((
+                    unsafe { kSecUseKeychain }.to_void(),
+                    keychain.as_concrete_TypeRef().to_void(),
+                ));
             }
             _ => {}
         }
@@ -345,7 +368,10 @@ impl GenerateKeyOptions {
         match self.token.as_ref().unwrap_or(&Token::Software) {
             Token::Software => {},
             Token::SecureEnclave => {
-                attribute_key_values.push(( unsafe{ kSecAttrTokenID }.to_void(), unsafe {kSecAttrTokenIDSecureEnclave}.to_void()));
+                attribute_key_values.push((
+                    unsafe { kSecAttrTokenID }.to_void(),
+                    unsafe { kSecAttrTokenIDSecureEnclave }.to_void(),
+                ));
             }
         }
 

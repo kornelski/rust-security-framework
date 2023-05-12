@@ -126,7 +126,8 @@ impl GuestAttributes {
 
     /// Creates a new, empty `GuestAttributes`. You must add values to it in
     /// order for it to be of any use.
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             inner: CFMutableDictionary::new(),
         }

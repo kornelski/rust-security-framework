@@ -8,7 +8,7 @@ use security_framework_sys::item::kSecAttrKeyType;
 use security_framework_sys::key::SecKeyCreateFromData;
 use std::ptr;
 
-use crate::key::{SecKey, KeyType};
+use crate::key::{KeyType, SecKey};
 
 /// An extension trait adding OSX specific functionality to `SecKey`.
 pub trait SecKeyExt {

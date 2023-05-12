@@ -349,9 +349,9 @@ impl SecKeychain {
 #[cfg(test)]
 mod test {
     use super::*;
-    use tempfile::TempDir;
     use crate::os::macos::keychain::{CreateOptions, SecKeychain};
     use tempfile::tempdir;
+    use tempfile::TempDir;
 
     fn temp_keychain_setup(name: &str) -> (TempDir, SecKeychain) {
         let dir = tempdir().expect("TempDir::new");

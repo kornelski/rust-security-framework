@@ -14,10 +14,7 @@ extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
-    pub fn SecKeyCreateRandomKey(
-        parameters: CFDictionaryRef,
-        error: *mut CFErrorRef,
-    ) -> SecKeyRef;
+    pub fn SecKeyCreateRandomKey(parameters: CFDictionaryRef, error: *mut CFErrorRef) -> SecKeyRef;
 
     #[cfg(target_os = "macos")]
     pub fn SecKeyCreateFromData(

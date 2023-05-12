@@ -16,7 +16,6 @@ pub const kSecTrustResultRecoverableTrustFailure: SecTrustResultType = 5;
 pub const kSecTrustResultFatalTrustFailure: SecTrustResultType = 6;
 pub const kSecTrustResultOtherError: SecTrustResultType = 7;
 
-
 #[cfg(target_os = "macos")]
 mod flags {
     pub type SecTrustOptionFlags = u32;
@@ -25,9 +24,9 @@ mod flags {
     pub const kSecTrustOptionLeafIsCA: SecTrustOptionFlags = 0x0000_0002;
     pub const kSecTrustOptionFetchIssuerFromNet: SecTrustOptionFlags = 0x0000_0004;
     pub const kSecTrustOptionAllowExpiredRoot: SecTrustOptionFlags = 0x0000_0008;
-    pub const kSecTrustOptionRequireRevPerCert: SecTrustOptionFlags= 0x0000_0010;
-    pub const kSecTrustOptionUseTrustSettings: SecTrustOptionFlags= 0x0000_0020;
-    pub const kSecTrustOptionImplicitAnchors: SecTrustOptionFlags= 0x0000_0040;
+    pub const kSecTrustOptionRequireRevPerCert: SecTrustOptionFlags = 0x0000_0010;
+    pub const kSecTrustOptionUseTrustSettings: SecTrustOptionFlags = 0x0000_0020;
+    pub const kSecTrustOptionImplicitAnchors: SecTrustOptionFlags = 0x0000_0040;
 }
 
 #[cfg(target_os = "macos")]
@@ -73,6 +72,9 @@ extern "C" {
     #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
     pub fn SecTrustSetOCSPResponse(trust: SecTrustRef, responseData: CFTypeRef) -> OSStatus;
     #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
-    pub fn SecTrustSetSignedCertificateTimestamps(trust: SecTrustRef, sctArray: CFArrayRef) -> OSStatus;
+    pub fn SecTrustSetSignedCertificateTimestamps(
+        trust: SecTrustRef,
+        sctArray: CFArrayRef,
+    ) -> OSStatus;
     pub fn SecTrustCopyPublicKey(trust: SecTrustRef) -> SecKeyRef;
 }

@@ -11,19 +11,22 @@ pub struct CertificateOid(CFStringRef);
 #[allow(missing_docs)]
 impl CertificateOid {
     #[inline(always)]
-    #[must_use] pub fn x509_v1_signature_algorithm() -> Self {
+    #[must_use]
+    pub fn x509_v1_signature_algorithm() -> Self {
         unsafe { Self(kSecOIDX509V1SignatureAlgorithm) }
     }
 
     /// Returns the underlying raw pointer corresponding to this OID.
     #[inline(always)]
-    #[must_use] pub fn as_ptr(&self) -> CFStringRef {
+    #[must_use]
+    pub fn as_ptr(&self) -> CFStringRef {
         self.0
     }
 
     /// Returns the string representation of the OID.
     #[inline]
-    #[must_use] pub fn to_str(&self) -> CFString {
+    #[must_use]
+    pub fn to_str(&self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }
 }

@@ -12,7 +12,7 @@ use crate::access_control::SecAccessControl;
 /// PasswordOptions constructor
 pub struct PasswordOptions {
     /// query built for the keychain request
-    pub query: Vec<(CFString, CFType)>
+    pub query: Vec<(CFString, CFType)>,
 }
 
 bitflags::bitflags! {
@@ -56,11 +56,9 @@ impl PasswordOptions {
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
                 CFString::from(account).as_CFType(),
-            )
+            ),
         ];
-        Self {
-            query
-        }
+        Self { query }
     }
 
     /// Create a new internet password options
@@ -74,7 +72,7 @@ impl PasswordOptions {
         port: Option<u16>,
         protocol: SecProtocolType,
         authentication_type: SecAuthenticationType,
-    )  -> Self {
+    ) -> Self {
         let mut query = vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
@@ -113,18 +111,16 @@ impl PasswordOptions {
                 CFNumber::from(i32::from(port)).as_CFType(),
             ))
         }
-        Self {
-            query
-        }
+        Self { query }
     }
 
     /// Add access control to the password
-    pub fn set_access_control_options (&mut self, options: AccessControlOptions) {
-        self.query.push(
-            (
-                unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
-                SecAccessControl::create_with_flags(options.bits()).unwrap().as_CFType()
-            )
-        )
+    pub fn set_access_control_options(&mut self, options: AccessControlOptions) {
+        self.query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
+            SecAccessControl::create_with_flags(options.bits())
+                .unwrap()
+                .as_CFType(),
+        ))
     }
 }

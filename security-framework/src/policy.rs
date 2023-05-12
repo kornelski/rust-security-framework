@@ -1,18 +1,18 @@
 //! Security Policies support.
-use core_foundation::base::TCFType;
 #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
 use core_foundation::base::CFOptionFlags;
+use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
-use security_framework_sys::base::SecPolicyRef;
 #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
 use security_framework_sys::base::errSecParam;
+use security_framework_sys::base::SecPolicyRef;
 use security_framework_sys::policy::*;
 use std::fmt;
 use std::ptr;
 
+use crate::secure_transport::SslProtocolSide;
 #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
 use crate::Error;
-use crate::secure_transport::SslProtocolSide;
 
 declare_TCFType! {
     /// A type representing a certificate validation policy.
@@ -83,7 +83,8 @@ impl SecPolicy {
     }
 
     /// Returns a policy object for the default X.509 policy.
-    #[must_use] pub fn create_x509() -> Self {
+    #[must_use]
+    pub fn create_x509() -> Self {
         unsafe {
             let policy = SecPolicyCreateBasicX509();
             Self::wrap_under_create_rule(policy)

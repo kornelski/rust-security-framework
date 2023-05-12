@@ -6,9 +6,9 @@ use core_foundation::data::CFData;
 use core_foundation::dictionary::CFMutableDictionary;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::kCFAllocatorDefault;
-use security_framework_sys::base::{errSecParam, SecCertificateRef};
 #[cfg(target_os = "ios")]
-use security_framework_sys::base::{errSecSuccess, errSecNotTrusted};
+use security_framework_sys::base::{errSecNotTrusted, errSecSuccess};
+use security_framework_sys::base::{errSecParam, SecCertificateRef};
 use security_framework_sys::certificate::*;
 use security_framework_sys::keychain_item::SecItemDelete;
 use std::fmt;

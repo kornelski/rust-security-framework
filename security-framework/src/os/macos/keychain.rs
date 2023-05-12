@@ -129,7 +129,8 @@ pub struct CreateOptions {
 impl CreateOptions {
     /// Creates a new builder with default options.
     #[inline(always)]
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self::default()
     }
 
@@ -193,7 +194,8 @@ pub struct KeychainSettings(SecKeychainSettings);
 impl KeychainSettings {
     /// Creates a new `KeychainSettings` with default settings.
     #[inline]
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self(SecKeychainSettings {
             version: SEC_KEYCHAIN_SETTINGS_VERS1,
             lockOnSleep: 0,
