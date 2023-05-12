@@ -24,15 +24,18 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Run cargo test
         # `x509_parser` dev-dependency has transitive dependency `time` which
         # has a 6-month MSRV policy, don't run tests on MSRV version since they
         # will always fail.
-        if: ${{ matrix.rust != '1.60.0' }}
-        run: cargo test --all-features
+      - name: Revert time dep if needed
+        if: ${{ matrix.rust == '1.60.0' }}
+        run: cargo update --precise 0.3.17 --package time
+
+      - name: Run cargo test
+        run: cargo test --all-features --all
 
       - name: Check default features
-        run: cargo check
+        run: cargo check --all
 
   ios:
     name: iOS compile-check

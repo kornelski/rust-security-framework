@@ -26,7 +26,7 @@ num-bigint = { version = "0.4.3", optional = true }
 [dev-dependencies]
 hex = "0.4.3"
 env_logger = "0.10.0"
-x509-parser = "0.14.0"
+x509-parser = "0.15.0"
 time = "0.3.17"
 tempfile = "3.3.0"
 
