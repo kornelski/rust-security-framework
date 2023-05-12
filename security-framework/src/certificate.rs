@@ -149,6 +149,9 @@ impl SecCertificate {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
     #[must_use]
     fn pk_to_der(&self, public_key: key::SecKey) -> Option<Vec<u8>> {
+        use security_framework_sys::item::kSecAttrKeyType;
+        use security_framework_sys::item::kSecAttrKeySizeInBits;
+
         let public_key_attributes = public_key.attributes();
         let public_key_type = public_key_attributes
             .find(unsafe { kSecAttrKeyType }.cast::<std::os::raw::c_void>())?;
@@ -200,6 +203,9 @@ impl SecCertificate {
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 fn get_asn1_header_bytes(pkt: CFString, ksz: u32) -> Option<&'static [u8]> {
+    use security_framework_sys::item::kSecAttrKeyTypeRSA;
+    use security_framework_sys::item::kSecAttrKeyTypeECSECPrimeRandom;
+
     if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeRSA) } && ksz == 2048 {
         return Some(&RSA_2048_ASN1_HEADER);
     }

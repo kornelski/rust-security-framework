@@ -20,12 +20,15 @@ bitflags::bitflags! {
     pub struct AccessControlOptions: CFOptionFlags {
         /** Constraint to access an item with either biometry or passcode. */
         const USER_PRESENCE = kSecAccessControlUserPresence;
+        #[cfg(feature = "OSX_10_13")]
         /** Constraint to access an item with Touch ID for any enrolled fingers, or Face ID. */
         const BIOMETRY_ANY = kSecAccessControlBiometryAny;
+        #[cfg(feature = "OSX_10_13")]
         /** Constraint to access an item with Touch ID for currently enrolled fingers, or from Face ID with the currently enrolled user. */
         const BIOMETRY_CURRENT_SET = kSecAccessControlBiometryCurrentSet;
         /** Constraint to access an item with a passcode. */
         const DEVICE_PASSCODE = kSecAccessControlDevicePasscode;
+        #[cfg(feature = "OSX_10_15")]
         /** Constraint to access an item with a watch. */
         const WATCH = kSecAccessControlWatch;
         /** Indicates that at least one constraint must be satisfied. */
