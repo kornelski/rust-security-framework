@@ -73,14 +73,14 @@ impl<'a> ImportOptions<'a> {
     /// Sets the passphrase to be used to decrypt the imported data.
     #[inline]
     pub fn passphrase(&mut self, passphrase: &str) -> &mut ImportOptions<'a> {
-        self.passphrase = Some(CFString::from_str(passphrase).unwrap().as_CFType());
+        self.passphrase = Some(CFString::from_str(passphrase).unwrap().into_CFType());
         self
     }
 
     /// Sets the passphrase to be used to decrypt the imported data.
     #[inline]
     pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut ImportOptions<'a> {
-        self.passphrase = Some(CFData::from_buffer(passphrase).as_CFType());
+        self.passphrase = Some(CFData::from_buffer(passphrase).into_CFType());
         self
     }
 
