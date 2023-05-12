@@ -85,7 +85,7 @@ impl AuthorizationItem {
     ///
     /// If `name` isn't convertable to a `CString` it will return
     /// Err(errSecConversionError).
-    pub fn name(&self) -> &str {
+    #[must_use] pub fn name(&self) -> &str {
         unsafe {
             CStr::from_ptr(self.0.name)
                 .to_str()
@@ -96,7 +96,7 @@ impl AuthorizationItem {
     /// The information pertaining to the name field. Do not rely on NULL
     /// termination of string data.
     #[inline]
-    pub fn value(&self) -> Option<&[u8]> {
+    #[must_use] pub fn value(&self) -> Option<&[u8]> {
         if self.0.value.is_null() {
             return None;
         }

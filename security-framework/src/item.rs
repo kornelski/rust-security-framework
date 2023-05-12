@@ -75,25 +75,25 @@ impl ItemClass {
 pub struct KeyClass(CFStringRef);
 
 impl KeyClass {
-    /// kSecAttrKeyClassPublic
+    /// `kSecAttrKeyClassPublic`
     #[inline(always)]
-    pub fn public() -> Self {
+    #[must_use] pub fn public() -> Self {
         unsafe { Self(kSecAttrKeyClassPublic) }
     }
-    /// kSecAttrKeyClassPrivate
+    /// `kSecAttrKeyClassPrivate`
     #[inline(always)]
-    pub fn private() -> Self {
+    #[must_use] pub fn private() -> Self {
         unsafe { Self(kSecAttrKeyClassPrivate) }
     }
-    /// kSecAttrKeyClassSymmetric
+    /// `kSecAttrKeyClassSymmetric`
     #[inline(always)]
-    pub fn symmetric() -> Self {
+    #[must_use] pub fn symmetric() -> Self {
         unsafe { Self(kSecAttrKeyClassSymmetric) }
     }
 
     #[inline]
     fn to_value(self) -> CFType {
-        unsafe { CFType::wrap_under_get_rule(self.0 as *const _) }
+        unsafe { CFType::wrap_under_get_rule(self.0.cast()) }
     }
 }
 
@@ -241,8 +241,8 @@ impl ItemSearchOptions {
 
     /// Search for a certificate with the given public key hash.
     ///
-    /// This is only compatible with [ItemClass::certificate], to search for
-    /// a key by public key hash use [ItemSearchOptions::application_label]
+    /// This is only compatible with [`ItemClass::certificate`], to search for
+    /// a key by public key hash use [`ItemSearchOptions::application_label`]
     /// instead.
     #[inline(always)]
     pub fn pub_key_hash(&mut self, pub_key_hash: &[u8]) -> &mut Self {
@@ -252,8 +252,8 @@ impl ItemSearchOptions {
 
     /// Search for a key with the given public key hash.
     ///
-    /// This is only compatible with [ItemClass::key], to search for a
-    /// certificate by the public key hash use [ItemSearchOptions::pub_key_hash]
+    /// This is only compatible with [`ItemClass::key`], to search for a
+    /// certificate by the public key hash use [`ItemSearchOptions::pub_key_hash`]
     /// instead.
     #[inline(always)]
     pub fn application_label(&mut self, app_label: &[u8]) -> &mut Self {
@@ -517,7 +517,7 @@ impl SearchResult {
 /// wrapper).
 ///
 /// When finished populating options, call `to_dictionary()` and pass the
-/// resulting CFDictionary to `add_item`.
+/// resulting `CFDictionary` to `add_item`.
 pub struct ItemAddOptions {
     /// The value (by ref or data) of the item to add, required.
     pub value: ItemAddValue,
@@ -529,10 +529,10 @@ pub struct ItemAddOptions {
 
 impl ItemAddOptions {
     /// Specifies the item to add.
-    pub fn new(value: ItemAddValue) -> Self {
+    #[must_use] pub fn new(value: ItemAddValue) -> Self {
         Self{ value, label: None, location: None }
     }
-    /// Specifies the kSecAttrLabel attribute.
+    /// Specifies the `kSecAttrLabel` attribute.
     pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
         self.label = Some(label.into());
         self
@@ -542,7 +542,7 @@ impl ItemAddOptions {
         self.location = Some(location);
         self
     }
-    /// Populates a CFDictionary to be passed to
+    /// Populates a `CFDictionary` to be passed to
     pub fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 
@@ -652,7 +652,7 @@ pub enum Location {
     FileKeychain(crate::os::macos::keychain::SecKeychain),
 }
 
-/// Translates to SecItemAdd. Use `ItemAddOptions` to build an `add_params`
+/// Translates to `SecItemAdd`. Use `ItemAddOptions` to build an `add_params`
 /// `CFDictionary`.
 pub fn add_item(add_params: CFDictionary) -> Result<()> {
     cvt(unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) })

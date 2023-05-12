@@ -120,9 +120,9 @@ pub struct CertificateProperties(CFDictionary);
 
 impl CertificateProperties {
     /// Retrieves a specific property identified by its OID.
-    pub fn get(&self, oid: CertificateOid) -> Option<CertificateProperty> {
+    #[must_use] pub fn get(&self, oid: CertificateOid) -> Option<CertificateProperty> {
         unsafe {
-            self.0.find(oid.as_ptr() as *const c_void).map(|value| {
+            self.0.find(oid.as_ptr().cast::<c_void>()).map(|value| {
                 CertificateProperty(CFDictionary::wrap_under_get_rule(*value as *mut _))
             })
         }

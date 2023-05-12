@@ -1,7 +1,7 @@
 //! OSX specific extensions to identity functionality.
 use core_foundation::array::CFArray;
 use core_foundation::base::TCFType;
-use security_framework_sys::identity::*;
+use security_framework_sys::identity::SecIdentityCreateWithCertificate;
 use std::ptr;
 
 use crate::base::Result;

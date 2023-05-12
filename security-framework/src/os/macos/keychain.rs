@@ -164,7 +164,7 @@ impl CreateOptions {
             let path_name = CString::new(path_name).unwrap();
 
             let (password, password_len) = match self.password {
-                Some(ref password) => (password.as_ptr() as *const c_void, password.len() as u32),
+                Some(ref password) => (password.as_ptr().cast::<c_void>(), password.len() as u32),
                 None => (ptr::null(), 0),
             };
 

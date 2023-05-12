@@ -26,7 +26,7 @@ use core_foundation::error::{CFError, CFErrorRef};
 use core_foundation::number::CFNumber;
 #[cfg(feature = "serial-number-bigint")]
 use num_bigint::BigUint;
-use security_framework_sys::item::*;
+use security_framework_sys::item::kSecValueRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use std::ops::Deref;
 
@@ -187,7 +187,7 @@ impl SecCertificate {
         trust.copy_public_key()
     }
 
-    /// Translates to SecItemDelete, passing in the SecCertificateRef
+    /// Translates to `SecItemDelete`, passing in the `SecCertificateRef`
     pub fn delete(&self) -> Result<(), Error> {
         let query = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecValueRef }.to_void(),

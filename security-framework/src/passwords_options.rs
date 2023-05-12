@@ -9,7 +9,7 @@ use security_framework_sys::item::{
 };
 use crate::access_control::SecAccessControl;
 
-/// PasswordOptions constructor
+/// `PasswordOptions` constructor
 pub struct PasswordOptions {
     /// query built for the keychain request
     pub query: Vec<(CFString, CFType)>,
@@ -43,7 +43,7 @@ impl PasswordOptions {
     /// Create a new generic password options
     /// Generic passwords are identified by service and account.  They have other
     /// attributes, but this interface doesn't allow specifying them.
-    pub fn new_generic_password(service: &str, account: &str) -> Self {
+    #[must_use] pub fn new_generic_password(service: &str, account: &str) -> Self {
         let query = vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
@@ -64,7 +64,7 @@ impl PasswordOptions {
     /// Create a new internet password options
     /// Internet passwords are identified by a number of attributes.
     /// They can have others, but this interface doesn't allow specifying them.
-    pub fn new_internet_password(
+    #[must_use] pub fn new_internet_password(
         server: &str,
         security_domain: Option<&str>,
         account: &str,
