@@ -8,6 +8,7 @@ extern "C" {}
 
 #[cfg(target_os = "macos")]
 pub mod access;
+pub mod access_control;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;

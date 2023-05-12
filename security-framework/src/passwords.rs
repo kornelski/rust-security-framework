@@ -4,21 +4,17 @@
 //! version of these functions in the macOS extensions module.
 
 use crate::base::Result;
+use crate::passwords_options::PasswordOptions;
 use crate::{cvt, Error};
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::{TCFType};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::CFData;
 use core_foundation::dictionary::CFDictionary;
-use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::data::CFDataRef;
 use security_framework_sys::base::{errSecDuplicateItem, errSecParam};
-use security_framework_sys::item::{
-    kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol,
-    kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword,
-    kSecClassInternetPassword, kSecReturnData, kSecValueData,
-};
+use security_framework_sys::item::{kSecReturnData, kSecValueData,};
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 use security_framework_sys::keychain_item::{
     SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
@@ -27,19 +23,19 @@ use security_framework_sys::keychain_item::{
 /// Set a generic password for the given service and account.
 /// Creates or updates a keychain entry.
 pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
-    let mut query = generic_password_query(service, account);
-    set_password_internal(&mut query, password)
+    let mut options = PasswordOptions::new_generic_password(service, account);
+    set_password_internal(&mut options, password)
 }
 
 /// Get the generic password for the given service and account.  If no matching
 /// keychain entry exists, fails with error code `errSecItemNotFound`.
 pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
-    let mut query = generic_password_query(service, account);
-    query.push((
+    let mut options = PasswordOptions::new_generic_password(service, account);
+    options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
         CFBoolean::from(true).as_CFType(),
     ));
-    let params = CFDictionary::from_CFType_pairs(&query);
+    let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
     get_password_and_release(ret)
@@ -48,8 +44,8 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
 /// Delete the generic password keychain entry for the given service and account.
 /// If none exists, fails with error code `errSecItemNotFound`.
 pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
-    let query = generic_password_query(service, account);
-    let params = CFDictionary::from_CFType_pairs(&query);
+    let options = PasswordOptions::new_generic_password(service, account);
+    let params = CFDictionary::from_CFType_pairs(&options.query);
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
 }
 
@@ -64,18 +60,18 @@ pub fn set_internet_password(
     port: Option<u16>,
     protocol: SecProtocolType,
     authentication_type: SecAuthenticationType,
-    password: &[u8],
+    password: &[u8]
 ) -> Result<()> {
-    let mut query = internet_password_query(
+    let mut options = PasswordOptions::new_internet_password(
         server,
         security_domain,
         account,
         path,
         port,
         protocol,
-        authentication_type,
+        authentication_type
     );
-    set_password_internal(&mut query, password)
+    set_password_internal(&mut options, password)
 }
 
 /// Get the internet password for the given endpoint parameters.  If no matching
@@ -89,7 +85,7 @@ pub fn get_internet_password(
     protocol: SecProtocolType,
     authentication_type: SecAuthenticationType,
 ) -> Result<Vec<u8>> {
-    let mut query = internet_password_query(
+    let mut options = PasswordOptions::new_internet_password(
         server,
         security_domain,
         account,
@@ -98,11 +94,11 @@ pub fn get_internet_password(
         protocol,
         authentication_type,
     );
-    query.push((
+    options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
         CFBoolean::from(true).as_CFType(),
     ));
-    let params = CFDictionary::from_CFType_pairs(&query);
+    let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
     get_password_and_release(ret)
@@ -119,7 +115,7 @@ pub fn delete_internet_password(
     protocol: SecProtocolType,
     authentication_type: SecAuthenticationType,
 ) -> Result<()> {
-    let query = internet_password_query(
+    let options = PasswordOptions::new_internet_password(
         server,
         security_domain,
         account,
@@ -128,96 +124,25 @@ pub fn delete_internet_password(
         protocol,
         authentication_type,
     );
-    let params = CFDictionary::from_CFType_pairs(&query);
+    let params = CFDictionary::from_CFType_pairs(&options.query);
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
-}
-
-// Generic passwords are identified by service and account.  They have other
-// attributes, but this interface doesn't allow specifying them.
-fn generic_password_query(service: &str, account: &str) -> Vec<(CFString, CFType)> {
-    let query = vec![
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecClass) },
-            unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword).as_CFType() },
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrService) },
-            CFString::from(service).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-            CFString::from(account).as_CFType(),
-        ),
-    ];
-    query
-}
-
-// Internet passwords are identified by a number of attributes.
-// They can have others, but this interface doesn't allow specifying them.
-fn internet_password_query(
-    server: &str,
-    security_domain: Option<&str>,
-    account: &str,
-    path: &str,
-    port: Option<u16>,
-    protocol: SecProtocolType,
-    authentication_type: SecAuthenticationType,
-) -> Vec<(CFString, CFType)> {
-    let mut query = vec![
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecClass) },
-            unsafe { CFString::wrap_under_get_rule(kSecClassInternetPassword) }.as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrServer) },
-            CFString::from(server).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrPath) },
-            CFString::from(path).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-            CFString::from(account).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrProtocol) },
-            CFNumber::from(protocol as i32).as_CFType(),
-        ),
-        (
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAuthenticationType) },
-            CFNumber::from(authentication_type as i32).as_CFType(),
-        ),
-    ];
-    if let Some(domain) = security_domain {
-        query.push((
-            unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
-            CFString::from(domain).as_CFType(),
-        ))
-    }
-    if let Some(port) = port {
-        query.push((
-            unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
-            CFNumber::from(i32::from(port)).as_CFType(),
-        ))
-    }
-    query
 }
 
 // This starts by trying to create the password with the given query params.
 // If the creation attempt reveals that one exists, its password is updated.
-fn set_password_internal(query: &mut Vec<(CFString, CFType)>, password: &[u8]) -> Result<()> {
-    let query_len = query.len();
-    query.push((
+fn set_password_internal(options: &mut PasswordOptions, password: &[u8]) -> Result<()> {
+    let query_len = options.query.len();
+    options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecValueData) },
         CFData::from_buffer(password).as_CFType(),
     ));
-    let params = CFDictionary::from_CFType_pairs(query);
+    
+    let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret = std::ptr::null();
     let status = unsafe { SecItemAdd(params.as_concrete_TypeRef(), &mut ret) };
     if status == errSecDuplicateItem {
-        let params = CFDictionary::from_CFType_pairs(&query[0..query_len]);
-        let update = CFDictionary::from_CFType_pairs(&query[query_len..]);
+        let params = CFDictionary::from_CFType_pairs(&options.query[0..query_len]);
+        let update = CFDictionary::from_CFType_pairs(&options.query[query_len..]);
         cvt(unsafe { SecItemUpdate(params.as_concrete_TypeRef(), update.as_concrete_TypeRef()) })
     } else {
         cvt(status)
@@ -361,7 +286,7 @@ mod test {
             "/",
             Some(8080u16),
             SecProtocolType::HTTP,
-            SecAuthenticationType::Any,
+            SecAuthenticationType::Any
         );
         set_internet_password(
             server,
@@ -371,7 +296,7 @@ mod test {
             port,
             protocol,
             auth,
-            name.as_bytes(),
+            name.as_bytes()
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
@@ -391,7 +316,7 @@ mod test {
             "/",
             Some(8080u16),
             SecProtocolType::HTTP,
-            SecAuthenticationType::Any,
+            SecAuthenticationType::Any
         );
         set_internet_password(
             server,
@@ -401,7 +326,7 @@ mod test {
             port,
             protocol,
             auth,
-            name.as_bytes(),
+            name.as_bytes()
         )
         .expect("set_internet_password");
         let alternate = "alternate_internet_password";
@@ -413,7 +338,7 @@ mod test {
             port,
             protocol,
             auth,
-            alternate.as_bytes(),
+            alternate.as_bytes()
         )
         .expect("set_internet_password");
         let pass = get_internet_password(server, domain, account, path, port, protocol, auth)

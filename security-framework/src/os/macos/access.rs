@@ -1,11 +1,11 @@
-//! Access control functionality.
+//! Access functionality.
 
 use core_foundation::base::TCFType;
 use security_framework_sys::access::SecAccessGetTypeID;
 use security_framework_sys::base::SecAccessRef;
 
 declare_TCFType! {
-    /// A type representing access control settings.
+    /// A type representing access settings.
     SecAccess, SecAccessRef
 }
 impl_TCFType!(SecAccess, SecAccessRef, SecAccessGetTypeID);
