@@ -50,15 +50,15 @@ impl PasswordOptions {
         let query = vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
-                unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword).as_CFType() },
+                unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword).into_CFType() },
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrService) },
-                CFString::from(service).as_CFType(),
+                CFString::from(service).into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-                CFString::from(account).as_CFType(),
+                CFString::from(account).into_CFType(),
             ),
         ];
         Self { query }
@@ -79,39 +79,39 @@ impl PasswordOptions {
         let mut query = vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
-                unsafe { CFString::wrap_under_get_rule(kSecClassInternetPassword) }.as_CFType(),
+                unsafe { CFString::wrap_under_get_rule(kSecClassInternetPassword) }.into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrServer) },
-                CFString::from(server).as_CFType(),
+                CFString::from(server).into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrPath) },
-                CFString::from(path).as_CFType(),
+                CFString::from(path).into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) },
-                CFString::from(account).as_CFType(),
+                CFString::from(account).into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrProtocol) },
-                CFNumber::from(protocol as i32).as_CFType(),
+                CFNumber::from(protocol as i32).into_CFType(),
             ),
             (
                 unsafe { CFString::wrap_under_get_rule(kSecAttrAuthenticationType) },
-                CFNumber::from(authentication_type as i32).as_CFType(),
+                CFNumber::from(authentication_type as i32).into_CFType(),
             ),
         ];
         if let Some(domain) = security_domain {
             query.push((
                 unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
-                CFString::from(domain).as_CFType(),
+                CFString::from(domain).into_CFType(),
             ))
         }
         if let Some(port) = port {
             query.push((
                 unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
-                CFNumber::from(i32::from(port)).as_CFType(),
+                CFNumber::from(i32::from(port)).into_CFType(),
             ))
         }
         Self { query }
@@ -123,7 +123,7 @@ impl PasswordOptions {
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
             SecAccessControl::create_with_flags(options.bits())
                 .unwrap()
-                .as_CFType(),
+                .into_CFType(),
         ))
     }
 }
