@@ -60,6 +60,7 @@ pub const errSecInvalidExtendedKeyUsage: OSStatus = -67609;
 pub const errSecTrustSettingDeny: OSStatus = -67654;
 pub const errSecCertificateRevoked: OSStatus = -67820;
 pub const errSecNotTrusted: OSStatus = -67843;
+pub const errSecInternalComponent: OSStatus = -2070;
 
 extern "C" {
     // this is available on iOS 11.3+, MacOS 10.3+

@@ -113,9 +113,21 @@ impl TrustSettings {
 
         Ok(TrustSettingsIter { index: 0, array })
     }
+
     ///set trust settings to ""always trust this root certificate regardless of use.".
-    ///It is not possible to modify per-user trust settings when not running in a GUI environment
-    pub fn set_trust_settings(&self, cert: &SecCertificate) -> Result<()> {
+    /// Sets the trust settings for the provided certificate to "always trust this root certificate
+    /// regardless of use."
+    ///
+    /// This method configures the trust settings for the specified certificate, indicating that it should
+    /// always be trusted as a TLS root certificate, regardless of its usage.
+    ///
+    /// If successful, the trust settings are updated for the certificate in the given domain. If the
+    /// certificate had no previous trust settings in the domain, new trust settings are created. If the
+    /// certificate had existing trust settings, they are replaced with the new settings.
+    ///
+    /// It is not possible to modify per-user trust settings when not running in a GUI
+    /// environment, if you try it will return error `2070: errSecInternalComponent`
+    pub fn set_trust_settings_always(&self, cert: &SecCertificate) -> Result<()> {
         let domain = self.domain;
         let trust_settings: CFTypeRef = ptr::null_mut();
         cvt(unsafe {
@@ -224,7 +236,7 @@ impl Iterator for TrustSettingsIter {
 
 #[cfg(test)]
 mod test {
-    use security_framework_sys::base::errSecDuplicateItem;
+    use security_framework_sys::base::{errSecDuplicateItem, errSecInternalComponent};
     use super::*;
     use crate::test::certificate;
 
@@ -292,20 +304,28 @@ mod test {
 
     #[test]
     fn test_set_trust_to_cert(){
-        use crate::certificate::SecCertificate;
-        use crate::os::macos::keychain::SecKeychain;
-        use std::{fs, path::Path};
+        use std::fs;
         
+        use crate::{
+            certificate::SecCertificate,
+            item::{
+                add_item, AddRef, ItemAddOptions, ItemAddValue
+            },
+        };
         let der = fs::read("./test/server.der").unwrap();
         let cert = SecCertificate::from_der(&der).unwrap();
+        
+        let add_ref = AddRef::Certificate(cert.clone());
+        let add_option = ItemAddOptions::new(ItemAddValue::Ref(add_ref))
+            .set_label("mitmproxy")
+            .to_dictionary();
 
-        let kch = SecKeychain::open(&Path::new("/Library/Keychains/System.keychain")).unwrap();
-
-        cert.add_to_keychain(Some(kch))
+        add_item(add_option)
             .unwrap_or_else(|err| if err.code() != errSecDuplicateItem {panic!("Error loading cert to kchain")});
+        
         TrustSettings::new(Domain::Admin)
-            .set_trust_settings(&cert)
-            .unwrap();
+            .set_trust_settings_always(&cert)
+            .unwrap_or_else(|err| if err.code() != errSecInternalComponent {panic!("Error trusting certificate")});
     }
 }
 
