@@ -1143,8 +1143,8 @@ impl<S: Read + Write> Read for SslStream<S> {
 
             match ret {
                 errSSLClosedGraceful | errSSLClosedAbort | errSSLClosedNoNotify => Ok(0),
-                // this errors are not fatal, we can continue reading
-                errSSLPeerAuthCompleted | errSSLClientCertRequested | errSSLWouldBlock => self.read(buf),
+                // this error isn't fatal
+                errSSLPeerAuthCompleted => self.read(buf),
                 _ => Err(self.get_error(ret)),
             }
         }
