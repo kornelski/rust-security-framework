@@ -111,8 +111,8 @@ impl Limit {
     #[inline]
     fn to_value(self) -> CFType {
         match self {
-            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).as_CFType() },
-            Self::Max(l) => CFNumber::from(l).as_CFType(),
+            Self::All => unsafe { CFString::wrap_under_get_rule(kSecMatchLimitAll).into_CFType() },
+            Self::Max(l) => CFNumber::from(l).into_CFType(),
         }
     }
 }
@@ -284,21 +284,21 @@ impl ItemSearchOptions {
             if self.load_refs {
                 params.push((
                     CFString::wrap_under_get_rule(kSecReturnRef),
-                    CFBoolean::true_value().as_CFType(),
+                    CFBoolean::true_value().into_CFType(),
                 ));
             }
 
             if self.load_attributes {
                 params.push((
                     CFString::wrap_under_get_rule(kSecReturnAttributes),
-                    CFBoolean::true_value().as_CFType(),
+                    CFBoolean::true_value().into_CFType(),
                 ));
             }
 
             if self.load_data {
                 params.push((
                     CFString::wrap_under_get_rule(kSecReturnData),
-                    CFBoolean::true_value().as_CFType(),
+                    CFBoolean::true_value().into_CFType(),
                 ));
             }
 

@@ -33,7 +33,7 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     let mut options = PasswordOptions::new_generic_password(service, account);
     options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
-        CFBoolean::from(true).as_CFType(),
+        CFBoolean::from(true).into_CFType(),
     ));
     let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
@@ -96,7 +96,7 @@ pub fn get_internet_password(
     );
     options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
-        CFBoolean::from(true).as_CFType(),
+        CFBoolean::from(true).into_CFType(),
     ));
     let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
@@ -134,7 +134,7 @@ fn set_password_internal(options: &mut PasswordOptions, password: &[u8]) -> Resu
     let query_len = options.query.len();
     options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecValueData) },
-        CFData::from_buffer(password).as_CFType(),
+        CFData::from_buffer(password).into_CFType(),
     ));
 
     let params = CFDictionary::from_CFType_pairs(&options.query);
