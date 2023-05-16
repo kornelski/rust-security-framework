@@ -18,6 +18,7 @@ use crate::base::{Error, Result};
 use crate::cvt;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use crate::key;
+#[cfg(target_os = "macos")]
 use crate::os::macos::keychain::SecKeychain;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::FromVoid;
