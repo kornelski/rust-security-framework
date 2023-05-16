@@ -75,6 +75,7 @@ impl SecCertificate {
     }
 
     /// Adds a certificate to a keychain.
+    #[cfg(target_os="macos")]
     pub fn add_to_keychain(&self, keychain: Option<SecKeychain>) -> Result<()> {
         let kch = match keychain {
             Some(kch) => kch,
