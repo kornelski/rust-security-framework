@@ -127,6 +127,7 @@ impl TrustSettings {
     ///
     /// It is not possible to modify per-user trust settings when not running in a GUI
     /// environment, if you try it will return error `2070: errSecInternalComponent`
+    #[cfg(target_os="macos")]
     pub fn set_trust_settings_always(&self, cert: &SecCertificate) -> Result<()> {
         let domain = self.domain;
         let trust_settings: CFTypeRef = ptr::null_mut();
