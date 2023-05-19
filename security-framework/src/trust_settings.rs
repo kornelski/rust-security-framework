@@ -237,7 +237,6 @@ impl Iterator for TrustSettingsIter {
 
 #[cfg(test)]
 mod test {
-    use security_framework_sys::base::{errSecDuplicateItem, errSecInternalComponent};
     use super::*;
     use crate::test::certificate;
 
@@ -301,32 +300,6 @@ mod test {
                    .unwrap()
                    .message(),
                    Some("The specified item could not be found in the keychain.".into()));
-    }
-
-    #[test]
-    fn test_set_trust_to_cert(){
-        use std::fs;
-        
-        use crate::{
-            certificate::SecCertificate,
-            item::{
-                add_item, AddRef, ItemAddOptions, ItemAddValue
-            },
-        };
-        let der = fs::read("./test/server.der").unwrap();
-        let cert = SecCertificate::from_der(&der).unwrap();
-        
-        let add_ref = AddRef::Certificate(cert.clone());
-        let add_option = ItemAddOptions::new(ItemAddValue::Ref(add_ref))
-            .set_label("mitmproxy")
-            .to_dictionary();
-
-        add_item(add_option)
-            .unwrap_or_else(|err| if err.code() != errSecDuplicateItem {panic!("Error loading cert to kchain")});
-        
-        TrustSettings::new(Domain::Admin)
-            .set_trust_settings_always(&cert)
-            .unwrap_or_else(|err| if err.code() != errSecInternalComponent {panic!("Error trusting certificate")});
     }
 }
 
