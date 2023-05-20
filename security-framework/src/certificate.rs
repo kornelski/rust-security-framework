@@ -18,6 +18,8 @@ use crate::base::{Error, Result};
 use crate::cvt;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use crate::key;
+#[cfg(target_os = "macos")]
+use crate::os::macos::keychain::SecKeychain;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 use core_foundation::base::FromVoid;
 #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
@@ -70,6 +72,18 @@ impl SecCertificate {
             let der_data = SecCertificateCopyData(self.0);
             CFData::wrap_under_create_rule(der_data).to_vec()
         }
+    }
+
+    /// Adds a certificate to a keychain.
+    #[cfg(target_os="macos")]
+    pub fn add_to_keychain(&self, keychain: Option<SecKeychain>) -> Result<()> {
+        let kch = match keychain {
+            Some(kch) => kch,
+            _ => SecKeychain::default()?,
+        };
+        cvt(unsafe {
+            SecCertificateAddToKeychain(self.as_CFTypeRef() as *mut _, kch.as_CFTypeRef() as *mut _)
+        })
     }
 
     /// Returns a human readable summary of this certificate.

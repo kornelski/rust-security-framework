@@ -6,6 +6,7 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
 
+use core_foundation_sys::base::CFTypeRef;
 use security_framework_sys::base::errSecNoTrustSettings;
 use security_framework_sys::base::errSecSuccess;
 use security_framework_sys::trust_settings::*;
@@ -111,6 +112,32 @@ impl TrustSettings {
         };
 
         Ok(TrustSettingsIter { index: 0, array })
+    }
+
+    ///set trust settings to ""always trust this root certificate regardless of use.".
+    /// Sets the trust settings for the provided certificate to "always trust this root certificate
+    /// regardless of use."
+    ///
+    /// This method configures the trust settings for the specified certificate, indicating that it should
+    /// always be trusted as a TLS root certificate, regardless of its usage.
+    ///
+    /// If successful, the trust settings are updated for the certificate in the given domain. If the
+    /// certificate had no previous trust settings in the domain, new trust settings are created. If the
+    /// certificate had existing trust settings, they are replaced with the new settings.
+    ///
+    /// It is not possible to modify per-user trust settings when not running in a GUI
+    /// environment, if you try it will return error `2070: errSecInternalComponent`
+    #[cfg(target_os="macos")]
+    pub fn set_trust_settings_always(&self, cert: &SecCertificate) -> Result<()> {
+        let domain = self.domain;
+        let trust_settings: CFTypeRef = ptr::null_mut();
+        cvt(unsafe {
+            SecTrustSettingsSetTrustSettings(
+                cert.as_CFTypeRef() as *mut _,
+                domain.into(),
+                trust_settings,
+            )
+        })
     }
 
     /// Returns the aggregate trust setting for the given certificate.
@@ -275,3 +302,4 @@ mod test {
                    Some("The specified item could not be found in the keychain.".into()));
     }
 }
+
