@@ -1,6 +1,7 @@
 use core_foundation_sys::base::CFOptionFlags;
 use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, CFTypeRef};
 use core_foundation_sys::error::CFErrorRef;
+use core_foundation_sys::string::CFStringRef;
 
 use crate::base::SecAccessControlRef;
 
@@ -22,6 +23,15 @@ mod access_control_flags {
 }
 
 pub use access_control_flags::*;
+
+extern "C" {
+    pub static kSecAttrAccessibleWhenUnlocked: CFStringRef;
+    pub static kSecAttrAccessibleAfterFirstUnlock: CFStringRef;
+    pub static kSecAttrAccessibleAlways: CFStringRef;
+    pub static kSecAttrAccessibleWhenUnlockedThisDeviceOnly: CFStringRef;
+    pub static kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly: CFStringRef;
+    pub static kSecAttrAccessibleAlwaysThisDeviceOnly: CFStringRef;
+}
 
 extern "C" {
     pub fn SecAccessControlGetTypeID() -> CFTypeID;
