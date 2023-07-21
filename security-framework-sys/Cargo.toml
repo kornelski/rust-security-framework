@@ -1,6 +1,6 @@
 [package]
 name = "security-framework-sys"
-version = "2.9.0"
+version = "2.9.1"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"
@@ -9,7 +9,7 @@ homepage = "https://lib.rs/crates/security-framework-sys"
 readme = "README.md"
 keywords = ["ffi", "iOS", "TLS", "SSL", "crypto"]
 categories = ["os::macos-apis", "external-ffi-bindings"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 core-foundation-sys = "0.8.3"
@@ -29,4 +29,4 @@ OSX_10_15 = ["OSX_10_14"]
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
 
 [badges]
-maintenance = { status = "passively-maintained" }
+maintenance = { status = "looking-for-maintainer" }

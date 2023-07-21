@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "2.9.1"
+version = "2.9.2"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Security.framework bindings for macOS and iOS"
@@ -61,4 +61,4 @@ name = "set_internet_password"
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
 
 [badges]
-maintenance = { status = "passively-maintained" }
+maintenance = { status = "looking-for-maintainer" }
