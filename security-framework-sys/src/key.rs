@@ -10,6 +10,19 @@ use crate::base::SecKeyRef;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
 pub type SecKeyAlgorithm = CFStringRef;
 
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub type SecKeyOperationType = u32;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub const kSecKeyOperationTypeSign: SecKeyOperationType = 0;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub const kSecKeyOperationTypeVerify: SecKeyOperationType = 1;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub const kSecKeyOperationTypeEncrypt: SecKeyOperationType = 2;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub const kSecKeyOperationTypeDecrypt: SecKeyOperationType = 3;
+#[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+pub const kSecKeyOperationTypeKeyExchange: SecKeyOperationType = 4;
+
 extern "C" {
     pub fn SecKeyGetTypeID() -> CFTypeID;
 
@@ -45,6 +58,13 @@ extern "C" {
         signedData: CFDataRef,
         signature: CFDataRef,
         error: *mut CFErrorRef,
+    ) -> core_foundation_sys::base::Boolean;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    pub fn SecKeyIsAlgorithmSupported(
+        key: SecKeyRef,
+        operation: SecKeyOperationType,
+        algorithm: SecKeyAlgorithm,
     ) -> core_foundation_sys::base::Boolean;
 }
 
