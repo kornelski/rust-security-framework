@@ -1,7 +1,7 @@
 #![allow(bad_style)]
 
 #[cfg_attr(
-    any(target_os = "macos", target_os = "ios"),
+    any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos"),
     link(name = "Security", kind = "framework")
 )]
 extern "C" {}
@@ -12,7 +12,7 @@ pub mod access_control;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
 pub mod certificate;
 #[cfg(target_os = "macos")]
 pub mod certificate_oids;
