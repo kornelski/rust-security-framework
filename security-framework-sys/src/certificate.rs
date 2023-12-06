@@ -3,7 +3,7 @@ use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, OSStatus};
 use core_foundation_sys::data::CFDataRef;
 #[cfg(target_os = "macos")]
 use core_foundation_sys::dictionary::CFDictionaryRef;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
@@ -55,9 +55,9 @@ extern "C" {
         certificate: SecCertificateRef,
         email_addresses: *mut CFArrayRef,
     ) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecCertificateCopyNormalizedIssuerSequence(certificate: SecCertificateRef) -> CFDataRef;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecCertificateCopyNormalizedSubjectSequence(certificate: SecCertificateRef)
         -> CFDataRef;
     #[cfg(target_os = "macos")]
@@ -67,9 +67,9 @@ extern "C" {
         certificate: SecCertificateRef,
         key: *mut SecKeyRef,
     ) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecCertificateCopyKey(certificate: SecCertificateRef) -> SecKeyRef;
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecCertificateCopySerialNumberData(
         certificate: SecCertificateRef,
         error: *mut CFErrorRef,

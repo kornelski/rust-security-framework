@@ -3,7 +3,7 @@ use crate::base::SecKeyRef;
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
 use core_foundation_sys::date::CFDateRef;
-#[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
 use core_foundation_sys::error::CFErrorRef;
 
 pub type SecTrustResultType = u32;
@@ -55,7 +55,7 @@ extern "C" {
     #[deprecated(note = "deprecated by Apple")]
     pub fn SecTrustEvaluate(trust: SecTrustRef, result: *mut SecTrustResultType) -> OSStatus;
     // it should have been OSX_10_14, but due to back-compat it can't rely on the newer feature flag
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecTrustEvaluateWithError(trust: SecTrustRef, error: *mut CFErrorRef) -> bool;
     pub fn SecTrustCreateWithCertificates(
         certificates: CFTypeRef,
@@ -65,13 +65,13 @@ extern "C" {
     pub fn SecTrustSetPolicies(trust: SecTrustRef, policies: CFTypeRef) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SecTrustSetOptions(trust: SecTrustRef, options: SecTrustOptionFlags) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecTrustGetNetworkFetchAllowed(trust: SecTrustRef, allowFetch: *mut Boolean) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecTrustSetNetworkFetchAllowed(trust: SecTrustRef, allowFetch: Boolean) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecTrustSetOCSPResponse(trust: SecTrustRef, responseData: CFTypeRef) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn SecTrustSetSignedCertificateTimestamps(
         trust: SecTrustRef,
         sctArray: CFArrayRef,
