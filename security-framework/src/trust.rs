@@ -4,7 +4,7 @@ use core_foundation::array::CFArray;
 #[cfg(target_os = "macos")]
 use core_foundation::array::CFArrayRef;
 use core_foundation::base::TCFType;
-#[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+#[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
 use core_foundation_sys::base::{Boolean, CFIndex};
@@ -164,7 +164,7 @@ impl SecTrust {
 
     /// Indicates whether this trust object is permitted to
     /// fetch missing intermediate certificates from the network.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn get_network_fetch_allowed(&mut self) -> Result<bool> {
         let mut allowed = 0;
 
@@ -175,7 +175,7 @@ impl SecTrust {
 
     /// Specifies whether this trust object is permitted to
     /// fetch missing intermediate certificates from the network.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     #[inline]
     pub fn set_network_fetch_allowed(&mut self, allowed: bool) -> Result<()> {
         unsafe { cvt(SecTrustSetNetworkFetchAllowed(self.0, allowed as u8)) }
@@ -183,7 +183,7 @@ impl SecTrust {
 
     /// Attaches Online Certificate Status Protocol (OSCP) response data
     /// to this trust object.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn set_trust_ocsp_response<I: Iterator<Item = impl AsRef<[u8]>>>(
         &mut self,
         ocsp_response: I,
@@ -199,7 +199,7 @@ impl SecTrust {
     }
 
     /// Attaches signed certificate timestamp data to this trust object.
-    #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+    #[cfg(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
     pub fn set_signed_certificate_timestamps<I: Iterator<Item = impl AsRef<[u8]>>>(
         &mut self,
         scts: I,
@@ -237,7 +237,7 @@ impl SecTrust {
 
     /// Evaluates trust. Requires macOS 10.14 or iOS, otherwise it just calls `evaluate()`
     pub fn evaluate_with_error(&self) -> Result<(), CFError> {
-        #[cfg(any(feature = "OSX_10_14", target_os = "ios"))]
+        #[cfg(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos"))]
         unsafe {
             let mut error: CFErrorRef = ::std::ptr::null_mut();
             if !SecTrustEvaluateWithError(self.0, &mut error) {
@@ -247,7 +247,7 @@ impl SecTrust {
             }
             Ok(())
         }
-        #[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
+        #[cfg(not(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos")))]
         #[allow(deprecated)]
         {
             use security_framework_sys::base::errSecNotTrusted;
@@ -290,12 +290,12 @@ impl SecTrust {
     }
 }
 
-#[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
+#[cfg(not(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos")))]
 extern "C" {
     fn CFErrorCreate(allocator: core_foundation_sys::base::CFAllocatorRef, domain: core_foundation_sys::string::CFStringRef, code: CFIndex, userInfo: core_foundation_sys::dictionary::CFDictionaryRef) -> CFErrorRef;
 }
 
-#[cfg(not(any(feature = "OSX_10_14", target_os = "ios")))]
+#[cfg(not(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos")))]
 fn cferror_from_osstatus(code: core_foundation_sys::base::OSStatus) -> CFError {
     unsafe {
         let error = CFErrorCreate(ptr::null_mut(), core_foundation_sys::error::kCFErrorDomainOSStatus, code as _, ptr::null_mut());
