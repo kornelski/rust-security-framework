@@ -283,7 +283,7 @@ impl SecStaticCode {
                 code.as_mut_ptr(),
             ))?;
 
-            Ok(Self::wrap_under_get_rule(code.assume_init()))
+            Ok(Self::wrap_under_create_rule(code.assume_init()))
         }
     }
 
