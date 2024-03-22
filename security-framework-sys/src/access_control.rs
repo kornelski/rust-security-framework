@@ -31,6 +31,7 @@ extern "C" {
     pub static kSecAttrAccessibleWhenUnlockedThisDeviceOnly: CFStringRef;
     pub static kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly: CFStringRef;
     pub static kSecAttrAccessibleAlwaysThisDeviceOnly: CFStringRef;
+    pub static kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly: CFStringRef;
 }
 
 extern "C" {
