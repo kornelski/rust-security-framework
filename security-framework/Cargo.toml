@@ -59,6 +59,7 @@ name = "set_internet_password"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
+features = ["OSX_10_15"]
 
 [badges]
 maintenance = { status = "looking-for-maintainer" }
