@@ -1,6 +1,6 @@
 [package]
 name = "security-framework-sys"
-version = "2.9.1"
+version = "2.10.0"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"
@@ -16,7 +16,7 @@ core-foundation-sys = "0.8.3"
 libc = "0.2.139"
 
 [features]
-default = ["OSX_10_9"]
+default = ["OSX_10_11"]
 OSX_10_9 = []
 OSX_10_10 = ["OSX_10_9"]
 OSX_10_11 = ["OSX_10_10"]
