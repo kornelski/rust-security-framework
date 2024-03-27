@@ -137,6 +137,7 @@ pub struct ItemSearchOptions {
     load_attributes: bool,
     load_data: bool,
     limit: Option<Limit>,
+    trusted_only: Option<bool>,
     label: Option<CFString>,
     service: Option<CFString>,
     account: Option<CFString>,
@@ -215,6 +216,13 @@ impl ItemSearchOptions {
     #[inline(always)]
     pub fn label(&mut self, label: &str) -> &mut Self {
         self.label = Some(CFString::new(label));
+        self
+    }
+
+    /// Whether untrusted certificates should be returned.
+    #[inline(always)]
+    pub fn trusted_only(&mut self, trusted_only: Option<bool>) -> &mut Self {
+        self.trusted_only = trusted_only;
         self
     }
 
@@ -313,6 +321,13 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrLabel),
                     label.as_CFType(),
+                ));
+            }
+
+            if let Some(ref trusted_only) = self.trusted_only {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecMatchTrustedOnly),
+                    if *trusted_only { CFBoolean::true_value().into_CFType() } else { CFBoolean::false_value().into_CFType() },
                 ));
             }
 
