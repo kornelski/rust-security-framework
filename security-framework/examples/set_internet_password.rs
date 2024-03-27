@@ -20,14 +20,13 @@ fn main() {
         password,
     );
     match res {
-        Ok(_) => {
+        Ok(()) => {
             println!(
-                "Password set for {}@{}. You can read it using find_internet_password example",
-                username, hostname
+                "Password set for {username}@{hostname}. You can read it using find_internet_password example"
             );
         }
         Err(err) => {
-            eprintln!("Could not set password: {:?}", err);
+            eprintln!("Could not set password: {err:?}");
         }
     }
 }}

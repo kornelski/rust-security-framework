@@ -255,7 +255,7 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Interrupted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         };
 
         assert!(stream.server_auth_completed());
@@ -404,7 +404,7 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Interrupted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         };
 
         let mut stream = p!(stream.handshake());
@@ -464,7 +464,7 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Interrupted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         };
 
         let mut stream = p!(stream.handshake());
@@ -494,7 +494,7 @@ mod test {
             match ctx.handshake(stream) {
                 Ok(_) => panic!("unexpected success"),
                 Err(HandshakeError::Failure(_)) => {}
-                Err(err) => panic!("unexpected error {:?}", err),
+                Err(err) => panic!("unexpected error {err:?}"),
             }
         });
 
@@ -508,13 +508,13 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Interrupted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         };
 
         match stream.handshake() {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Failure(_)) => {}
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         }
 
         handle.join().unwrap();
@@ -541,7 +541,7 @@ mod test {
             match ctx.handshake(stream) {
                 Ok(_) => panic!("unexpected success"),
                 Err(HandshakeError::Failure(_)) => {}
-                Err(err) => panic!("unexpected error {:?}", err),
+                Err(err) => panic!("unexpected error {err:?}"),
             }
         });
 
@@ -558,13 +558,13 @@ mod test {
         let stream = match ctx.handshake(stream) {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Interrupted(stream)) => stream,
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         };
 
         match stream.handshake() {
             Ok(_) => panic!("unexpected success"),
             Err(HandshakeError::Failure(_)) => {}
-            Err(err) => panic!("unexpected error {:?}", err),
+            Err(err) => panic!("unexpected error {err:?}"),
         }
 
         handle.join().unwrap();

@@ -48,6 +48,9 @@ OSX_10_15 = ["OSX_10_14", "security-framework-sys/OSX_10_15"]
 
 nightly = [] # not used, doesn't do anything, only for back compat
 
+[lints]
+workspace = true
+
 [[example]]
 name = "client"
 

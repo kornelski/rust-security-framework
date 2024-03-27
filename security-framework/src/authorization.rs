@@ -6,6 +6,7 @@
 ///   arguments.
 /// * `AuthorizationCopyRightsAsync`
 /// * Provide constants for well known item names
+
 use crate::base::{Error, Result};
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::base::Boolean;
@@ -19,13 +20,12 @@ use core_foundation::error::CFErrorRef;
 use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
-use std::convert::TryFrom;
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::mem::MaybeUninit;
 use std::os::raw::c_void;
 use std::ptr::addr_of;
-use std::{convert::TryInto, marker::PhantomData};
+use std::marker::PhantomData;
 use sys::AuthorizationExternalForm;
 
 macro_rules! optional_str_to_cfref {
@@ -280,7 +280,7 @@ impl TryFrom<AuthorizationExternalForm> for Authorization {
 
         let auth = Authorization {
             handle: unsafe { handle.assume_init() },
-            free_flags: Default::default(),
+            free_flags: Flags::default(),
         };
 
         Ok(auth)
@@ -291,6 +291,7 @@ impl Authorization {
     /// Creates an authorization object which has no environment or associated
     /// rights.
     #[inline]
+    #[allow(clippy::should_implement_trait)]
     pub fn default() -> Result<Self> {
         Self::new(None, None, Default::default())
     }
@@ -305,6 +306,7 @@ impl Authorization {
     /// icon or prompt data to be used in the authentication dialog box. In
     /// macOS 10.4 and later, you can also pass a user name and password in
     /// order to authorize a user without user interaction.
+    #[allow(clippy::unnecessary_cast)]
     pub fn new(
         // FIXME: this should have been by reference
         rights: Option<AuthorizationItemSetStorage>,
@@ -687,14 +689,8 @@ mod tests {
 
     fn create_credentials_env() -> Result<AuthorizationItemSetStorage> {
         let set = AuthorizationItemSetBuilder::new()
-            .add_string(
-                "username",
-                option_env!("USER").expect("You must set the USER environment variable"),
-            )?
-            .add_string(
-                "password",
-                option_env!("PASSWORD").expect("You must set the PASSWORD environment varible"),
-            )?
+            .add_string("username", std::env::var("USER").expect("You must set the USER environment variable"))?
+            .add_string("password", std::env::var("PASSWORD").expect("You must set the PASSWORD environment varible"))?
             .build();
 
         Ok(set)
@@ -721,7 +717,7 @@ mod tests {
 
     #[test]
     fn test_create_authorization_with_credentials() -> Result<()> {
-        if option_env!("PASSWORD").is_none() {
+        if std::env::var_os("PASSWORD").is_none() {
             return Ok(());
         }
 
@@ -755,7 +751,7 @@ mod tests {
     /// This test will only pass if its process has a valid code signature.
     #[test]
     fn test_modify_authorization_database() -> Result<()> {
-        if option_env!("PASSWORD").is_none() {
+        if std::env::var_os("PASSWORD").is_none() {
             return Ok(());
         }
 
@@ -790,7 +786,7 @@ mod tests {
     /// This test will succeed if authorization popup is approved.
     #[test]
     fn test_execute_with_privileges() -> Result<()> {
-        if option_env!("PASSWORD").is_none() {
+        if std::env::var_os("PASSWORD").is_none() {
             return Ok(());
         }
 

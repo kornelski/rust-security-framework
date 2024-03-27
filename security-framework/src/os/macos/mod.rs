@@ -26,7 +26,7 @@ pub mod test {
     use std::io::prelude::*;
     use std::path::Path;
 
-    pub fn identity(dir: &Path) -> SecIdentity {
+    #[must_use] pub fn identity(dir: &Path) -> SecIdentity {
         // FIXME https://github.com/rust-lang/rust/issues/30018
         let keychain = keychain(dir);
         let mut items = p!(ItemSearchOptions::new()
@@ -39,7 +39,7 @@ pub mod test {
         }
     }
 
-    pub fn keychain(dir: &Path) -> SecKeychain {
+    #[must_use] pub fn keychain(dir: &Path) -> SecKeychain {
         let path = dir.join("server.keychain");
         let mut file = p!(File::create(&path));
         p!(file.write_all(include_bytes!("../../../test/server.keychain")));

@@ -106,13 +106,13 @@ impl PasswordOptions {
             query.push((
                 unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
                 CFString::from(domain).into_CFType(),
-            ))
+            ));
         }
         if let Some(port) = port {
             query.push((
                 unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
                 CFNumber::from(i32::from(port)).into_CFType(),
-            ))
+            ));
         }
         Self { query }
     }
@@ -124,6 +124,6 @@ impl PasswordOptions {
             SecAccessControl::create_with_flags(options.bits())
                 .unwrap()
                 .into_CFType(),
-        ))
+        ));
     }
 }

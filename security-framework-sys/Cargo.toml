@@ -30,3 +30,6 @@ targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
 
 [badges]
 maintenance = { status = "looking-for-maintainer" }
+
+[lints]
+workspace = true

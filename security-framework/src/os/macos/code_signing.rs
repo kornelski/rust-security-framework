@@ -443,7 +443,7 @@ mod test {
             task_info(
                 mach_task_self(),
                 TASK_AUDIT_TOKEN,
-                token.as_mut_ptr() as *mut c_void,
+                token.as_mut_ptr().cast::<c_void>(),
                 &mut token_len,
             )
         };

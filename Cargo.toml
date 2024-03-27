@@ -1,7 +1,26 @@
 [workspace]
+resolver = "2"
 members = [
     "security-framework-sys",
     "security-framework",
     "iostest",
     "systest"
 ]
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -100 }
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cast_sign_loss = "allow"
+if_not_else = "allow"
+inline_always = "allow"
+items_after_statements = "allow"
+iter_not_returning_iterator = "allow"
+map_unwrap_or = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+redundant_closure_for_method_calls = "allow"
+similar_names = "allow"
+unnested_or_patterns = "allow"
+wildcard_imports = "allow"

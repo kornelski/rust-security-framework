@@ -8,7 +8,7 @@ use core_foundation_sys::base::CFTypeRef;
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::digest_transform::*;
-use security_framework_sys::transform::*;
+use security_framework_sys::transform::kSecTransformInputAttributeName;
 use std::ptr;
 
 use crate::os::macos::transform::SecTransform;

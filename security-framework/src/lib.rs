@@ -2,6 +2,7 @@
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 #![allow(clippy::manual_non_exhaustive)] // MSRV
+#![allow(clippy::bad_bit_mask)] // bitflags
 
 #[macro_use]
 extern crate core_foundation;

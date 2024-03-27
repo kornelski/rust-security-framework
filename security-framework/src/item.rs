@@ -171,7 +171,7 @@ impl ItemSearchOptions {
     }
 
     /// Search only for keys of the specified class. Also sets self.class to
-    /// ItemClass::key().
+    /// `ItemClass::key()`.
     #[inline(always)]
     pub fn key_class(&mut self, key_class: KeyClass) -> &mut Self {
         self.class(ItemClass::key());
@@ -427,7 +427,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     } else if type_id == SecIdentity::type_id() {
         Reference::Identity(SecIdentity::wrap_under_get_rule(item as *mut _))
     } else {
-        panic!("Got bad type from SecItemCopyMatching: {}", type_id);
+        panic!("Got bad type from SecItemCopyMatching: {type_id}");
     };
 
     SearchResult::Ref(reference)
@@ -519,7 +519,7 @@ impl SearchResult {
                         ),
                         _ => String::from("unknown"),
                     };
-                    retmap.insert(format!("{}", keycfstr), val);
+                    retmap.insert(format!("{keycfstr}"), val);
                 }
                 Some(retmap)
             },
@@ -617,11 +617,11 @@ pub enum ItemAddValue {
 
 /// Type of Ref to add to the keychain.
 pub enum AddRef {
-    /// SecKey
+    /// `SecKey`
     Key(SecKey),
-    /// SecIdentity
+    /// `SecIdentity`
     Identity(SecIdentity),
-    /// SecCertificate
+    /// `SecCertificate`
     Certificate(SecCertificate),
 }
 

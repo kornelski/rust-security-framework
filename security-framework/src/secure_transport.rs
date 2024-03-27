@@ -814,7 +814,7 @@ impl SslContext {
             cvt(SSLSetProtocolVersionEnabled(
                 self.0,
                 protocol.0,
-                enabled as Boolean,
+                Boolean::from(enabled),
             ))
         }
     }

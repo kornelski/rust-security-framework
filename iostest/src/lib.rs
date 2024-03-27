@@ -10,8 +10,7 @@
 //! linked and used for testing.
 
 use security_framework::passwords::{
-    delete_generic_password, delete_internet_password,
-    get_generic_password, get_internet_password,
+    delete_generic_password, delete_internet_password, get_generic_password, get_internet_password,
     set_generic_password, set_internet_password,
 };
 use security_framework_sys::base::errSecItemNotFound;

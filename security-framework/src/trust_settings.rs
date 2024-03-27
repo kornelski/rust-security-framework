@@ -241,12 +241,12 @@ mod test {
     use crate::test::certificate;
 
     fn list_for_domain(domain: Domain) {
-        println!("--- domain: {:?}", domain);
+        println!("--- domain: {domain:?}");
         let ts = TrustSettings::new(domain);
         let iterator = ts.iter().unwrap();
 
         for (i, cert) in iterator.enumerate() {
-            println!("cert({:?}) = {:?}", i, cert);
+            println!("cert({i:?}) = {cert:?}");
             println!("  settings = {:?}", ts.tls_trust_settings_for_certificate(&cert));
         }
         println!("---");

@@ -78,7 +78,7 @@ impl fmt::Display for Error {
     #[cold]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(message) = self.message() {
-            write!(fmt, "{}", message)
+            write!(fmt, "{message}")
         } else {
             write!(fmt, "error code {}", self.code())
         }

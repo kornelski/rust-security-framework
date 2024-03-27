@@ -29,8 +29,7 @@ fn main() {
             eprintln!("Account was found in the Keychain, but user denied access");
         }
         Err(err) => {
-            eprintln!("Password not found. Open Keychain Access.app and add internet password for '{}' at 'https://{}': {:?}",
-                username, hostname, err);
+            eprintln!("Password not found. Open Keychain Access.app and add internet password for '{username}' at 'https://{hostname}': {err:?}");
         }
     }
 }}
