@@ -327,7 +327,7 @@ impl ItemSearchOptions {
             if let Some(ref trusted_only) = self.trusted_only {
                 params.push((
                     CFString::wrap_under_get_rule(kSecMatchTrustedOnly),
-                    if *trusted_only { CFBoolean::true_value().into_CFType() } else { CFBoolean::true_value().into_CFType() },
+                    if *trusted_only { CFBoolean::true_value().into_CFType() } else { CFBoolean::false_value().into_CFType() },
                 ));
             }
 
