@@ -28,8 +28,8 @@ jobs:
         # has a 6-month MSRV policy, don't run tests on MSRV version since they
         # will always fail.
       - name: Revert time dep if needed
-        if: ${{ matrix.rust == '1.60.0' }}
-        run: cargo update --precise 0.3.17 --package time
+        if: ${{ matrix.rust == '1.65.0' }}
+        run: cargo update --precise 0.3.23 --package time
 
       - name: Run cargo test
         run: cargo test --all-features --all
