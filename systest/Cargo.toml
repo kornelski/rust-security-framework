@@ -11,7 +11,7 @@ security-framework-sys = { path = "../security-framework-sys" }
 libc = "0.2.139"
 
 [build-dependencies]
-ctest = "0.2.22"
+ctest2 = "0.4.7"
 
 [features]
 OSX_10_9 = ["security-framework-sys/OSX_10_9"]

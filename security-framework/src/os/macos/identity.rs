@@ -44,7 +44,6 @@ mod test {
     use tempfile::tempdir;
 
     use super::*;
-    use crate::identity::SecIdentity;
     use crate::os::macos::certificate::SecCertificateExt;
     use crate::os::macos::import_export::ImportOptions;
     use crate::os::macos::keychain::CreateOptions;

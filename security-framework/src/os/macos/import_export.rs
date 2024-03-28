@@ -243,7 +243,6 @@ mod test {
     use super::*;
     use crate::import_export::*;
     use crate::os::macos::keychain;
-    use hex;
     use tempfile::tempdir;
 
     #[test]

@@ -642,7 +642,6 @@ impl Drop for Authorization {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use core_foundation::string::CFString;
 
     #[test]
     fn test_create_default_authorization() {

@@ -215,7 +215,6 @@ pub enum PropertyType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::os::macos::certificate_oids::CertificateOid;
     use crate::test::certificate;
     use std::collections::HashMap;
 
