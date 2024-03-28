@@ -1,7 +1,7 @@
 use std::env;
 
 fn main() {
-    let mut test = ctest::TestGenerator::new();
+    let mut test = ctest2::TestGenerator::new();
 
     #[cfg(feature = "OSX_10_9")]
     test.cfg("feature", Some("OSX_10_9"));

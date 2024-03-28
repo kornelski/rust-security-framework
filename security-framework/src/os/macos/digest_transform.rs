@@ -163,8 +163,6 @@ impl Builder {
 #[cfg(test)]
 mod test {
     use super::*;
-    use core_foundation::data::CFData;
-    use hex;
 
     #[test]
     fn md5() {

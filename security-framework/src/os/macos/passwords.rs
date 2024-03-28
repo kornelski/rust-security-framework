@@ -349,7 +349,7 @@ impl SecKeychain {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::os::macos::keychain::{CreateOptions, SecKeychain};
+    use crate::os::macos::keychain::CreateOptions;
     use tempfile::tempdir;
     use tempfile::TempDir;
 

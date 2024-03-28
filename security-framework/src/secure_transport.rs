@@ -1500,7 +1500,6 @@ impl ServerBuilder {
 
 #[cfg(test)]
 mod test {
-    use std::io;
     use std::io::prelude::*;
     use std::net::TcpStream;
 
