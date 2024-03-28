@@ -17,6 +17,7 @@ pub struct PasswordOptions {
 
 bitflags::bitflags! {
     /// The option flags used to configure the evaluation of a `SecAccessControl`.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct AccessControlOptions: CFOptionFlags {
         /** Constraint to access an item with either biometry or passcode. */
         const USER_PRESENCE = kSecAccessControlUserPresence;
