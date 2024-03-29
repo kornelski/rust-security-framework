@@ -536,8 +536,16 @@ impl SearchResult {
 pub struct ItemAddOptions {
     /// The value (by ref or data) of the item to add, required.
     pub value: ItemAddValue,
+    /// Optional kSecAttrAccount attribute.
+    pub account_name: Option<String>,
+    /// Optional kSecAttrComment attribute.
+    pub comment: Option<String>,
+    /// Optional kSecAttrDescription attribute.
+    pub description: Option<String>,
     /// Optional kSecAttrLabel attribute.
     pub label: Option<String>,
+    /// Optional kSecAttrService attribute.
+    pub service: Option<String>,
     /// Optional keychain location.
     pub location: Option<Location>,
 }
@@ -545,7 +553,22 @@ pub struct ItemAddOptions {
 impl ItemAddOptions {
     /// Specifies the item to add.
     #[must_use] pub fn new(value: ItemAddValue) -> Self {
-        Self{ value, label: None, location: None }
+        Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None }
+    }
+    /// Specifies the `kSecAttrAccount` attribute.
+    pub fn set_account_name(&mut self, account_name: impl Into<String>) -> &mut Self {
+        self.account_name = Some(account_name.into());
+        self
+    }
+    /// Specifies the `kSecAttrComment` attribute.
+    pub fn set_comment(&mut self, comment: impl Into<String>) -> &mut Self {
+        self.comment = Some(comment.into());
+        self
+    }
+    /// Specifies the `kSecAttrDescription` attribute.
+    pub fn set_description(&mut self, description: impl Into<String>) -> &mut Self {
+        self.description = Some(description.into());
+        self
     }
     /// Specifies the `kSecAttrLabel` attribute.
     pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
@@ -555,6 +578,11 @@ impl ItemAddOptions {
     /// Specifies which keychain to add the item to.
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
+        self
+    }
+    /// Specifies the `kSecAttrService` attribute.
+    pub fn set_service(&mut self, service: impl Into<String>) -> &mut Self {
+        self.service = Some(service.into());
         self
     }
     /// Populates a `CFDictionary` to be passed to
@@ -592,10 +620,25 @@ impl ItemAddOptions {
                 },
             }
         }
-
+        let account_name = self.account_name.as_deref().map(CFString::from);
+        if let Some(account_name) = &account_name {
+            dict.add(&unsafe { kSecAttrAccount }.to_void(), &account_name.to_void());
+        }
+        let comment = self.comment.as_deref().map(CFString::from);
+        if let Some(comment) = &comment {
+            dict.add(&unsafe { kSecAttrDescription }.to_void(), &comment.to_void());
+        }
+        let description = self.description.as_deref().map(CFString::from);
+        if let Some(description) = &description {
+            dict.add(&unsafe { kSecAttrDescription }.to_void(), &description.to_void());
+        }
         let label = self.label.as_deref().map(CFString::from);
         if let Some(label) = &label {
             dict.add(&unsafe { kSecAttrLabel }.to_void(), &label.to_void());
+        }
+        let service = self.service.as_deref().map(CFString::from);
+        if let Some(service) = &service {
+            dict.add(&unsafe { kSecAttrService }.to_void(), &service.to_void());
         }
 
         dict.to_immutable()
