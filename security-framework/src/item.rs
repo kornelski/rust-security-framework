@@ -643,7 +643,7 @@ impl ItemAddOptions {
         }
         let comment = self.comment.as_deref().map(CFString::from);
         if let Some(comment) = &comment {
-            dict.add(&unsafe { kSecAttrDescription }.to_void(), &comment.to_void());
+            dict.add(&unsafe { kSecAttrComment }.to_void(), &comment.to_void());
         }
         let description = self.description.as_deref().map(CFString::from);
         if let Some(description) = &description {
