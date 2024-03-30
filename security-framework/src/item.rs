@@ -240,6 +240,12 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Search for an item with a specific access group.
+    pub fn access_group(&mut self, access_group: &str) -> &mut Self {
+        self.access_group = Some(CFString::new(access_group));
+        self
+    }
+
     /// Sets `kSecAttrAccessGroup` to `kSecAttrAccessGroupToken`
     #[inline(always)]
     pub fn access_group_token(&mut self) -> &mut Self {
@@ -538,6 +544,8 @@ pub struct ItemAddOptions {
     pub value: ItemAddValue,
     /// Optional kSecAttrAccount attribute.
     pub account_name: Option<String>,
+    /// Optional kSecAttrAccessGroup attribute.
+    pub access_group: Option<String>,
     /// Optional kSecAttrComment attribute.
     pub comment: Option<String>,
     /// Optional kSecAttrDescription attribute.
@@ -553,11 +561,16 @@ pub struct ItemAddOptions {
 impl ItemAddOptions {
     /// Specifies the item to add.
     #[must_use] pub fn new(value: ItemAddValue) -> Self {
-        Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None }
+        Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None, access_group: None }
     }
     /// Specifies the `kSecAttrAccount` attribute.
     pub fn set_account_name(&mut self, account_name: impl Into<String>) -> &mut Self {
         self.account_name = Some(account_name.into());
+        self
+    }
+    /// Specifies the `kSecAttrAccessGroup` attribute.
+    pub fn set_access_group(&mut self, access_group: impl Into<String>) -> &mut Self {
+        self.access_group = Some(access_group.into());
         self
     }
     /// Specifies the `kSecAttrComment` attribute.
@@ -623,6 +636,10 @@ impl ItemAddOptions {
         let account_name = self.account_name.as_deref().map(CFString::from);
         if let Some(account_name) = &account_name {
             dict.add(&unsafe { kSecAttrAccount }.to_void(), &account_name.to_void());
+        }
+        let access_group = self.access_group.as_deref().map(CFString::from);
+        if let Some(access_group) = &access_group {
+            dict.add(&unsafe { kSecAttrAccessGroup }.to_void(), &access_group.to_void());
         }
         let comment = self.comment.as_deref().map(CFString::from);
         if let Some(comment) = &comment {
