@@ -543,49 +543,51 @@ pub struct ItemAddOptions {
     /// The value (by ref or data) of the item to add, required.
     pub value: ItemAddValue,
     /// Optional kSecAttrAccount attribute.
-    pub account_name: Option<String>,
+    pub account_name: Option<CFString>,
     /// Optional kSecAttrAccessGroup attribute.
-    pub access_group: Option<String>,
+    pub access_group: Option<CFString>,
     /// Optional kSecAttrComment attribute.
-    pub comment: Option<String>,
+    pub comment: Option<CFString>,
     /// Optional kSecAttrDescription attribute.
-    pub description: Option<String>,
+    pub description: Option<CFString>,
     /// Optional kSecAttrLabel attribute.
-    pub label: Option<String>,
+    pub label: Option<CFString>,
     /// Optional kSecAttrService attribute.
-    pub service: Option<String>,
+    pub service: Option<CFString>,
     /// Optional keychain location.
     pub location: Option<Location>,
 }
 
 impl ItemAddOptions {
     /// Specifies the item to add.
-    #[must_use] pub fn new(value: ItemAddValue) -> Self {
+    #[must_use]
+    pub fn new(value: ItemAddValue) -> Self {
         Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None, access_group: None }
     }
+
     /// Specifies the `kSecAttrAccount` attribute.
-    pub fn set_account_name(&mut self, account_name: impl Into<String>) -> &mut Self {
-        self.account_name = Some(account_name.into());
+    pub fn set_account_name(&mut self, account_name: impl AsRef<str>) -> &mut Self {
+        self.account_name = Some(account_name.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrAccessGroup` attribute.
-    pub fn set_access_group(&mut self, access_group: impl Into<String>) -> &mut Self {
-        self.access_group = Some(access_group.into());
+    pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
+        self.access_group = Some(access_group.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrComment` attribute.
-    pub fn set_comment(&mut self, comment: impl Into<String>) -> &mut Self {
-        self.comment = Some(comment.into());
+    pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
+        self.comment = Some(comment.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrDescription` attribute.
-    pub fn set_description(&mut self, description: impl Into<String>) -> &mut Self {
-        self.description = Some(description.into());
+    pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
+        self.description = Some(description.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrLabel` attribute.
-    pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
-        self.label = Some(label.into());
+    pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
+        self.label = Some(label.as_ref().into());
         self
     }
     /// Specifies which keychain to add the item to.
@@ -594,8 +596,8 @@ impl ItemAddOptions {
         self
     }
     /// Specifies the `kSecAttrService` attribute.
-    pub fn set_service(&mut self, service: impl Into<String>) -> &mut Self {
-        self.service = Some(service.into());
+    pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
+        self.service = Some(service.as_ref().into());
         self
     }
     /// Populates a `CFDictionary` to be passed to
@@ -633,28 +635,22 @@ impl ItemAddOptions {
                 },
             }
         }
-        let account_name = self.account_name.as_deref().map(CFString::from);
-        if let Some(account_name) = &account_name {
+        if let Some(account_name) = &self.account_name {
             dict.add(&unsafe { kSecAttrAccount }.to_void(), &account_name.to_void());
         }
-        let access_group = self.access_group.as_deref().map(CFString::from);
-        if let Some(access_group) = &access_group {
+        if let Some(access_group) = &self.access_group {
             dict.add(&unsafe { kSecAttrAccessGroup }.to_void(), &access_group.to_void());
         }
-        let comment = self.comment.as_deref().map(CFString::from);
-        if let Some(comment) = &comment {
+        if let Some(comment) = &self.comment {
             dict.add(&unsafe { kSecAttrComment }.to_void(), &comment.to_void());
         }
-        let description = self.description.as_deref().map(CFString::from);
-        if let Some(description) = &description {
+        if let Some(description) = &self.description {
             dict.add(&unsafe { kSecAttrDescription }.to_void(), &description.to_void());
         }
-        let label = self.label.as_deref().map(CFString::from);
-        if let Some(label) = &label {
+        if let Some(label) = &self.label {
             dict.add(&unsafe { kSecAttrLabel }.to_void(), &label.to_void());
         }
-        let service = self.service.as_deref().map(CFString::from);
-        if let Some(service) = &service {
+        if let Some(service) = &self.service {
             dict.add(&unsafe { kSecAttrService }.to_void(), &service.to_void());
         }
 
