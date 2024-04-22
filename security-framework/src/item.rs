@@ -131,6 +131,7 @@ pub struct ItemSearchOptions {
     keychains: Option<CFArray<SecKeychain>>,
     #[cfg(not(target_os = "macos"))]
     keychains: Option<CFArray<CFType>>,
+    case_insensitive: Option<bool>,
     class: Option<ItemClass>,
     key_class: Option<KeyClass>,
     load_refs: bool,
@@ -140,6 +141,7 @@ pub struct ItemSearchOptions {
     trusted_only: Option<bool>,
     label: Option<CFString>,
     service: Option<CFString>,
+    subject: Option<CFString>,
     account: Option<CFString>,
     access_group: Option<CFString>,
     pub_key_hash: Option<CFData>,
@@ -167,6 +169,13 @@ impl ItemSearchOptions {
     #[inline(always)]
     pub fn class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
+        self
+    }
+
+    /// Whether search for an item should be case insensitive or not.
+    #[inline(always)]
+    pub fn case_insensitive(&mut self, case_insensitive: Option<bool>) -> &mut Self {
+        self.case_insensitive = case_insensitive;
         self
     }
 
@@ -232,6 +241,13 @@ impl ItemSearchOptions {
         self.service = Some(CFString::new(service));
         self
     }
+    
+    /// Search for an item with the given subject.
+    #[inline(always)]
+    pub fn subject(&mut self, subject: &str) -> &mut Self {
+        self.subject = Some(CFString::new(subject));
+        self
+    }
 
     /// Search for an item with the given account.
     #[inline(always)]
@@ -291,6 +307,13 @@ impl ItemSearchOptions {
                 params.push((CFString::wrap_under_get_rule(kSecClass), class.to_value()));
             }
 
+            if let Some(case_insensitive) = self.case_insensitive {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecMatchCaseInsensitive),
+                    CFBoolean::from(case_insensitive).as_CFType()
+                ));
+            }
+
             if let Some(key_class) = self.key_class {
                 params.push((CFString::wrap_under_get_rule(kSecAttrKeyClass), key_class.to_value()));
             }
@@ -341,6 +364,13 @@ impl ItemSearchOptions {
                 params.push((
                     CFString::wrap_under_get_rule(kSecAttrService),
                     service.as_CFType(),
+                ));
+            }
+            
+            if let Some(ref subject) = self.subject {
+                params.push((
+                    CFString::wrap_under_get_rule(kSecMatchSubjectWholeString),
+                    subject.as_CFType(),
                 ));
             }
 
