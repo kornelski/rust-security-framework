@@ -242,7 +242,7 @@ impl ItemSearchOptions {
         self
     }
     
-    /// Search for an item with the given subject.
+    /// Search for an item with exactly the given subject.
     #[inline(always)]
     pub fn subject(&mut self, subject: &str) -> &mut Self {
         self.subject = Some(CFString::new(subject));
