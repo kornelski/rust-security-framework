@@ -12,6 +12,8 @@ extern "C" {
     pub static kSecMatchLimitAll: CFStringRef;
 
     pub static kSecMatchTrustedOnly: CFStringRef;
+    pub static kSecMatchCaseInsensitive: CFStringRef;
+    pub static kSecMatchSubjectWholeString: CFStringRef; 
 
     pub static kSecReturnData: CFStringRef;
     pub static kSecReturnAttributes: CFStringRef;
