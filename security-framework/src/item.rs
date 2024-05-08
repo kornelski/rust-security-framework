@@ -367,11 +367,14 @@ impl ItemSearchOptions {
                 ));
             }
             
-            if let Some(ref subject) = self.subject {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecMatchSubjectWholeString),
-                    subject.as_CFType(),
-                ));
+            #[cfg(target_os = "macos")]
+            {
+                if let Some(ref subject) = self.subject {
+                    params.push((
+                        CFString::wrap_under_get_rule(kSecMatchSubjectWholeString),
+                        subject.as_CFType(),
+                    ));
+                }
             }
 
             if let Some(ref account) = self.account {

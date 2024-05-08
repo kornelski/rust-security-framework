@@ -13,6 +13,7 @@ extern "C" {
 
     pub static kSecMatchTrustedOnly: CFStringRef;
     pub static kSecMatchCaseInsensitive: CFStringRef;
+    #[cfg(target_os = "macos")]
     pub static kSecMatchSubjectWholeString: CFStringRef; 
 
     pub static kSecReturnData: CFStringRef;
