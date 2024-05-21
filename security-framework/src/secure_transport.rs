@@ -1685,7 +1685,7 @@ mod test {
     }
 
     #[test]
-    #[cfg_attr(any(target_os = "ios", target_os = "tvos", target_os = "watchos"), ignore)] // FIXME what's going on with ios?
+    #[cfg_attr(any(target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"), ignore)] // FIXME what's going on with ios?
     fn cipher_configuration() {
         let mut ctx = p!(SslContext::new(
             SslProtocolSide::SERVER,
@@ -1721,7 +1721,7 @@ mod test {
     }
 
     #[test]
-    #[cfg_attr(any(target_os = "ios", target_os = "tvos", target_os = "watchos"), ignore)] // FIXME same issue as cipher_configuration
+    #[cfg_attr(any(target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"), ignore)] // FIXME same issue as cipher_configuration
     fn test_builder_blacklist_ciphers() {
         let stream = p!(TcpStream::connect("google.com:443"));
 
