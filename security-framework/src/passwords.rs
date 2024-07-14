@@ -301,6 +301,10 @@ mod test {
             SecProtocolType::HTTP,
             SecAuthenticationType::Any,
         );
+
+        // cleanup after failed test
+        let _ = delete_internet_password(server, domain, account, path, port, protocol, auth);
+
         set_internet_password(
             server,
             domain,
