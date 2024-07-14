@@ -70,21 +70,21 @@ extern "C" {
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 macro_rules! names {
-    ($($i:ident => $x:ident),*) => {
+    ($( $(# $meta:literal )* $i:ident => $x:ident),*) => {
         extern "C" {
-            $(pub static $x: SecKeyAlgorithm;)*
+            $($(#[cfg(feature = $meta)])* pub static $x: SecKeyAlgorithm;)*
         }
 
         #[non_exhaustive]
         #[derive(Copy, Clone)]
         pub enum Algorithm {
-            $( $i, )*
+            $( $(#[cfg(feature = $meta)])* $i, )*
         }
 
         impl From<Algorithm> for SecKeyAlgorithm {
             fn from(m: Algorithm) -> Self {
                 unsafe { match m {
-                    $( Algorithm::$i => $x, )*
+                    $( $(#[cfg(feature = $meta)])* Algorithm::$i => $x, )*
                 } }
             }
         }
@@ -109,11 +109,11 @@ names! {
     ECIESEncryptionCofactorVariableIVX963SHA384AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorVariableIVX963SHA384AESGCM,
     ECIESEncryptionCofactorVariableIVX963SHA512AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorVariableIVX963SHA512AESGCM,
 
-    ECIESEncryptionCofactorX963SHA1AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA1AESGCM,
-    ECIESEncryptionCofactorX963SHA224AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA224AESGCM,
-    ECIESEncryptionCofactorX963SHA256AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA256AESGCM,
-    ECIESEncryptionCofactorX963SHA384AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA384AESGCM,
-    ECIESEncryptionCofactorX963SHA512AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA512AESGCM,
+    #"OSX_10_13" ECIESEncryptionCofactorX963SHA1AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA1AESGCM,
+    #"OSX_10_13" ECIESEncryptionCofactorX963SHA224AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA224AESGCM,
+    #"OSX_10_13" ECIESEncryptionCofactorX963SHA256AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA256AESGCM,
+    #"OSX_10_13" ECIESEncryptionCofactorX963SHA384AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA384AESGCM,
+    #"OSX_10_13" ECIESEncryptionCofactorX963SHA512AESGCM => kSecKeyAlgorithmECIESEncryptionCofactorX963SHA512AESGCM,
 
     ECDSASignatureRFC4754 => kSecKeyAlgorithmECDSASignatureRFC4754,
 
