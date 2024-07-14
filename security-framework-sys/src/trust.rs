@@ -65,11 +65,8 @@ extern "C" {
     pub fn SecTrustSetPolicies(trust: SecTrustRef, policies: CFTypeRef) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SecTrustSetOptions(trust: SecTrustRef, options: SecTrustOptionFlags) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecTrustGetNetworkFetchAllowed(trust: SecTrustRef, allowFetch: *mut Boolean) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecTrustSetNetworkFetchAllowed(trust: SecTrustRef, allowFetch: Boolean) -> OSStatus;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecTrustSetOCSPResponse(trust: SecTrustRef, responseData: CFTypeRef) -> OSStatus;
     #[cfg(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecTrustSetSignedCertificateTimestamps(

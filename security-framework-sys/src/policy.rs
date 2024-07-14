@@ -1,11 +1,9 @@
-#[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use core_foundation_sys::base::CFOptionFlags;
 use core_foundation_sys::base::{Boolean, CFTypeID};
 use core_foundation_sys::string::CFStringRef;
 
 use crate::base::SecPolicyRef;
 
-#[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 mod revocation_flags {
     use super::CFOptionFlags;
 
@@ -17,12 +15,10 @@ mod revocation_flags {
     pub const kSecRevocationUseAnyAvailableMethod: CFOptionFlags = kSecRevocationOCSPMethod | kSecRevocationCRLMethod;
 }
 
-#[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub use revocation_flags::*;
 
 extern "C" {
     pub fn SecPolicyCreateSSL(server: Boolean, hostname: CFStringRef) -> SecPolicyRef;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecPolicyCreateRevocation(revocationFlags: CFOptionFlags) -> SecPolicyRef;
     pub fn SecPolicyGetTypeID() -> CFTypeID;
     pub fn SecPolicyCreateBasicX509() -> SecPolicyRef;

@@ -4,7 +4,6 @@ use core_foundation::array::CFArray;
 #[cfg(target_os = "macos")]
 use core_foundation::array::CFArrayRef;
 use core_foundation::base::TCFType;
-#[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
 use core_foundation_sys::base::{Boolean, CFIndex};
@@ -165,7 +164,6 @@ impl SecTrust {
 
     /// Indicates whether this trust object is permitted to
     /// fetch missing intermediate certificates from the network.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn get_network_fetch_allowed(&mut self) -> Result<bool> {
         let mut allowed = 0;
 
@@ -176,7 +174,6 @@ impl SecTrust {
 
     /// Specifies whether this trust object is permitted to
     /// fetch missing intermediate certificates from the network.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     #[inline]
     pub fn set_network_fetch_allowed(&mut self, allowed: bool) -> Result<()> {
         unsafe { cvt(SecTrustSetNetworkFetchAllowed(self.0, allowed as u8)) }
@@ -184,7 +181,6 @@ impl SecTrust {
 
     /// Attaches Online Certificate Status Protocol (OSCP) response data
     /// to this trust object.
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn set_trust_ocsp_response<I: Iterator<Item = impl AsRef<[u8]>>>(
         &mut self,
         ocsp_response: I,

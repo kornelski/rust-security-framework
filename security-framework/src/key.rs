@@ -108,7 +108,6 @@ impl KeyType {
         unsafe { Self(kSecAttrKeyTypeCAST) }
     }
 
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     #[inline(always)]
     #[must_use]
     pub fn ec() -> Self {

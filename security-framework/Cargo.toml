@@ -31,7 +31,7 @@ time = "0.3.17"
 tempfile = "3.3.0"
 
 [features]
-default = ["OSX_10_11"]
+default = ["OSX_10_12"]
 alpn = []
 session-tickets = []
 job-bless = []
