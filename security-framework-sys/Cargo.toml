@@ -20,6 +20,7 @@ libc = "0.2.150"
 default = ["OSX_10_12"]
 # Always enabled. No-op.
 OSX_10_9 = []
+# Always enabled. No-op.
 OSX_10_10 = ["OSX_10_9"]
 OSX_10_11 = ["OSX_10_10"]
 OSX_10_12 = ["OSX_10_11"]

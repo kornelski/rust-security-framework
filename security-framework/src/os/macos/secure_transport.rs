@@ -53,24 +53,20 @@ pub trait SslContextExt {
     ///
     /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
+    #[deprecated(note = "kSSLSessionOptionAllowServerIdentityChange is deprecated by Apple")]
     fn set_allow_server_identity_change(&mut self, value: bool) -> Result<()>;
 
     /// If enabled, fallback countermeasures will be used during negotiation.
     ///
     /// It should be enabled when renegotiating with a peer with a lower
     /// maximum protocol version due to an earlier failure to connect.
-    ///
-    /// Requires the `OSX_10_10` (or greater) feature.
-    #[cfg(feature = "OSX_10_10")]
     fn fallback(&self) -> Result<bool>;
 
     /// If enabled, fallback countermeasures will be used during negotiation.
     ///
     /// It should be enabled when renegotiating with a peer with a lower
     /// maximum protocol version due to an earlier failure to connect.
-    ///
-    /// Requires the `OSX_10_10` (or greater) feature.
-    #[cfg(feature = "OSX_10_10")]
+    #[deprecated(note = "kSSLSessionOptionFallback is deprecated by Apple")]
     fn set_fallback(&mut self, value: bool) -> Result<()>;
 
     /// If enabled, the handshake process will pause and return when the client
@@ -85,12 +81,14 @@ pub trait SslContextExt {
     ///
     /// Requires the `OSX_10_11` (or greater) feature.
     #[cfg(feature = "OSX_10_11")]
+    #[deprecated(note = "kSSLSessionOptionBreakOnClientHello is deprecated by Apple")]
     fn set_break_on_client_hello(&mut self, value: bool) -> Result<()>;
 }
 
 macro_rules! impl_options {
     ($($(#[$a:meta])* const $opt:ident: $get:ident & $set:ident,)*) => {
         $(
+            #[allow(deprecated)]
             $(#[$a])*
             #[inline]
             fn $set(&mut self, value: bool) -> Result<()> {
@@ -101,6 +99,7 @@ macro_rules! impl_options {
                 }
             }
 
+            #[allow(deprecated)]
             $(#[$a])*
             #[inline]
             fn $get(&self) -> Result<bool> {
@@ -184,7 +183,6 @@ impl SslContextExt for SslContext {
     impl_options! {
         #[cfg(feature = "OSX_10_11")]
         const kSSLSessionOptionAllowServerIdentityChange: allow_server_identity_change & set_allow_server_identity_change,
-        #[cfg(feature = "OSX_10_10")]
         const kSSLSessionOptionFallback: fallback & set_fallback,
         #[cfg(feature = "OSX_10_11")]
         const kSSLSessionOptionBreakOnClientHello: break_on_client_hello & set_break_on_client_hello,

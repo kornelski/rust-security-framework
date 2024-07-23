@@ -460,12 +460,14 @@ impl AsInner for SslContext {
 macro_rules! impl_options {
     ($($(#[$a:meta])* const $opt:ident: $get:ident & $set:ident,)*) => {
         $(
+            #[allow(deprecated)]
             $(#[$a])*
             #[inline(always)]
             pub fn $set(&mut self, value: bool) -> Result<()> {
                 unsafe { cvt(SSLSetSessionOption(self.0, $opt, value as Boolean)) }
             }
 
+            #[allow(deprecated)]
             $(#[$a])*
             #[inline]
             pub fn $get(&self) -> Result<bool> {
