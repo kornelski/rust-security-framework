@@ -8,7 +8,7 @@ publish = false
 crate-type = ["staticlib"]
 
 [dependencies]
-core-foundation = "0.9.3"
+core-foundation = "0.10.0"
 security-framework = { path = "../security-framework" }
 security-framework-sys = { path = "../security-framework-sys" }
 
