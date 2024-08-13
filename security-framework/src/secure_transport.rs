@@ -798,29 +798,6 @@ impl SslContext {
         }
     }
 
-    /// Sets whether a protocol is enabled or not.
-    ///
-    /// # Note
-    ///
-    /// On OSX this is a deprecated API in favor of `set_protocol_version_max` and
-    /// `set_protocol_version_min`, although if you're working with OSX 10.8 or before you may have
-    /// to use this API instead.
-    #[cfg(target_os = "macos")]
-    #[deprecated(note = "use `set_protocol_version_max`")]
-    pub fn set_protocol_version_enabled(
-        &mut self,
-        protocol: SslProtocol,
-        enabled: bool,
-    ) -> Result<()> {
-        unsafe {
-            cvt(SSLSetProtocolVersionEnabled(
-                self.0,
-                protocol.0,
-                Boolean::from(enabled),
-            ))
-        }
-    }
-
     /// Returns the number of bytes which can be read without triggering a
     /// `read` call in the underlying stream.
     #[inline]
