@@ -14,9 +14,8 @@ libc = "0.2.139"
 ctest2 = "0.4.7"
 
 [features]
-default = ["OSX_10_10", "security-framework-sys/OSX_10_9"]
-OSX_10_10 = ["security-framework-sys/OSX_10_10"]
-OSX_10_11 = ["OSX_10_10", "security-framework-sys/OSX_10_11"]
+default = ["OSX_10_11"]
+OSX_10_11 = ["security-framework-sys/OSX_10_11"]
 OSX_10_12 = ["OSX_10_11", "security-framework-sys/OSX_10_12"]
 OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13"]
 

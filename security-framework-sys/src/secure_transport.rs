@@ -36,13 +36,11 @@ pub const kSSLSessionOptionBreakOnClientAuth: SSLSessionOption = 2;
 #[deprecated(note = "deprecated by Apple")]
 pub const kSSLSessionOptionFalseStart: SSLSessionOption = 3;
 pub const kSSLSessionOptionSendOneByteRecord: SSLSessionOption = 4;
-#[cfg(all(feature = "OSX_10_11", target_os = "macos"))]
 #[deprecated(note = "deprecated by Apple")]
 pub const kSSLSessionOptionAllowServerIdentityChange: SSLSessionOption = 5;
 #[cfg(target_os = "macos")]
 #[deprecated(note = "deprecated by Apple")]
 pub const kSSLSessionOptionFallback: SSLSessionOption = 6;
-#[cfg(all(feature = "OSX_10_11", target_os = "macos"))]
 #[deprecated(note = "deprecated by Apple")]
 pub const kSSLSessionOptionBreakOnClientHello: SSLSessionOption = 7;
 

@@ -43,16 +43,12 @@ pub trait SslContextExt {
     ///
     /// It is disabled by default to protect against triple handshake attacks.
     ///
-    /// Requires the `OSX_10_11` (or greater) feature.
-    #[cfg(feature = "OSX_10_11")]
     fn allow_server_identity_change(&self) -> Result<bool>;
 
     /// If enabled, server identity changes are allowed during renegotiation.
     ///
     /// It is disabled by default to protect against triple handshake attacks.
     ///
-    /// Requires the `OSX_10_11` (or greater) feature.
-    #[cfg(feature = "OSX_10_11")]
     #[deprecated(note = "kSSLSessionOptionAllowServerIdentityChange is deprecated by Apple")]
     fn set_allow_server_identity_change(&mut self, value: bool) -> Result<()>;
 
@@ -72,15 +68,11 @@ pub trait SslContextExt {
     /// If enabled, the handshake process will pause and return when the client
     /// hello is recieved to support server name identification.
     ///
-    /// Requires the `OSX_10_11` (or greater) feature.
-    #[cfg(feature = "OSX_10_11")]
     fn break_on_client_hello(&self) -> Result<bool>;
 
     /// If enabled, the handshake process will pause and return when the client
     /// hello is recieved to support server name identification.
     ///
-    /// Requires the `OSX_10_11` (or greater) feature.
-    #[cfg(feature = "OSX_10_11")]
     #[deprecated(note = "kSSLSessionOptionBreakOnClientHello is deprecated by Apple")]
     fn set_break_on_client_hello(&mut self, value: bool) -> Result<()>;
 }
@@ -181,10 +173,8 @@ impl SslContextExt for SslContext {
     }
 
     impl_options! {
-        #[cfg(feature = "OSX_10_11")]
         const kSSLSessionOptionAllowServerIdentityChange: allow_server_identity_change & set_allow_server_identity_change,
         const kSSLSessionOptionFallback: fallback & set_fallback,
-        #[cfg(feature = "OSX_10_11")]
         const kSSLSessionOptionBreakOnClientHello: break_on_client_hello & set_break_on_client_hello,
     }
 }
@@ -194,14 +184,10 @@ impl SslContextExt for SslContext {
 pub trait MidHandshakeSslStreamExt {
     /// Returns `true` iff `break_on_client_hello` was set and the handshake
     /// has progressed to that point.
-    ///
-    /// Requires the `OSX_10_11` (or greater) feature.
-    #[cfg(feature = "OSX_10_11")]
     fn client_hello_received(&self) -> bool;
 }
 
 impl<S> MidHandshakeSslStreamExt for MidHandshakeSslStream<S> {
-    #[cfg(feature = "OSX_10_11")]
     fn client_hello_received(&self) -> bool {
         self.error().code() == errSSLClientHelloReceived
     }

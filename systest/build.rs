@@ -3,11 +3,6 @@ use std::env;
 fn main() {
     let mut test = ctest2::TestGenerator::new();
 
-    test.cfg("feature", Some("OSX_10_9"));
-    #[cfg(feature = "OSX_10_10")]
-    test.cfg("feature", Some("OSX_10_10"));
-    #[cfg(feature = "OSX_10_11")]
-    test.cfg("feature", Some("OSX_10_11"));
     #[cfg(feature = "OSX_10_12")]
     test.cfg("feature", Some("OSX_10_12"));
 
