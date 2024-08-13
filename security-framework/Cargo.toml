@@ -24,7 +24,7 @@ log = { version = "0.4.20", optional = true }
 
 [dev-dependencies]
 hex = "0.4.3"
-env_logger = "0.11" # old for MSRV test
+env_logger = "0.10" # old for MSRV test
 x509-parser = "0.16"
 time = "0.3.23"
 tempfile = "3.12.0"
