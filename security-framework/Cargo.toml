@@ -35,14 +35,12 @@ default = ["OSX_10_12"]
 alpn = []
 session-tickets = []
 job-bless = []
-# deprecated, do not use
-serial-number-bigint = ["dep:num-bigint"]
 
 OSX_10_9 = ["security-framework-sys/OSX_10_9"]
 OSX_10_10 = ["OSX_10_9", "security-framework-sys/OSX_10_10"]
 OSX_10_11 = ["OSX_10_10", "security-framework-sys/OSX_10_11"]
 OSX_10_12 = ["OSX_10_11", "security-framework-sys/OSX_10_12"]
-OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13", "alpn", "session-tickets", "serial-number-bigint"]
+OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13", "alpn", "session-tickets"]
 OSX_10_14 = ["OSX_10_13", "security-framework-sys/OSX_10_14"]
 OSX_10_15 = ["OSX_10_14", "security-framework-sys/OSX_10_15"]
 
