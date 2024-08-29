@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest ]
-        # NOTE: when changing the MSRV version, change it below as well
         rust: [ 1.70.0, stable, nightly ]
 
     steps:
@@ -24,9 +23,6 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-        # `x509_parser` dev-dependency has transitive dependency `time` which
-        # has a 6-month MSRV policy, don't run tests on MSRV version since they
-        # will always fail.
       - name: Run cargo test
         run: cargo test --all-features --all
 
@@ -71,9 +67,9 @@ jobs:
       - name: Run check
         run: cargo check --all-features -p security-framework --target aarch64-apple-ios
 
-  apple-silicon:
-    name: Apple Silicon compile-check
-    runs-on: ubuntu-latest
+  apple-intel:
+    name: Old x86-64 test
+    runs-on: macos-13
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -82,7 +78,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          target: aarch64-apple-darwin
-      - name: Run check
-        run: cargo check --all-features -p security-framework --target aarch64-apple-darwin
+          target: x86_64-apple-darwin
+      - name: Run test
+        run: cargo test --all-features -p security-framework --target x86_64-apple-darwin
 
