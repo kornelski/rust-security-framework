@@ -11,7 +11,9 @@ use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTypeRef};
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
-use security_framework_sys::keychain_item::{SecItemAdd, SecItemCopyMatching};
+use security_framework_sys::keychain_item::{
+    SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate
+};
 use std::collections::HashMap;
 use std::fmt;
 use std::ptr;
@@ -63,11 +65,6 @@ impl ItemClass {
     pub fn identity() -> Self {
         unsafe { Self(kSecClassIdentity) }
     }
-
-    #[inline]
-    fn to_value(self) -> CFType {
-        unsafe { CFType::wrap_under_get_rule(self.0.cast()) }
-    }
 }
 
 /// Specifies the type of keys to search for.
@@ -89,11 +86,6 @@ impl KeyClass {
     #[inline(always)]
     #[must_use] pub fn symmetric() -> Self {
         unsafe { Self(kSecAttrKeyClassSymmetric) }
-    }
-
-    #[inline]
-    fn to_value(self) -> CFType {
-        unsafe { CFType::wrap_under_get_rule(self.0.cast()) }
     }
 }
 
@@ -291,121 +283,137 @@ impl ItemSearchOptions {
         self
     }
 
-    /// Search for objects.
-    pub fn search(&self) -> Result<Vec<SearchResult>> {
+    /// Populates a `CFDictionary` to be passed to `update_item` or `delete_item`.
+    #[inline(always)]
+    pub fn to_dictionary(&self) -> CFDictionary {
         unsafe {
-            let mut params = vec![];
+            let mut params = CFMutableDictionary::from_CFType_pairs(&[]);
 
             if let Some(ref keychains) = self.keychains {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecMatchSearchList),
-                    keychains.as_CFType(),
-                ));
+                params.add(
+                    &kSecMatchSearchList.to_void(),
+                    &keychains.as_CFType().to_void(),
+                );
             }
 
             if let Some(class) = self.class {
-                params.push((CFString::wrap_under_get_rule(kSecClass), class.to_value()));
+                params.add(&kSecClass.to_void(), &class.0.to_void());
             }
 
             if let Some(case_insensitive) = self.case_insensitive {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecMatchCaseInsensitive),
-                    CFBoolean::from(case_insensitive).as_CFType()
-                ));
+                params.add(
+                    &kSecMatchCaseInsensitive.to_void(),
+                    &CFBoolean::from(case_insensitive).to_void()
+                );
             }
 
             if let Some(key_class) = self.key_class {
-                params.push((CFString::wrap_under_get_rule(kSecAttrKeyClass), key_class.to_value()));
+                params.add(
+                    &kSecAttrKeyClass.to_void(),
+                    &key_class.0.to_void()
+                );
             }
 
             if self.load_refs {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecReturnRef),
-                    CFBoolean::true_value().into_CFType(),
-                ));
+                params.add(
+                    &kSecReturnRef.to_void(),
+                    &CFBoolean::true_value().to_void(),
+                );
             }
 
             if self.load_attributes {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecReturnAttributes),
-                    CFBoolean::true_value().into_CFType(),
-                ));
+                params.add(
+                    &kSecReturnAttributes.to_void(),
+                    &CFBoolean::true_value().to_void(),
+                );
             }
 
             if self.load_data {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecReturnData),
-                    CFBoolean::true_value().into_CFType(),
-                ));
+                params.add(
+                    &kSecReturnData.to_void(),
+                    &CFBoolean::true_value().to_void(),
+                );
             }
 
             if let Some(limit) = self.limit {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecMatchLimit),
-                    limit.to_value(),
-                ));
+                params.add(
+                    &kSecMatchLimit.to_void(),
+                    &limit.to_value().to_void(),
+                );
             }
 
             if let Some(ref label) = self.label {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrLabel),
-                    label.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrLabel.to_void(),
+                    &label.to_void(),
+                );
             }
 
             if let Some(ref trusted_only) = self.trusted_only {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecMatchTrustedOnly),
-                    if *trusted_only { CFBoolean::true_value().into_CFType() } else { CFBoolean::false_value().into_CFType() },
-                ));
+                params.add(
+                    &kSecMatchTrustedOnly.to_void(),
+                    &(if *trusted_only {
+                        CFBoolean::true_value()
+                    } else {
+                        CFBoolean::false_value()
+                    })
+                    .to_void()
+                );
             }
 
             if let Some(ref service) = self.service {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrService),
-                    service.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrService.to_void(),
+                    &service.to_void(),
+                );
             }
             
             #[cfg(target_os = "macos")]
             {
                 if let Some(ref subject) = self.subject {
-                    params.push((
-                        CFString::wrap_under_get_rule(kSecMatchSubjectWholeString),
-                        subject.as_CFType(),
-                    ));
+                    params.add(
+                        &kSecMatchSubjectWholeString.to_void(),
+                        &subject.to_void(),
+                    );
                 }
             }
 
             if let Some(ref account) = self.account {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrAccount),
-                    account.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrAccount.to_void(),
+                    &account.to_void(),
+                );
             }
 
             if let Some(ref access_group) = self.access_group {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrAccessGroup),
-                    access_group.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrAccessGroup.to_void(),
+                    &access_group.to_void(),
+                );
             }
 
             if let Some(ref pub_key_hash) = self.pub_key_hash {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrPublicKeyHash),
-                    pub_key_hash.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrPublicKeyHash.to_void(),
+                    &pub_key_hash.to_void(),
+                );
             }
 
             if let Some(ref app_label) = self.app_label {
-                params.push((
-                    CFString::wrap_under_get_rule(kSecAttrApplicationLabel),
-                    app_label.as_CFType(),
-                ));
+                params.add(
+                    &kSecAttrApplicationLabel.to_void(),
+                    &app_label.to_void(),
+                );
             }
 
-            let params = CFDictionary::from_CFType_pairs(&params);
+            params.to_immutable()
+        }
+    }
+
+    /// Search for objects.
+    pub fn search(&self) -> Result<Vec<SearchResult>> {
+        unsafe {
+            let params = self.to_dictionary();
 
             let mut ret = ptr::null();
             cvt(SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret))?;
@@ -633,7 +641,7 @@ impl ItemAddOptions {
         self.service = Some(service.as_ref().into());
         self
     }
-    /// Populates a `CFDictionary` to be passed to
+    /// Populates a `CFDictionary` to be passed to `add_item`.
     pub fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 
@@ -733,6 +741,153 @@ impl AddRef {
     }
 }
 
+/// Builder-pattern struct for specifying options for `update_item` (`SecUpdateItem`
+/// wrapper).
+///
+/// When finished populating options, call `to_dictionary()` and pass the
+/// resulting `CFDictionary` to `update_item`.
+#[derive(Default)]
+pub struct ItemUpdateOptions {
+    /// Optional value (by ref or data) of the item to update.
+    pub value: Option<ItemAddValue>,
+    /// Optional kSecAttrAccount attribute.
+    pub account_name: Option<CFString>,
+    /// Optional kSecAttrAccessGroup attribute.
+    pub access_group: Option<CFString>,
+    /// Optional kSecAttrComment attribute.
+    pub comment: Option<CFString>,
+    /// Optional kSecAttrDescription attribute.
+    pub description: Option<CFString>,
+    /// Optional kSecAttrLabel attribute.
+    pub label: Option<CFString>,
+    /// Optional kSecAttrService attribute.
+    pub service: Option<CFString>,
+    /// Optional keychain location.
+    pub location: Option<Location>,
+    /// Optional kSecClass.
+    /// 
+    /// This overrides the class provided by `value`.
+    ///
+    /// If set to `None`, `value`'s class is ignored, and not added to the `CFDictionary`.
+    pub class: Option<Option<ItemClass>>,
+}
+
+impl ItemUpdateOptions {
+    /// Specifies the item to add.
+    #[must_use]
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Specifies the value of the item.
+    pub fn set_value(&mut self, value: ItemAddValue) -> &mut Self {
+        self.value = Some(value);
+        self
+    }
+    /// Specifies the `kSecClass` attribute.
+    pub fn set_class(&mut self, class: Option<ItemClass>) -> &mut Self {
+        self.class = Some(class);
+        self
+    }
+    /// Specifies the `kSecAttrAccount` attribute.
+    pub fn set_account_name(&mut self, account_name: impl AsRef<str>) -> &mut Self {
+        self.account_name = Some(account_name.as_ref().into());
+        self
+    }
+    /// Specifies the `kSecAttrAccessGroup` attribute.
+    pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
+        self.access_group = Some(access_group.as_ref().into());
+        self
+    }
+    /// Specifies the `kSecAttrComment` attribute.
+    pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
+        self.comment = Some(comment.as_ref().into());
+        self
+    }
+    /// Specifies the `kSecAttrDescription` attribute.
+    pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
+        self.description = Some(description.as_ref().into());
+        self
+    }
+    /// Specifies the `kSecAttrLabel` attribute.
+    pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
+        self.label = Some(label.as_ref().into());
+        self
+    }
+    /// Specifies which keychain to add the item to.
+    pub fn set_location(&mut self, location: Location) -> &mut Self {
+        self.location = Some(location);
+        self
+    }
+    /// Specifies the `kSecAttrService` attribute.
+    pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
+        self.service = Some(service.as_ref().into());
+        self
+    }
+    /// Populates a `CFDictionary` to be passed to `update_item`.
+    pub fn to_dictionary(&self) -> CFDictionary {
+        let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
+
+        if let Some(ref value) = self.value {
+            let class_opt = match value {
+                ItemAddValue::Ref(ref_) => ref_.class(),
+                ItemAddValue::Data { class, .. } => Some(*class),
+            };
+            // We only write value's class if `set_class` wasn't called.
+            if self.class.is_none() {
+                if let Some(class) = class_opt {
+                    dict.add(&unsafe { kSecClass }.to_void(), &class.0.to_void());
+                }
+            }
+            let value_pair = match value {
+                ItemAddValue::Ref(ref_) => (unsafe { kSecValueRef }.to_void(), ref_.ref_()),
+                ItemAddValue::Data { data, .. } => (unsafe { kSecValueData }.to_void(), data.to_void()),
+            };
+            dict.add(&value_pair.0, &value_pair.1);
+        }
+        if let Some(Some(class)) = self.class {
+            dict.add(&unsafe { kSecClass }.to_void(), &class.0.to_void());
+        }
+        if let Some(location) = &self.location {
+            match location {
+                #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+                Location::DataProtectionKeychain => {
+                    dict.add(
+                        &unsafe { kSecUseDataProtectionKeychain }.to_void(),
+                        &CFBoolean::true_value().to_void(),
+                    );
+                }
+                #[cfg(target_os = "macos")]
+                Location::DefaultFileKeychain => {}
+                #[cfg(target_os = "macos")]
+                Location::FileKeychain(keychain) => {
+                    dict.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
+                },
+            }
+        }
+        if let Some(account_name) = &self.account_name {
+            dict.add(&unsafe { kSecAttrAccount }.to_void(), &account_name.to_void());
+        }
+        if let Some(access_group) = &self.access_group {
+            dict.add(&unsafe { kSecAttrAccessGroup }.to_void(), &access_group.to_void());
+        }
+        if let Some(comment) = &self.comment {
+            dict.add(&unsafe { kSecAttrComment }.to_void(), &comment.to_void());
+        }
+        if let Some(description) = &self.description {
+            dict.add(&unsafe { kSecAttrDescription }.to_void(), &description.to_void());
+        }
+        if let Some(label) = &self.label {
+            dict.add(&unsafe { kSecAttrLabel }.to_void(), &label.to_void());
+        }
+        if let Some(service) = &self.service {
+            dict.add(&unsafe { kSecAttrService }.to_void(), &service.to_void());
+        }
+
+        dict.to_immutable()
+    }
+}
+
 /// Which keychain to add an item to.
 ///
 /// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
@@ -760,6 +915,20 @@ pub enum Location {
 /// `CFDictionary`.
 pub fn add_item(add_params: CFDictionary) -> Result<()> {
     cvt(unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) })
+}
+
+/// Translates to `SecItemUpdate`. Use `ItemSearchOptions` to build a `search_params` `CFDictionary`
+/// and `ItemUpdateOptions` to build an `update_params` `CFDictionary`.
+pub fn update_item(search_params: CFDictionary, update_params: CFDictionary) -> Result<()> {
+    cvt(unsafe { SecItemUpdate(
+        search_params.as_concrete_TypeRef(), update_params.as_concrete_TypeRef()
+    )})
+}
+
+/// Translates to `SecItemDelete`. Use `ItemSearchOptions` to build a `search_params`
+/// `CFDictionary`.
+pub fn delete_item(search_params: CFDictionary) -> Result<()> {
+    cvt(unsafe { SecItemDelete(search_params.as_concrete_TypeRef()) })
 }
 
 #[cfg(test)]
