@@ -13,7 +13,7 @@ jobs:
       matrix:
         os: [ macos-latest ]
         # NOTE: when changing the MSRV version, change it below as well
-        rust: [ 1.70.0, stable, beta ]
+        rust: [ 1.70.0, stable, nightly ]
 
     steps:
       - name: Checkout sources
@@ -32,6 +32,28 @@ jobs:
 
       - name: Check default features
         run: cargo check --all
+
+  lints:
+    name: Lints and Breaking Changes
+    runs-on: macos-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: DO NOT USE RUSTFMT
+        run: "if cargo fmt --quiet --check -- --config-path=/dev/null; then echo >&2 'Do not reformat the code with rustfmt. This project does not use rustfmt.'; fi"
+
+      - name: SemVer check
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+
+      - name: Run cargo clippy
+        run: cargo clippy --all-features
 
   ios:
     name: iOS compile-check
@@ -64,21 +86,3 @@ jobs:
       - name: Run check
         run: cargo check --all-features -p security-framework --target aarch64-apple-darwin
 
-  lints:
-    name: Lints
-    runs-on: macos-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-          components: clippy, rustfmt
-
-      - name: DO NOT USE RUSTFMT
-        run: "if cargo fmt --quiet --check -- --config-path=/dev/null; then echo >&2 'Do not reformat the code with rustfmt. This project does not use rustfmt.'; fi"
-
-      - name: Run cargo clippy
-        run: cargo clippy --all-features
