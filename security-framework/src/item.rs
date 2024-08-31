@@ -284,8 +284,8 @@ impl ItemSearchOptions {
     }
 
     /// Populates a `CFDictionary` to be passed to `update_item` or `delete_item`.
-    #[inline(always)]
-    pub fn to_dictionary(&self) -> CFDictionary {
+    #[inline]
+    fn to_dictionary(&self) -> CFDictionary {
         unsafe {
             let mut params = CFMutableDictionary::from_CFType_pairs(&[]);
 
@@ -411,6 +411,7 @@ impl ItemSearchOptions {
     }
 
     /// Search for objects.
+    #[inline]
     pub fn search(&self) -> Result<Vec<SearchResult>> {
         unsafe {
             let params = self.to_dictionary();
@@ -440,6 +441,14 @@ impl ItemSearchOptions {
 
             Ok(items)
         }
+    }
+
+    /// Deletes objects matching the search options.
+    ///
+    /// Translates to `SecItemDelete`.
+    #[inline]
+    pub fn delete(&self) -> Result<()> {
+        cvt(unsafe { SecItemDelete(self.to_dictionary().as_concrete_TypeRef()) })
     }
 }
 
@@ -578,8 +587,7 @@ impl SearchResult {
 /// Builder-pattern struct for specifying options for `add_item` (`SecAddItem`
 /// wrapper).
 ///
-/// When finished populating options, call `to_dictionary()` and pass the
-/// resulting `CFDictionary` to `add_item`.
+/// When finished populating options call [`Self::add`].
 pub struct ItemAddOptions {
     /// The value (by ref or data) of the item to add, required.
     pub value: ItemAddValue,
@@ -601,47 +609,56 @@ pub struct ItemAddOptions {
 
 impl ItemAddOptions {
     /// Specifies the item to add.
+    #[inline]
     #[must_use]
     pub fn new(value: ItemAddValue) -> Self {
         Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None, access_group: None }
     }
 
     /// Specifies the `kSecAttrAccount` attribute.
+    #[inline]
     pub fn set_account_name(&mut self, account_name: impl AsRef<str>) -> &mut Self {
         self.account_name = Some(account_name.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrAccessGroup` attribute.
+    #[inline]
     pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
         self.access_group = Some(access_group.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrComment` attribute.
+    #[inline]
     pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
         self.comment = Some(comment.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrDescription` attribute.
+    #[inline]
     pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
         self.description = Some(description.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrLabel` attribute.
+    #[inline]
     pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
         self.label = Some(label.as_ref().into());
         self
     }
     /// Specifies which keychain to add the item to.
+    #[inline]
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
     }
     /// Specifies the `kSecAttrService` attribute.
+    #[inline]
     pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
         self.service = Some(service.as_ref().into());
         self
     }
     /// Populates a `CFDictionary` to be passed to `add_item`.
+    #[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]
     pub fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 
@@ -697,6 +714,14 @@ impl ItemAddOptions {
 
         dict.to_immutable()
     }
+    /// Adds the item to the keychain.
+    ///
+    /// Translates to `SecItemAdd`.
+    #[inline]
+    pub fn add(&self) -> Result<()> {
+        #[allow(deprecated)]
+        cvt(unsafe { SecItemAdd(self.to_dictionary().as_concrete_TypeRef(), std::ptr::null_mut()) })
+    }
 }
 
 /// Value of an item to add to the keychain.
@@ -744,12 +769,11 @@ impl AddRef {
 /// Builder-pattern struct for specifying options for `update_item` (`SecUpdateItem`
 /// wrapper).
 ///
-/// When finished populating options, call `to_dictionary()` and pass the
-/// resulting `CFDictionary` to `update_item`.
+/// When finished populating options call [`update_item`].
 #[derive(Default)]
 pub struct ItemUpdateOptions {
     /// Optional value (by ref or data) of the item to update.
-    pub value: Option<ItemAddValue>,
+    pub value: Option<ItemUpdateValue>,
     /// Optional kSecAttrAccount attribute.
     pub account_name: Option<CFString>,
     /// Optional kSecAttrAccessGroup attribute.
@@ -765,11 +789,9 @@ pub struct ItemUpdateOptions {
     /// Optional keychain location.
     pub location: Option<Location>,
     /// Optional kSecClass.
-    /// 
-    /// This overrides the class provided by `value`.
     ///
-    /// If set to `None`, `value`'s class is ignored, and not added to the `CFDictionary`.
-    pub class: Option<Option<ItemClass>>,
+    /// Overwrites `value`'s class if set.
+    pub class: Option<ItemClass>,
 }
 
 impl ItemUpdateOptions {
@@ -780,72 +802,82 @@ impl ItemUpdateOptions {
     }
 
     /// Specifies the value of the item.
-    pub fn set_value(&mut self, value: ItemAddValue) -> &mut Self {
+    #[inline]
+    pub fn set_value(&mut self, value: ItemUpdateValue) -> &mut Self {
         self.value = Some(value);
         self
     }
     /// Specifies the `kSecClass` attribute.
-    pub fn set_class(&mut self, class: Option<ItemClass>) -> &mut Self {
+    #[inline]
+    pub fn set_class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
         self
     }
     /// Specifies the `kSecAttrAccount` attribute.
+    #[inline]
     pub fn set_account_name(&mut self, account_name: impl AsRef<str>) -> &mut Self {
         self.account_name = Some(account_name.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrAccessGroup` attribute.
+    #[inline]
     pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
         self.access_group = Some(access_group.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrComment` attribute.
+    #[inline]
     pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
         self.comment = Some(comment.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrDescription` attribute.
+    #[inline]
     pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
         self.description = Some(description.as_ref().into());
         self
     }
     /// Specifies the `kSecAttrLabel` attribute.
+    #[inline]
     pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
         self.label = Some(label.as_ref().into());
         self
     }
     /// Specifies which keychain to add the item to.
+    #[inline]
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
     }
     /// Specifies the `kSecAttrService` attribute.
+    #[inline]
     pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
         self.service = Some(service.as_ref().into());
         self
     }
     /// Populates a `CFDictionary` to be passed to `update_item`.
-    pub fn to_dictionary(&self) -> CFDictionary {
+    #[inline]
+    fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 
         if let Some(ref value) = self.value {
             let class_opt = match value {
-                ItemAddValue::Ref(ref_) => ref_.class(),
-                ItemAddValue::Data { class, .. } => Some(*class),
+                ItemUpdateValue::Ref(ref_) => ref_.class(),
+                ItemUpdateValue::Data(_) => None,
             };
-            // We only write value's class if `set_class` wasn't called.
+            // `self.class` overwrites `value`'s class if set.
             if self.class.is_none() {
                 if let Some(class) = class_opt {
                     dict.add(&unsafe { kSecClass }.to_void(), &class.0.to_void());
                 }
             }
             let value_pair = match value {
-                ItemAddValue::Ref(ref_) => (unsafe { kSecValueRef }.to_void(), ref_.ref_()),
-                ItemAddValue::Data { data, .. } => (unsafe { kSecValueData }.to_void(), data.to_void()),
+                ItemUpdateValue::Ref(ref_) => (unsafe { kSecValueRef }.to_void(), ref_.ref_()),
+                ItemUpdateValue::Data(data) => (unsafe { kSecValueData }.to_void(), data.to_void()),
             };
             dict.add(&value_pair.0, &value_pair.1);
         }
-        if let Some(Some(class)) = self.class {
+        if let Some(class) = self.class {
             dict.add(&unsafe { kSecClass }.to_void(), &class.0.to_void());
         }
         if let Some(location) = &self.location {
@@ -888,6 +920,17 @@ impl ItemUpdateOptions {
     }
 }
 
+/// Value of an item to update in the keychain.
+pub enum ItemUpdateValue {
+    /// Pass item by Ref (kSecValueRef)
+    Ref(AddRef),
+    /// Pass item by Data (kSecValueData)
+    ///
+    /// Note that if the [`ItemClass`] of the updated data is different to the original data
+    /// stored in the keychain, it should be specified using [`ItemUpdateOptions::set_class`].
+    Data(CFData),
+}
+
 /// Which keychain to add an item to.
 ///
 /// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
@@ -913,22 +956,18 @@ pub enum Location {
 
 /// Translates to `SecItemAdd`. Use `ItemAddOptions` to build an `add_params`
 /// `CFDictionary`.
+#[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]
+#[allow(deprecated)]
 pub fn add_item(add_params: CFDictionary) -> Result<()> {
     cvt(unsafe { SecItemAdd(add_params.as_concrete_TypeRef(), std::ptr::null_mut()) })
 }
 
-/// Translates to `SecItemUpdate`. Use `ItemSearchOptions` to build a `search_params` `CFDictionary`
-/// and `ItemUpdateOptions` to build an `update_params` `CFDictionary`.
-pub fn update_item(search_params: CFDictionary, update_params: CFDictionary) -> Result<()> {
+/// Translates to `SecItemUpdate`.
+pub fn update_item(search_params: &ItemSearchOptions, update_params: &ItemUpdateOptions) -> Result<()> {
     cvt(unsafe { SecItemUpdate(
-        search_params.as_concrete_TypeRef(), update_params.as_concrete_TypeRef()
+        search_params.to_dictionary().as_concrete_TypeRef(),
+        update_params.to_dictionary().as_concrete_TypeRef()
     )})
-}
-
-/// Translates to `SecItemDelete`. Use `ItemSearchOptions` to build a `search_params`
-/// `CFDictionary`.
-pub fn delete_item(search_params: CFDictionary) -> Result<()> {
-    cvt(unsafe { SecItemDelete(search_params.as_concrete_TypeRef()) })
 }
 
 #[cfg(test)]
