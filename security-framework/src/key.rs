@@ -131,10 +131,18 @@ unsafe impl Sync for SecKey {}
 unsafe impl Send for SecKey {}
 
 impl SecKey {
+    /// Translates to `SecKeyCreateRandomKey`
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    #[allow(deprecated)]
+    #[doc(alias = "SecKeyCreateRandomKey")]
+    pub fn new(options: &GenerateKeyOptions) -> Result<Self, CFError> {
+        Self::generate(options.to_dictionary())
+    }
+
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     /// Translates to `SecKeyCreateRandomKey`
-    /// `GenerateKeyOptions` provides a helper to create an attribute
-    /// `CFDictionary`.
+    /// `GenerateKeyOptions` provides a helper to create an attribute `CFDictionary`.
+    #[deprecated(note = "Use SecKey::new")]
     pub fn generate(attributes: CFDictionary) -> Result<Self, CFError> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let sec_key = unsafe { SecKeyCreateRandomKey(attributes.as_concrete_TypeRef(), &mut error)};
@@ -307,6 +315,7 @@ impl GenerateKeyOptions {
     }
 
     /// Collect options into a `CFDictioanry`
+    #[deprecated(note = "Pass the options to SecKey::new")]
     pub fn to_dictionary(&self) -> CFDictionary {
         #[cfg(target_os = "macos")]
         use security_framework_sys::item::kSecUseKeychain;
