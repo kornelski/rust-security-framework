@@ -36,6 +36,24 @@ extern "C" {
     #[cfg(target_os = "macos")]
     pub static kSecPropertyTypeDate: CFStringRef;
 
+    // certificate policies
+    pub static kSecPolicyAppleX509Basic: CFStringRef;
+    pub static kSecPolicyAppleSSL: CFStringRef;
+    pub static kSecPolicyAppleSMIME: CFStringRef;
+    pub static kSecPolicyAppleEAP: CFStringRef;
+    pub static kSecPolicyAppleIPsec: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecPolicyApplePKINITClient: CFStringRef;
+    #[cfg(target_os = "macos")]
+    pub static kSecPolicyApplePKINITServer: CFStringRef;
+    pub static kSecPolicyAppleCodeSigning: CFStringRef;
+    pub static kSecPolicyMacAppStoreReceipt: CFStringRef;
+    pub static kSecPolicyAppleIDValidation: CFStringRef;
+    pub static kSecPolicyAppleTimeStamping: CFStringRef;
+    pub static kSecPolicyAppleRevocation: CFStringRef;
+    pub static kSecPolicyApplePassbookSigning: CFStringRef;
+    pub static kSecPolicyApplePayIssuerEncryption: CFStringRef;
+
     pub fn SecCertificateGetTypeID() -> CFTypeID;
     pub fn SecCertificateCreateWithData(
         allocator: CFAllocatorRef,
