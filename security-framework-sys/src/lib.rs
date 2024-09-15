@@ -17,6 +17,7 @@ pub mod certificate;
 #[cfg(target_os = "macos")]
 pub mod certificate_oids;
 pub mod cipher_suite;
+pub mod cms;
 #[cfg(target_os = "macos")]
 pub mod code_signing;
 #[cfg(target_os = "macos")]

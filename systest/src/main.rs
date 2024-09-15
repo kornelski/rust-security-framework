@@ -39,5 +39,6 @@ use security_framework_sys::secure_transport::*;
 use security_framework_sys::transform::*;
 use security_framework_sys::trust::*;
 use security_framework_sys::trust_settings::*;
+use security_framework_sys::cms::*;
 
 include!(concat!(env!("OUT_DIR"), "/all.rs"));
