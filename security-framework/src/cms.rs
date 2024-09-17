@@ -85,10 +85,10 @@ mod encoder {
         }
 
         /// Sets the digest algorithm to use for the signer.
-        /// Can be one of the predefined types:
+        /// Can be one of the predefined constants:
         ///
-        /// * `kCMSEncoderDigestAlgorithmSHA1`
-        /// * `kCMSEncoderDigestAlgorithmSHA256`
+        /// * `CMS_DIGEST_ALGORITHM_SHA1`
+        /// * `CMS_DIGEST_ALGORITHM_SHA256`
         pub fn set_signer_algorithm(&self, digest_algorithm: &str) -> Result<()> {
             let alg = CFString::new(digest_algorithm);
 
