@@ -1,6 +1,6 @@
 [package]
 name = "security-framework-sys"
-version = "2.11.1"
+version = "2.12.0"
 authors = ["Steven Fackler <sfackler@gmail.com>", "Kornel <kornel@geekhood.net>"]
 license = "MIT OR Apache-2.0"
 description = "Apple `Security.framework` low-level FFI bindings"

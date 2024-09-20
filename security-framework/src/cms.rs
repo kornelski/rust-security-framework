@@ -625,8 +625,6 @@ mod tests {
             .next()
             .unwrap();
 
-        let encoder = CMSEncoder::create().unwrap();
-
         let message = cms_encode_content(
             &[identity.clone()],
             &chain[0..1],
