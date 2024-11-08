@@ -501,7 +501,7 @@ mod decoder {
 #[cfg(test)]
 mod tests {
     use security_framework_sys::cms::CMSSignerStatus;
-    use crate::cms::{cms_encode_content, CMSDecoder, CMSEncoder, SignedAttributes};
+    use crate::cms::{cms_encode_content, CMSDecoder, SignedAttributes};
     use crate::import_export::{ImportedIdentity, Pkcs12ImportOptions};
     use crate::policy::SecPolicy;
 
