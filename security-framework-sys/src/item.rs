@@ -28,6 +28,7 @@ extern "C" {
     pub static kSecAttrLabel: CFStringRef;
     pub static kSecAttrIsPermanent: CFStringRef;
     pub static kSecAttrPublicKeyHash: CFStringRef;
+    pub static kSecAttrSerialNumber: CFStringRef;
     pub static kSecPrivateKeyAttrs: CFStringRef;
     pub static kSecPublicKeyAttrs: CFStringRef;
 
