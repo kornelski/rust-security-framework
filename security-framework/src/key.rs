@@ -43,6 +43,7 @@ use security_framework_sys::key::{
     SecKeyCopyAttributes, SecKeyCopyExternalRepresentation,
     SecKeyCreateSignature, SecKeyCreateRandomKey,
     SecKeyCopyPublicKey,
+    SecKeyCreateDecryptedData, SecKeyCreateEncryptedData,
 };
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use security_framework_sys::item::kSecAttrApplicationLabel;
@@ -193,6 +194,40 @@ impl SecKey {
         }
 
         Some(unsafe { SecKey::wrap_under_create_rule(pub_seckey) })
+    }
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    /// Encrypts a block of data using a public key and specified algorithm
+    pub fn encrypt_data(&self, algorithm: Algorithm, input: &[u8]) -> Result<Vec<u8>, CFError> {
+        let mut error: CFErrorRef = std::ptr::null_mut();
+
+        let output = unsafe {
+            SecKeyCreateEncryptedData(self.as_concrete_TypeRef(), algorithm.into(), CFData::from_buffer(input).as_concrete_TypeRef(), &mut error)
+        };
+
+        if !error.is_null() {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
+        } else {
+            let output = unsafe { CFData::wrap_under_create_rule(output) };
+            Ok(output.to_vec())
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    /// Decrypts a block of data using a private key and specified algorithm
+    pub fn decrypt_data(&self, algorithm: Algorithm, input: &[u8]) -> Result<Vec<u8>, CFError> {
+        let mut error: CFErrorRef = std::ptr::null_mut();
+
+        let output = unsafe {
+            SecKeyCreateDecryptedData(self.as_concrete_TypeRef(), algorithm.into(), CFData::from_buffer(input).as_concrete_TypeRef(), &mut error)
+        };
+
+        if !error.is_null() {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
+        } else {
+            let output = unsafe { CFData::wrap_under_create_rule(output) };
+            Ok(output.to_vec())
+        }
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]

@@ -61,6 +61,22 @@ extern "C" {
     ) -> core_foundation_sys::base::Boolean;
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCreateEncryptedData(
+        key: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        plaintext: CFDataRef,
+        error: *mut CFErrorRef,
+    ) -> CFDataRef;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCreateDecryptedData(
+        key: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        ciphertext: CFDataRef,
+        error: *mut CFErrorRef,
+    ) -> CFDataRef;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecKeyIsAlgorithmSupported(
         key: SecKeyRef,
         operation: SecKeyOperationType,

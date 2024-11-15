@@ -137,6 +137,7 @@ pub struct ItemSearchOptions {
     account: Option<CFString>,
     access_group: Option<CFString>,
     pub_key_hash: Option<CFData>,
+    serial_number: Option<CFData>,
     app_label: Option<CFData>,
 }
 
@@ -272,6 +273,15 @@ impl ItemSearchOptions {
         self
     }
 
+    /// Search for a certificate with the given serial number.
+    ///
+    /// This is only compatible with [`ItemClass::certificate`].
+    #[inline(always)]
+    pub fn serial_number(&mut self, serial_number: &[u8]) -> &mut Self {
+        self.serial_number = Some(CFData::from_buffer(serial_number));
+        self
+    }
+
     /// Search for a key with the given public key hash.
     ///
     /// This is only compatible with [`ItemClass::key`], to search for a
@@ -396,6 +406,13 @@ impl ItemSearchOptions {
                 params.add(
                     &kSecAttrPublicKeyHash.to_void(),
                     &pub_key_hash.to_void(),
+                );
+            }
+
+            if let Some(ref serial_number) = self.serial_number {
+                params.add(
+                    &kSecAttrSerialNumber.to_void(),
+                    &serial_number.to_void(),
                 );
             }
 
