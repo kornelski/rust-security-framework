@@ -82,6 +82,15 @@ extern "C" {
         operation: SecKeyOperationType,
         algorithm: SecKeyAlgorithm,
     ) -> core_foundation_sys::base::Boolean;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCopyKeyExchangeResult(
+        privateKey: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        publicKey: SecKeyRef,
+        parameters: CFDictionaryRef,
+        error: *mut CFErrorRef,
+    ) -> CFDataRef;
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]

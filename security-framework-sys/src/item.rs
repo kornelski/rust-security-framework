@@ -68,6 +68,11 @@ extern "C" {
     pub static kSecAttrAccessGroup: CFStringRef;
     pub static kSecAttrAccessGroupToken: CFStringRef;
 
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub static kSecKeyKeyExchangeParameterRequestedSize: CFStringRef;
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub static kSecKeyKeyExchangeParameterSharedInfo: CFStringRef;
+
     pub static kSecAttrAuthenticationType: CFStringRef;
     pub static kSecAttrComment: CFStringRef;
     pub static kSecAttrDescription: CFStringRef;
