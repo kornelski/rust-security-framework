@@ -118,6 +118,15 @@ impl KeyType {
         unsafe { Self(kSecAttrKeyTypeEC) }
     }
 
+    #[inline(always)]
+    #[must_use]
+    pub fn ec_sec_prime_random() -> Self {
+        use security_framework_sys::item::kSecAttrKeyTypeECSECPrimeRandom;
+
+        unsafe { Self(kSecAttrKeyTypeECSECPrimeRandom) }
+    }
+
+
     pub(crate) fn to_str(self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }

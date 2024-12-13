@@ -29,6 +29,13 @@ extern "C" {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecKeyCreateRandomKey(parameters: CFDictionaryRef, error: *mut CFErrorRef) -> SecKeyRef;
 
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCreateWithData(
+        keyData: CFDataRef,
+        attributes: CFDictionaryRef,
+        error: *mut CFErrorRef,
+    ) -> SecKeyRef;
+
     #[cfg(target_os = "macos")]
     pub fn SecKeyCreateFromData(
         parameters: CFDictionaryRef,
