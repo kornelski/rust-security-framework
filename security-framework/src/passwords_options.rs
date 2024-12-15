@@ -1,7 +1,7 @@
 //! Support for password options, to be used with the passwords module
 
 use core_foundation::{string::CFString, base::{CFType, TCFType, CFOptionFlags}, number::CFNumber};
-use security_framework_sys::{keychain::{SecProtocolType, SecAuthenticationType}, access_control::*};
+use security_framework_sys::{access_control::*, item::kSecAttrAccessGroup, keychain::{SecAuthenticationType, SecProtocolType}};
 use security_framework_sys::item::{
     kSecAttrAccessControl, kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol,
     kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword,
@@ -125,6 +125,14 @@ impl PasswordOptions {
             SecAccessControl::create_with_flags(options.bits())
                 .unwrap()
                 .into_CFType(),
+        ));
+    }
+
+    /// Add access group to the password
+    pub fn set_access_group(&mut self, group: &str) {
+        self.query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessGroup) },
+            CFString::from(group).into_CFType(),
         ));
     }
 }
