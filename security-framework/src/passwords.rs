@@ -27,6 +27,14 @@ pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Re
     set_password_internal(&mut options, password)
 }
 
+/// Set a generic password using the given password options.
+/// Creates or updates a keychain entry.
+pub fn set_generic_password_options(
+    password: &[u8],
+    mut options: PasswordOptions) -> Result<()> {
+    set_password_internal(&mut options, password)
+}
+
 /// Get the generic password for the given service and account.  If no matching
 /// keychain entry exists, fails with error code `errSecItemNotFound`.
 pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
