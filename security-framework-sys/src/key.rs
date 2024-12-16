@@ -29,6 +29,13 @@ extern "C" {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn SecKeyCreateRandomKey(parameters: CFDictionaryRef, error: *mut CFErrorRef) -> SecKeyRef;
 
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCreateWithData(
+        keyData: CFDataRef,
+        attributes: CFDictionaryRef,
+        error: *mut CFErrorRef,
+    ) -> SecKeyRef;
+
     #[cfg(target_os = "macos")]
     pub fn SecKeyCreateFromData(
         parameters: CFDictionaryRef,
@@ -82,6 +89,15 @@ extern "C" {
         operation: SecKeyOperationType,
         algorithm: SecKeyAlgorithm,
     ) -> core_foundation_sys::base::Boolean;
+
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn SecKeyCopyKeyExchangeResult(
+        privateKey: SecKeyRef,
+        algorithm: SecKeyAlgorithm,
+        publicKey: SecKeyRef,
+        parameters: CFDictionaryRef,
+        error: *mut CFErrorRef,
+    ) -> CFDataRef;
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
