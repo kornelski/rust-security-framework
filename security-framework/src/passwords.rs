@@ -39,10 +39,12 @@ pub fn set_generic_password_options(
 /// keychain entry exists, fails with error code `errSecItemNotFound`.
 pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     let mut options = PasswordOptions::new_generic_password(service, account);
+    #[allow(deprecated)]
     options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
         CFBoolean::from(true).into_CFType(),
     ));
+    #[allow(deprecated)]
     let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
@@ -53,6 +55,7 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
 /// If none exists, fails with error code `errSecItemNotFound`.
 pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
     let options = PasswordOptions::new_generic_password(service, account);
+    #[allow(deprecated)]
     let params = CFDictionary::from_CFType_pairs(&options.query);
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
 }
@@ -102,10 +105,12 @@ pub fn get_internet_password(
         protocol,
         authentication_type,
     );
+    #[allow(deprecated)]
     options.query.push((
         unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
         CFBoolean::from(true).into_CFType(),
     ));
+    #[allow(deprecated)]
     let params = CFDictionary::from_CFType_pairs(&options.query);
     let mut ret: CFTypeRef = std::ptr::null();
     cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
@@ -132,12 +137,14 @@ pub fn delete_internet_password(
         protocol,
         authentication_type,
     );
+    #[allow(deprecated)]
     let params = CFDictionary::from_CFType_pairs(&options.query);
     cvt(unsafe { SecItemDelete(params.as_concrete_TypeRef()) })
 }
 
 // This starts by trying to create the password with the given query params.
 // If the creation attempt reveals that one exists, its password is updated.
+#[allow(deprecated)]
 fn set_password_internal(options: &mut PasswordOptions, password: &[u8]) -> Result<()> {
     let query_len = options.query.len();
     options.query.push((

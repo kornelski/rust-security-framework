@@ -19,6 +19,7 @@ impl CertificateOid {
     /// Returns the underlying raw pointer corresponding to this OID.
     #[inline(always)]
     #[must_use]
+    // FIXME: Don't expose CFStringRef in Rust APIs
     pub fn as_ptr(&self) -> CFStringRef {
         self.0
     }
@@ -26,6 +27,7 @@ impl CertificateOid {
     /// Returns the string representation of the OID.
     #[inline]
     #[must_use]
+    // FIXME: Don't expose CFString in Rust APIs
     pub fn to_str(&self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }

@@ -294,6 +294,7 @@ impl ItemSearchOptions {
     }
 
     /// Populates a `CFDictionary` to be passed to `update_item` or `delete_item`.
+    // CFDictionary should not be exposed in public Rust APIs.
     #[inline]
     fn to_dictionary(&self) -> CFDictionary {
         unsafe {
@@ -676,6 +677,7 @@ impl ItemAddOptions {
     }
     /// Populates a `CFDictionary` to be passed to `add_item`.
     #[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]
+    // CFDictionary should not be exposed in public Rust APIs.
     pub fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 
@@ -873,6 +875,7 @@ impl ItemUpdateOptions {
         self
     }
     /// Populates a `CFDictionary` to be passed to `update_item`.
+    // CFDictionary should not be exposed in public Rust APIs.
     #[inline]
     fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);

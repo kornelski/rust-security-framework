@@ -128,6 +128,7 @@ impl Builder {
     }
 
     /// Computes the digest of the data.
+    // FIXME: deprecate and remove: don't expose CFData in Rust APIs.
     pub fn execute(&self, data: &CFData) -> Result<CFData, CFError> {
         unsafe {
             let digest_type = match self.digest_type {

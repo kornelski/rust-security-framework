@@ -249,6 +249,7 @@ impl SecCode {
 
     /// Retrieves the location on disk of signed code, given a code or static
     /// code object.
+    // FIXME: Don't expose CFURL in Rust APIs.
     pub fn path(&self, flags: Flags) -> Result<CFURL> {
         let mut url = MaybeUninit::uninit();
 
@@ -290,6 +291,7 @@ impl SecStaticCode {
 
     /// Retrieves the location on disk of signed code, given a code or static
     /// code object.
+    // FIXME: Don't expose CFURL in Rust APIs.
     pub fn path(&self, flags: Flags) -> Result<CFURL> {
         let mut url = MaybeUninit::uninit();
 

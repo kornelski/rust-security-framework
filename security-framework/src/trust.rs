@@ -265,6 +265,7 @@ impl SecTrust {
     /// Note: evaluate must first be called on the `SecTrust`.
     #[inline(always)]
     #[must_use]
+    // FIXME: this should have been usize. Don't expose CFIndex in Rust APIs.
     pub fn certificate_count(&self) -> CFIndex {
         unsafe { SecTrustGetCertificateCount(self.0) }
     }

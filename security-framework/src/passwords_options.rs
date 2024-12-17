@@ -12,6 +12,7 @@ use crate::access_control::SecAccessControl;
 /// `PasswordOptions` constructor
 pub struct PasswordOptions {
     /// query built for the keychain request
+    #[deprecated(note = "This field should have been private. Please use setters that don't expose CFType")]
     pub query: Vec<(CFString, CFType)>,
 }
 
@@ -62,6 +63,7 @@ impl PasswordOptions {
                 CFString::from(account).into_CFType(),
             ),
         ];
+        #[allow(deprecated)]
         Self { query }
     }
 
@@ -115,11 +117,13 @@ impl PasswordOptions {
                 CFNumber::from(i32::from(port)).into_CFType(),
             ));
         }
+        #[allow(deprecated)]
         Self { query }
     }
 
     /// Add access control to the password
     pub fn set_access_control_options(&mut self, options: AccessControlOptions) {
+        #[allow(deprecated)]
         self.query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
             SecAccessControl::create_with_flags(options.bits())
@@ -130,6 +134,7 @@ impl PasswordOptions {
 
     /// Add access group to the password
     pub fn set_access_group(&mut self, group: &str) {
+        #[allow(deprecated)]
         self.query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccessGroup) },
             CFString::from(group).into_CFType(),

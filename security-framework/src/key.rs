@@ -176,6 +176,7 @@ impl SecKey {
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     /// Translates to `SecKeyCopyAttributes`
+    // TODO: deprecate and remove. CFDictionary should not be exposed in public Rust APIs.
     #[must_use]
     pub fn attributes(&self) -> CFDictionary {
         let pka = unsafe { SecKeyCopyAttributes(self.to_void() as _) };
@@ -184,6 +185,7 @@ impl SecKey {
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     /// Translates to `SecKeyCopyExternalRepresentation`
+    // TODO: deprecate and remove. CFData should not be exposed in public Rust APIs.
     #[must_use]
     pub fn external_representation(&self) -> Option<CFData> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
@@ -406,6 +408,7 @@ impl GenerateKeyOptions {
     }
 
     /// Collect options into a `CFDictioanry`
+    // CFDictionary should not be exposed in public Rust APIs.
     #[deprecated(note = "Pass the options to SecKey::new")]
     pub fn to_dictionary(&self) -> CFDictionary {
         #[cfg(target_os = "macos")]

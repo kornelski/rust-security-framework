@@ -359,6 +359,7 @@ impl Authorization {
     ///
     /// If `name` isn't convertable to a `CString` it will return
     /// Err(errSecConversionError).
+    // TODO: deprecate and remove. CFDictionary should not be exposed in public Rust APIs.
     pub fn get_right<T: Into<Vec<u8>>>(name: T) -> Result<CFDictionary<CFString, CFTypeRef>> {
         let name = cstring_or_err!(name)?;
         let mut dict = MaybeUninit::<CFDictionaryRef>::uninit();

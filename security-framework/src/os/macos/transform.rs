@@ -40,6 +40,7 @@ impl SecTransform {
     /// Executes the transform.
     ///
     /// The return type depends on the type of transform.
+    // FIXME: deprecate and remove: don't expose CFType in Rust APIs.
     pub fn execute(&mut self) -> Result<CFType, CFError> {
         unsafe {
             let mut error = ptr::null_mut();
