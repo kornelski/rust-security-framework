@@ -222,11 +222,11 @@ impl KeychainSettings {
             Some(lock_interval) => {
                 self.0.useLockInterval = 1;
                 self.0.lockInterval = lock_interval;
-            }
+            },
             None => {
                 self.0.useLockInterval = 0;
                 self.0.lockInterval = i32::max_value() as u32;
-            }
+            },
         }
     }
 }

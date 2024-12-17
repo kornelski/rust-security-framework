@@ -29,9 +29,7 @@ pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Re
 
 /// Set a generic password using the given password options.
 /// Creates or updates a keychain entry.
-pub fn set_generic_password_options(
-    password: &[u8],
-    mut options: PasswordOptions) -> Result<()> {
+pub fn set_generic_password_options(password: &[u8], mut options: PasswordOptions) -> Result<()> {
     set_password_internal(&mut options, password)
 }
 

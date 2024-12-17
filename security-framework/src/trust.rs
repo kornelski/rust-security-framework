@@ -214,11 +214,7 @@ impl SecTrust {
     /// Returns the public key for a leaf certificate after it has been evaluated.
     #[inline]
     pub fn copy_public_key(&mut self) -> Result<SecKey> {
-        unsafe {
-            Ok(SecKey::wrap_under_create_rule(SecTrustCopyPublicKey(
-                self.0,
-            )))
-        }
+        unsafe { Ok(SecKey::wrap_under_create_rule(SecTrustCopyPublicKey(self.0))) }
     }
 
     /// Evaluates trust.
@@ -247,8 +243,7 @@ impl SecTrust {
         #[cfg(not(any(feature = "OSX_10_14", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
         #[allow(deprecated)]
         {
-            use security_framework_sys::base::errSecNotTrusted;
-            use security_framework_sys::base::errSecTrustSettingDeny;
+            use security_framework_sys::base::{errSecNotTrusted, errSecTrustSettingDeny};
 
             let code = match self.evaluate() {
                 Ok(res) if res.success() => return Ok(()),

@@ -203,17 +203,11 @@ impl<'a> ImportOptions<'a> {
                 for item in raw_items.iter() {
                     let type_id = item.type_of();
                     if type_id == SecCertificate::type_id() {
-                        items.certificates.push(SecCertificate::wrap_under_get_rule(
-                            item.as_CFTypeRef() as *mut _,
-                        ));
+                        items.certificates.push(SecCertificate::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
                     } else if type_id == SecIdentity::type_id() {
-                        items.identities.push(SecIdentity::wrap_under_get_rule(
-                            item.as_CFTypeRef() as *mut _,
-                        ));
+                        items.identities.push(SecIdentity::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
                     } else if type_id == SecKey::type_id() {
-                        items
-                            .keys
-                            .push(SecKey::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
+                        items.keys.push(SecKey::wrap_under_get_rule(item.as_CFTypeRef() as *mut _));
                     } else {
                         panic!("Got bad type from SecItemImport: {type_id}");
                     }

@@ -28,7 +28,7 @@ pub enum CMSSignerStatus {
     kCMSSignerInvalidIndex = 5,
 }
 
-pub type CMSSignedAttributes  = u32;
+pub type CMSSignedAttributes = u32;
 pub const kCMSAttrNone: CMSSignedAttributes = 0x0000;
 pub const kCMSAttrSmimeCapabilities: CMSSignedAttributes = 0x0001;
 pub const kCMSAttrSmimeEncryptionKeyPrefs: CMSSignedAttributes = 0x0002;
@@ -111,15 +111,9 @@ extern "C" {
         content_type_out: *mut CFDataRef,
     ) -> OSStatus;
 
-    pub fn CMSDecoderCopyAllCerts(
-        decoder: CMSDecoderRef,
-        certs_out: *mut CFArrayRef,
-    ) -> OSStatus;
+    pub fn CMSDecoderCopyAllCerts(decoder: CMSDecoderRef, certs_out: *mut CFArrayRef) -> OSStatus;
 
-    pub fn CMSDecoderCopyContent(
-        decoder: CMSDecoderRef,
-        content_out: *mut CFDataRef,
-    ) -> OSStatus;
+    pub fn CMSDecoderCopyContent(decoder: CMSDecoderRef, content_out: *mut CFDataRef) -> OSStatus;
 
     pub fn CMSDecoderCopySignerSigningTime(
         decoder: CMSDecoderRef,
@@ -146,7 +140,6 @@ extern "C" {
         certificate_refs: *mut CFArrayRef,
     ) -> OSStatus;
 
-
     // CMS encoder
 
     pub static kCMSEncoderDigestAlgorithmSHA1: CFStringRef;
@@ -161,15 +154,9 @@ extern "C" {
         digest_alogrithm: CFStringRef,
     ) -> OSStatus;
 
-    pub fn CMSEncoderAddSigners(
-        encoder: CMSEncoderRef,
-        signer_or_array: CFTypeRef,
-    ) -> OSStatus;
+    pub fn CMSEncoderAddSigners(encoder: CMSEncoderRef, signer_or_array: CFTypeRef) -> OSStatus;
 
-    pub fn CMSEncoderCopySigners(
-        encoder: CMSEncoderRef,
-        signers_out: *mut CFArrayRef,
-    ) -> OSStatus;
+    pub fn CMSEncoderCopySigners(encoder: CMSEncoderRef, signers_out: *mut CFArrayRef) -> OSStatus;
 
     pub fn CMSEncoderAddRecipients(
         encoder: CMSEncoderRef,

@@ -18,6 +18,7 @@ use security_framework_sys::certificate::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::certificate_oids::*;
 use security_framework_sys::cipher_suite::*;
+use security_framework_sys::cms::*;
 #[cfg(target_os = "macos")]
 use security_framework_sys::code_signing::*;
 #[cfg(target_os = "macos")]
@@ -39,6 +40,5 @@ use security_framework_sys::secure_transport::*;
 use security_framework_sys::transform::*;
 use security_framework_sys::trust::*;
 use security_framework_sys::trust_settings::*;
-use security_framework_sys::cms::*;
 
 include!(concat!(env!("OUT_DIR"), "/all.rs"));

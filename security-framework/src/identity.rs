@@ -1,17 +1,17 @@
 //! Identity support.
 
-use core_foundation::base::TCFType;
-use core_foundation::base::ToVoid;
+use core_foundation::base::{TCFType, ToVoid};
 use core_foundation::dictionary::CFMutableDictionary;
 use security_framework_sys::base::SecIdentityRef;
-use security_framework_sys::identity::{SecIdentityCopyCertificate, SecIdentityCopyPrivateKey, SecIdentityGetTypeID};
+use security_framework_sys::identity::{
+    SecIdentityCopyCertificate, SecIdentityCopyPrivateKey, SecIdentityGetTypeID,
+};
 use security_framework_sys::item::kSecValueRef;
 use security_framework_sys::keychain_item::SecItemDelete;
 use std::fmt;
 use std::ptr;
 
-use crate::base::Error;
-use crate::base::Result;
+use crate::base::{Error, Result};
 use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::key::SecKey;

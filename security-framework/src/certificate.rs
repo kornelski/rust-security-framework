@@ -53,8 +53,7 @@ impl SecCertificate {
     pub fn from_der(der_data: &[u8]) -> Result<Self> {
         let der_data = CFData::from_buffer(der_data);
         unsafe {
-            let certificate =
-                SecCertificateCreateWithData(kCFAllocatorDefault, der_data.as_concrete_TypeRef());
+            let certificate = SecCertificateCreateWithData(kCFAllocatorDefault, der_data.as_concrete_TypeRef());
             if certificate.is_null() {
                 Err(Error::from_code(errSecParam))
             } else {
@@ -73,7 +72,7 @@ impl SecCertificate {
     }
 
     /// Adds a certificate to a keychain.
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     pub fn add_to_keychain(&self, keychain: Option<SecKeychain>) -> Result<()> {
         let kch = match keychain {
             Some(kch) => kch,
@@ -154,8 +153,7 @@ impl SecCertificate {
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     #[must_use]
     fn pk_to_der(&self, public_key: key::SecKey) -> Option<Vec<u8>> {
-        use security_framework_sys::item::kSecAttrKeyType;
-        use security_framework_sys::item::kSecAttrKeySizeInBits;
+        use security_framework_sys::item::{kSecAttrKeySizeInBits, kSecAttrKeyType};
 
         let public_key_attributes = public_key.attributes();
         let public_key_type = public_key_attributes
@@ -208,8 +206,7 @@ impl SecCertificate {
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 fn get_asn1_header_bytes(pkt: CFString, ksz: u32) -> Option<&'static [u8]> {
-    use security_framework_sys::item::kSecAttrKeyTypeRSA;
-    use security_framework_sys::item::kSecAttrKeyTypeECSECPrimeRandom;
+    use security_framework_sys::item::{kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeRSA};
 
     if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeRSA) } && ksz == 2048 {
         return Some(&RSA_2048_ASN1_HEADER);
@@ -217,14 +214,10 @@ fn get_asn1_header_bytes(pkt: CFString, ksz: u32) -> Option<&'static [u8]> {
     if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeRSA) } && ksz == 4096 {
         return Some(&RSA_4096_ASN1_HEADER);
     }
-    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) }
-        && ksz == 256
-    {
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) } && ksz == 256 {
         return Some(&EC_DSA_SECP_256_R1_ASN1_HEADER);
     }
-    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) }
-        && ksz == 384
-    {
+    if pkt == unsafe { CFString::wrap_under_get_rule(kSecAttrKeyTypeECSECPrimeRandom) } && ksz == 384 {
         return Some(&EC_DSA_SECP_384_R1_ASN1_HEADER);
     }
     None

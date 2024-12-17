@@ -23,10 +23,10 @@ use crate::trust::SecTrust;
 pub use decoder::CMSDecoder;
 
 pub use encoder::cms_encode_content;
-pub use encoder::CMS_DIGEST_ALGORITHM_SHA1;
-pub use encoder::CMS_DIGEST_ALGORITHM_SHA256;
 pub use encoder::CMSEncoder;
 pub use encoder::SignedAttributes;
+pub use encoder::CMS_DIGEST_ALGORITHM_SHA1;
+pub use encoder::CMS_DIGEST_ALGORITHM_SHA256;
 
 mod encoder {
     use super::*;
@@ -58,7 +58,6 @@ mod encoder {
             const APPLE_EXPIRATION_TIME = kCMSAttrAppleExpirationTime;
         }
     }
-
 
     declare_TCFType! {
         /// A type representing CMS encoder
@@ -202,10 +201,7 @@ mod encoder {
         }
 
         /// Specifies which certificates to include in a signed CMS message
-        pub fn set_certificate_chain_mode(
-            &self,
-            certificate_chain_mode: CMSCertificateChainMode) -> Result<()>
-        {
+        pub fn set_certificate_chain_mode(&self, certificate_chain_mode: CMSCertificateChainMode) -> Result<()> {
             cvt(unsafe { CMSEncoderSetCertificateChainMode(self.0, certificate_chain_mode) })?;
             Ok(())
         }
@@ -241,8 +237,8 @@ mod encoder {
         pub fn get_signer_timestamp_with_policy(
             &self,
             timestamp_policy: Option<CFStringRef>,
-            signer_index: usize) -> Result<CFAbsoluteTime>
-        {
+            signer_index: usize,
+        ) -> Result<CFAbsoluteTime> {
             let mut out = CFAbsoluteTime::default();
             cvt(unsafe {
                 CMSEncoderCopySignerTimestampWithPolicy(
@@ -325,10 +321,7 @@ mod decoder {
         }
 
         /// Feeds raw bytes of the message to be decoded into the decoder
-        pub fn update_message(
-            &self,
-            message: &[u8],
-        ) -> Result<()> {
+        pub fn update_message(&self, message: &[u8]) -> Result<()> {
             cvt(unsafe { CMSDecoderUpdateMessage(self.0, message.as_ptr() as _, message.len()) })?;
             Ok(())
         }
@@ -370,8 +363,8 @@ mod decoder {
         pub fn get_signer_status(
             &self,
             signer_index: usize,
-            policies: &[SecPolicy]) -> Result<SignerStatus>
-        {
+            policies: &[SecPolicy],
+        ) -> Result<SignerStatus> {
             let policies = CFArray::from_CFTypes(policies);
 
             let mut signer_status = CMSSignerStatus::kCMSSignerUnsigned;
@@ -466,15 +459,18 @@ mod decoder {
         pub fn get_signer_timestamp_with_policy(
             &self,
             timestamp_policy: Option<CFStringRef>,
-            signer_index: usize) -> Result<CFAbsoluteTime>
-        {
+            signer_index: usize,
+        ) -> Result<CFAbsoluteTime> {
             let mut out = CFAbsoluteTime::default();
             cvt(unsafe {
                 CMSDecoderCopySignerTimestampWithPolicy(
                     self.0,
-                    timestamp_policy.map(|p| p.as_void_ptr()).unwrap_or(ptr::null()),
+                    timestamp_policy
+                        .map(|p| p.as_void_ptr())
+                        .unwrap_or(ptr::null()),
                     signer_index,
-                    &mut out)
+                    &mut out,
+                )
             })?;
 
             Ok(out)
@@ -483,10 +479,12 @@ mod decoder {
         /// Returns an array containing the certificates from a timestamp response
         pub fn get_signer_timestamp_certificates(
             &self,
-            signer_index: usize) -> Result<Vec<SecCertificate>>
-        {
+            signer_index: usize,
+        ) -> Result<Vec<SecCertificate>> {
             let mut out: CFArrayRef = ptr::null_mut();
-            cvt(unsafe { CMSDecoderCopySignerTimestampCertificates(self.0, signer_index, &mut out) })?;
+            cvt(unsafe {
+                CMSDecoderCopySignerTimestampCertificates(self.0, signer_index, &mut out)
+            })?;
 
             if out.is_null() {
                 Ok(Vec::new())
@@ -500,10 +498,10 @@ mod decoder {
 
 #[cfg(test)]
 mod tests {
-    use security_framework_sys::cms::CMSSignerStatus;
     use crate::cms::{cms_encode_content, CMSDecoder, SignedAttributes};
     use crate::import_export::{ImportedIdentity, Pkcs12ImportOptions};
     use crate::policy::SecPolicy;
+    use security_framework_sys::cms::CMSSignerStatus;
 
     const KEYSTORE: &[u8] = include_bytes!("../test/cms/keystore.p12");
     const ENCRYPTED_CMS: &[u8] = include_bytes!("../test/cms/encrypted.p7m");

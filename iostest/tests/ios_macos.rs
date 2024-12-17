@@ -22,9 +22,7 @@ use serial_test::serial;
 #[test]
 #[serial]
 fn insert_then_find_generic() {
-    let service_key = format!("{}", unsafe {
-        CFString::wrap_under_get_rule(kSecAttrService)
-    });
+    let service_key = format!("{}", unsafe { CFString::wrap_under_get_rule(kSecAttrService) });
     let mut names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
@@ -48,7 +46,7 @@ fn insert_then_find_generic() {
                         found += 1;
                     }
                 }
-            }
+            },
             _ => panic!("Got a non-dictionary from a password search"),
         }
     }
@@ -63,16 +61,12 @@ fn insert_then_find_generic() {
 #[cfg(target_os = "macos")]
 fn insert_then_find_generic_legacy() {
     let keychain = SecKeychain::default().unwrap();
-    let service_key = format!("{}", unsafe {
-        CFString::wrap_under_get_rule(kSecAttrService)
-    });
+    let service_key = format!("{}", unsafe { CFString::wrap_under_get_rule(kSecAttrService) });
     // create 4 legacy and 4 modern generic passwords
     let mut legacy_names = vec![];
     for _ in 0..4 {
         let name = generate_random_string();
-        keychain
-            .set_generic_password(&name, &name, name.as_bytes())
-            .unwrap();
+        keychain.set_generic_password(&name, &name, name.as_bytes()).unwrap();
         legacy_names.push(name);
     }
     let mut modern_names = vec![];
@@ -99,7 +93,7 @@ fn insert_then_find_generic_legacy() {
                         found += 1;
                     }
                 }
-            }
+            },
             _ => panic!("Got a non-dictionary from a password search"),
         }
     }
@@ -121,12 +115,8 @@ fn insert_then_find_generic_legacy() {
 #[test]
 #[serial]
 fn find_leftover_test_generic_passwords() {
-    let service_key = format!("{}", unsafe {
-        CFString::wrap_under_get_rule(kSecAttrService)
-    });
-    let username_key = format!("{}", unsafe {
-        CFString::wrap_under_get_rule(kSecAttrAccount)
-    });
+    let service_key = format!("{}", unsafe { CFString::wrap_under_get_rule(kSecAttrService) });
+    let username_key = format!("{}", unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) });
     let mut found: Vec<String> = vec![];
     let results = ItemSearchOptions::new()
         .class(ItemClass::generic_password())
@@ -148,7 +138,7 @@ fn find_leftover_test_generic_passwords() {
                         }
                     }
                 }
-            }
+            },
             _ => panic!("Got a non-dictionary from a password search"),
         }
     }

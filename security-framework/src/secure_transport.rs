@@ -5,9 +5,9 @@
 //! To connect as a client to a server with a certificate trusted by the system:
 //!
 //! ```rust
+//! use security_framework::secure_transport::ClientBuilder;
 //! use std::io::prelude::*;
 //! use std::net::TcpStream;
-//! use security_framework::secure_transport::ClientBuilder;
 //!
 //! let stream = TcpStream::connect("google.com:443").unwrap();
 //! let mut stream = ClientBuilder::new().handshake("google.com", stream).unwrap();
@@ -23,16 +23,16 @@
 //! `ClientBuilder`:
 //!
 //! ```rust,no_run
+//! use security_framework::secure_transport::ClientBuilder;
 //! use std::io::prelude::*;
 //! use std::net::TcpStream;
-//! use security_framework::secure_transport::ClientBuilder;
 //!
 //! # let root_cert = unsafe { std::mem::zeroed() };
 //! let stream = TcpStream::connect("my_server.com:443").unwrap();
 //! let mut stream = ClientBuilder::new()
-//!                      .anchor_certificates(&[root_cert])
-//!                      .handshake("my_server.com", stream)
-//!                      .unwrap();
+//!     .anchor_certificates(&[root_cert])
+//!     .handshake("my_server.com", stream)
+//!     .unwrap();
 //!
 //! stream.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
 //! let mut page = vec![];
@@ -45,9 +45,9 @@
 //! To run a server:
 //!
 //! ```rust,no_run
+//! use security_framework::secure_transport::{SslConnectionType, SslContext, SslProtocolSide};
 //! use std::net::TcpListener;
 //! use std::thread;
-//! use security_framework::secure_transport::{SslContext, SslProtocolSide, SslConnectionType};
 //!
 //! // Create a TCP listener and start accepting on it.
 //! let mut listener = TcpListener::bind("0.0.0.0:443").unwrap();
@@ -70,7 +70,6 @@
 //!         let mut stream = ctx.handshake(stream).unwrap();
 //!     });
 //! }
-//!
 //! ```
 #[allow(unused_imports)]
 use core_foundation::array::{CFArray, CFArrayRef};
@@ -114,11 +113,10 @@ use security_framework_sys::base::errSecParam;
 pub struct SslProtocolSide(SSLProtocolSide);
 
 impl SslProtocolSide {
-    /// The server side of the session.
-    pub const SERVER: Self = Self(kSSLServerSide);
-
     /// The client side of the session.
     pub const CLIENT: Self = Self(kSSLClientSide);
+    /// The server side of the session.
+    pub const SERVER: Self = Self(kSSLServerSide);
 }
 
 /// Specifies the type of TLS session.
@@ -126,11 +124,10 @@ impl SslProtocolSide {
 pub struct SslConnectionType(SSLConnectionType);
 
 impl SslConnectionType {
-    /// A traditional TLS stream.
-    pub const STREAM: Self = Self(kSSLStreamType);
-
     /// A DTLS session.
     pub const DATAGRAM: Self = Self(kSSLDatagramType);
+    /// A traditional TLS stream.
+    pub const STREAM: Self = Self(kSSLStreamType);
 }
 
 /// An error or intermediate state after a TLS handshake attempt.
@@ -283,9 +280,7 @@ impl<S> MidHandshakeClientBuilder<S> {
             let stream = match result {
                 Ok(stream) => return Ok(stream),
                 Err(HandshakeError::Interrupted(stream)) => stream,
-                Err(HandshakeError::Failure(err)) => {
-                    return Err(ClientHandshakeError::Failure(err))
-                }
+                Err(HandshakeError::Failure(err)) => return Err(ClientHandshakeError::Failure(err)),
             };
 
             if stream.would_block() {
@@ -309,7 +304,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                     None => {
                         result = stream.handshake();
                         continue;
-                    }
+                    },
                 };
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
@@ -502,11 +497,7 @@ impl SslContext {
     pub fn set_peer_domain_name(&mut self, peer_name: &str) -> Result<()> {
         unsafe {
             // SSLSetPeerDomainName doesn't need a null terminated string
-            cvt(SSLSetPeerDomainName(
-                self.0,
-                peer_name.as_ptr().cast(),
-                peer_name.len(),
-            ))
+            cvt(SSLSetPeerDomainName(self.0, peer_name.as_ptr().cast(), peer_name.len()))
         }
     }
 
@@ -516,11 +507,7 @@ impl SslContext {
             let mut len = 0;
             cvt(SSLGetPeerDomainNameLength(self.0, &mut len))?;
             let mut buf = vec![0; len];
-            cvt(SSLGetPeerDomainName(
-                self.0,
-                buf.as_mut_ptr().cast(),
-                &mut len,
-            ))?;
+            cvt(SSLGetPeerDomainName(self.0, buf.as_mut_ptr().cast(), &mut len))?;
             Ok(String::from_utf8(buf).unwrap())
         }
     }
@@ -905,18 +892,18 @@ where
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
-            }
+            },
             Ok(Ok(len)) => start += len,
             Ok(Err(e)) => {
                 ret = translate_err(&e);
                 conn.err = Some(e);
                 break;
-            }
+            },
             Err(e) => {
                 ret = errSecIO;
                 conn.panic = Some(e);
                 break;
-            }
+            },
         }
     }
 
@@ -942,18 +929,18 @@ where
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
-            }
+            },
             Ok(Ok(len)) => start += len,
             Ok(Err(e)) => {
                 ret = translate_err(&e);
                 conn.err = Some(e);
                 break;
-            }
+            },
             Err(e) => {
                 ret = errSecIO;
                 conn.panic = Some(e);
                 break;
-            }
+            },
         }
     }
 
@@ -1000,11 +987,11 @@ impl<S> SslStream<S> {
                     stream: self,
                     error: Error::from_code(reason),
                 }))
-            }
+            },
             err => {
                 self.check_panic();
                 Err(HandshakeError::Failure(Error::from_code(err)))
-            }
+            },
         }
     }
 
@@ -1351,9 +1338,7 @@ impl ClientBuilder {
     }
 
     fn ctx_into_stream<S>(&self, domain: &str, stream: S) -> Result<SslStream<S>>
-    where
-        S: Read + Write,
-    {
+    where S: Read + Write {
         let mut ctx = SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM)?;
 
         if self.use_sni {
@@ -1462,9 +1447,7 @@ impl ServerBuilder {
 
     /// Initiates a new SSL/TLS session over a stream.
     pub fn handshake<S>(&self, stream: S) -> Result<SslStream<S>>
-    where
-        S: Read + Write,
-    {
+    where S: Read + Write {
         match self.new_ssl_context()?.handshake(stream) {
             Ok(stream) => Ok(stream),
             Err(HandshakeError::Interrupted(stream)) => Err(*stream.error()),
@@ -1488,10 +1471,7 @@ mod test {
 
     #[test]
     fn connect() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         p!(ctx.handshake(stream));
@@ -1499,24 +1479,18 @@ mod test {
 
     #[test]
     fn connect_bad_domain() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         match ctx.handshake(stream) {
             Ok(_) => panic!("expected failure"),
-            Err(_) => {}
+            Err(_) => {},
         }
     }
 
     #[test]
     fn load_page() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = p!(ctx.handshake(stream));
@@ -1573,10 +1547,7 @@ mod test {
 
             if let Err(HandshakeError::Interrupted(stream)) = result {
                 assert!(stream.server_auth_completed());
-                assert_eq!(
-                    i, 0,
-                    "Session ticket resumption did not work, server auth was not skipped"
-                );
+                assert_eq!(i, 0, "Session ticket resumption did not work, server auth was not skipped");
                 result = stream.handshake();
             } else {
                 assert_eq!(i, 1, "Unexpectedly skipped server auth");
@@ -1589,10 +1560,7 @@ mod test {
     #[test]
     #[cfg(feature = "alpn")]
     fn client_alpn_accept() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         p!(ctx.set_alpn_protocols(&vec!["h2"]));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1603,10 +1571,7 @@ mod test {
     #[test]
     #[cfg(feature = "alpn")]
     fn client_alpn_reject() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         p!(ctx.set_alpn_protocols(&vec!["h2c"]));
         let stream = p!(TcpStream::connect("google.com:443"));
@@ -1662,10 +1627,7 @@ mod test {
     #[test]
     #[cfg_attr(any(target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"), ignore)] // FIXME what's going on with ios?
     fn cipher_configuration() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::SERVER,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM));
         let ciphers = p!(ctx.enabled_ciphers());
         let ciphers = ciphers
             .iter()
@@ -1680,10 +1642,7 @@ mod test {
     fn test_builder_whitelist_ciphers() {
         let stream = p!(TcpStream::connect("google.com:443"));
 
-        let ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         assert!(p!(ctx.enabled_ciphers()).len() > 1);
 
         let ciphers = p!(ctx.enabled_ciphers());
@@ -1700,10 +1659,7 @@ mod test {
     fn test_builder_blacklist_ciphers() {
         let stream = p!(TcpStream::connect("google.com:443"));
 
-        let ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         let num = p!(ctx.enabled_ciphers()).len();
         assert!(num > 1);
 
@@ -1718,19 +1674,13 @@ mod test {
 
     #[test]
     fn idle_context_peer_trust() {
-        let ctx = p!(SslContext::new(
-            SslProtocolSide::SERVER,
-            SslConnectionType::STREAM
-        ));
+        let ctx = p!(SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM));
         assert!(ctx.peer_trust2().is_err());
     }
 
     #[test]
     fn peer_id() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::SERVER,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::SERVER, SslConnectionType::STREAM));
         assert!(p!(ctx.peer_id()).is_none());
         p!(ctx.set_peer_id(b"foobar"));
         assert_eq!(p!(ctx.peer_id()), Some(&b"foobar"[..]));
@@ -1738,10 +1688,7 @@ mod test {
 
     #[test]
     fn peer_domain_name() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         assert_eq!("", p!(ctx.peer_domain_name()));
         p!(ctx.set_peer_domain_name("foobar.com"));
         assert_eq!("foobar.com", p!(ctx.peer_domain_name()));
@@ -1768,10 +1715,7 @@ mod test {
             }
         }
 
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let _ = ctx.handshake(ExplodingStream(stream));
@@ -1798,10 +1742,7 @@ mod test {
             }
         }
 
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let _ = ctx.handshake(ExplodingStream(stream));
@@ -1809,10 +1750,7 @@ mod test {
 
     #[test]
     fn zero_length_buffers() {
-        let mut ctx = p!(SslContext::new(
-            SslProtocolSide::CLIENT,
-            SslConnectionType::STREAM
-        ));
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
         let mut stream = ctx.handshake(stream).unwrap();

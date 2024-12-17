@@ -37,6 +37,8 @@ pub mod base;
 #[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub mod certificate;
 pub mod cipher_suite;
+#[cfg(target_os = "macos")]
+pub mod cms;
 #[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub mod identity;
 #[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
@@ -57,8 +59,6 @@ pub mod secure_transport;
 pub mod trust;
 #[cfg(target_os = "macos")]
 pub mod trust_settings;
-#[cfg(target_os = "macos")]
-pub mod cms;
 
 #[cfg(target_os = "macos")]
 trait Pkcs12ImportOptionsInternals {

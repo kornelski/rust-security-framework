@@ -27,14 +27,14 @@ use security_framework_sys::{item::{
     kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
     kSecAttrKeySizeInBits, kSecPrivateKeyAttrs, kSecAttrAccessControl
 }};
-#[cfg(target_os="macos")]
+#[cfg(target_os = "macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
     kSecAttrKeyTypeDES, kSecAttrKeyTypeRC4, kSecAttrKeyTypeCAST,
 };
 
-use security_framework_sys::key::SecKeyGetTypeID;
 use security_framework_sys::base::SecKeyRef;
+use security_framework_sys::key::SecKeyGetTypeID;
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub use security_framework_sys::key::Algorithm;
@@ -126,7 +126,6 @@ impl KeyType {
         unsafe { Self(kSecAttrKeyTypeECSECPrimeRandom) }
     }
 
-
     pub(crate) fn to_str(self) -> CFString {
         unsafe { CFString::wrap_under_get_rule(self.0) }
     }
@@ -156,7 +155,7 @@ impl SecKey {
     #[deprecated(note = "Use SecKey::new")]
     pub fn generate(attributes: CFDictionary) -> Result<Self, CFError> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
-        let sec_key = unsafe { SecKeyCreateRandomKey(attributes.as_concrete_TypeRef(), &mut error)};
+        let sec_key = unsafe { SecKeyCreateRandomKey(attributes.as_concrete_TypeRef(), &mut error) };
         if !error.is_null() {
             Err(unsafe { CFError::wrap_under_create_rule(error) })
         } else {
@@ -298,7 +297,9 @@ impl SecKey {
         shared_info: Option<&[u8]>,
     ) -> Result<Vec<u8>, CFError> {
         use core_foundation::data::CFData;
-        use security_framework_sys::item::{kSecKeyKeyExchangeParameterRequestedSize, kSecKeyKeyExchangeParameterSharedInfo};
+        use security_framework_sys::item::{
+            kSecKeyKeyExchangeParameterRequestedSize, kSecKeyKeyExchangeParameterSharedInfo,
+        };
 
         unsafe {
             let mut params = vec![(
@@ -381,26 +382,31 @@ impl GenerateKeyOptions {
         self.key_type = Some(key_type);
         self
     }
+
     /// Set `size_in_bits`
     pub fn set_size_in_bits(&mut self, size_in_bits: u32) -> &mut Self {
         self.size_in_bits = Some(size_in_bits);
         self
     }
+
     /// Set `label`
     pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
         self.label = Some(label.into());
         self
     }
+
     /// Set `token`
     pub fn set_token(&mut self, token: Token) -> &mut Self {
         self.token = Some(token);
         self
     }
+
     /// Set `location`
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
     }
+
     /// Set `access_control`
     pub fn set_access_control(&mut self, access_control: SecAccessControl) -> &mut Self {
         self.access_control = Some(access_control);
@@ -442,18 +448,9 @@ impl GenerateKeyOptions {
 
         let mut attribute_key_values = vec![
             (unsafe { kSecAttrKeyType }.to_void(), key_type.to_void()),
-            (
-                unsafe { kSecAttrKeySizeInBits }.to_void(),
-                size_in_bits.to_void(),
-            ),
-            (
-                unsafe { kSecPrivateKeyAttrs }.to_void(),
-                private_attributes.to_void(),
-            ),
-            (
-                unsafe { kSecPublicKeyAttrs }.to_void(),
-                public_attributes.to_void(),
-            ),
+            (unsafe { kSecAttrKeySizeInBits }.to_void(), size_in_bits.to_void()),
+            (unsafe { kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()),
+            (unsafe { kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()),
         ];
         let label = self.label.as_deref().map(CFString::new);
         if let Some(label) = &label {

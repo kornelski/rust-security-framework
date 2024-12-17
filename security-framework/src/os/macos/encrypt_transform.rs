@@ -196,9 +196,7 @@ impl Builder {
             transform.set_attribute(&key, data)?;
 
             let result = transform.execute()?;
-            Ok(CFData::wrap_under_get_rule(
-                result.as_CFTypeRef() as CFDataRef
-            ))
+            Ok(CFData::wrap_under_get_rule(result.as_CFTypeRef() as CFDataRef))
         }
     }
 }

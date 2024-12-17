@@ -2,11 +2,9 @@
 
 /// # Potential improvements
 ///
-/// * When generic specialization stabilizes prevent copying from `CString`
-///   arguments.
+/// * When generic specialization stabilizes prevent copying from `CString` arguments.
 /// * `AuthorizationCopyRightsAsync`
 /// * Provide constants for well known item names
-
 use crate::base::{Error, Result};
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::base::Boolean;
@@ -22,10 +20,10 @@ use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
 use std::ffi::{CStr, CString};
 use std::fs::File;
+use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::os::raw::c_void;
 use std::ptr::addr_of;
-use std::marker::PhantomData;
 use sys::AuthorizationExternalForm;
 
 macro_rules! optional_str_to_cfref {
@@ -86,7 +84,8 @@ impl AuthorizationItem {
     ///
     /// If `name` isn't convertable to a `CString` it will return
     /// Err(errSecConversionError).
-    #[must_use] pub fn name(&self) -> &str {
+    #[must_use]
+    pub fn name(&self) -> &str {
         unsafe {
             CStr::from_ptr(self.0.name)
                 .to_str()
@@ -97,13 +96,13 @@ impl AuthorizationItem {
     /// The information pertaining to the name field. Do not rely on NULL
     /// termination of string data.
     #[inline]
-    #[must_use] pub fn value(&self) -> Option<&[u8]> {
+    #[must_use]
+    pub fn value(&self) -> Option<&[u8]> {
         if self.0.value.is_null() {
             return None;
         }
 
-        let value =
-            unsafe { std::slice::from_raw_parts(self.0.value as *const u8, self.0.valueLength) };
+        let value = unsafe { std::slice::from_raw_parts(self.0.value as *const u8, self.0.valueLength) };
 
         Some(value)
     }
@@ -441,7 +440,7 @@ impl Authorization {
             RightDefinition::FromExistingRight(def) => {
                 definition_cfstring = CFString::new(def);
                 definition_cfstring.as_CFTypeRef()
-            }
+            },
         };
 
         let status = unsafe {
@@ -478,14 +477,13 @@ impl Authorization {
             Some(tag) => {
                 tag_with_nul = cstring_or_err!(tag)?;
                 tag_with_nul.as_ptr()
-            }
+            },
             None => std::ptr::null(),
         };
 
         let mut inner = MaybeUninit::<*mut sys::AuthorizationItemSet>::uninit();
 
-        let status =
-            unsafe { sys::AuthorizationCopyInfo(self.handle, tag_ptr, inner.as_mut_ptr()) };
+        let status = unsafe { sys::AuthorizationCopyInfo(self.handle, tag_ptr, inner.as_mut_ptr()) };
 
         if status != sys::errAuthorizationSuccess {
             return Err(Error::from(status));
@@ -504,8 +502,7 @@ impl Authorization {
     pub fn make_external_form(&self) -> Result<sys::AuthorizationExternalForm> {
         let mut external_form = MaybeUninit::<sys::AuthorizationExternalForm>::uninit();
 
-        let status =
-            unsafe { sys::AuthorizationMakeExternalForm(self.handle, external_form.as_mut_ptr()) };
+        let status = unsafe { sys::AuthorizationMakeExternalForm(self.handle, external_form.as_mut_ptr()) };
 
         if status != sys::errAuthorizationSuccess {
             return Err(Error::from(status));

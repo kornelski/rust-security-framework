@@ -46,6 +46,7 @@ impl AsRef<[u8]> for SecKeychainItemPassword {
 
 impl Deref for SecKeychainItemPassword {
     type Target = [u8];
+
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         self.as_ref()
@@ -89,8 +90,7 @@ impl SecKeychainItem {
 /// The underlying system supports passwords with 0 values, so this
 /// returns a vector of bytes rather than a string.
 ///
-/// * `keychains` is an array of keychains to search or None to search
-///   the default keychain.
+/// * `keychains` is an array of keychains to search or None to search the default keychain.
 /// * `service` is the name of the service to search for.
 /// * `account` is the name of the account to search for.
 pub fn find_generic_password(
@@ -167,8 +167,7 @@ pub fn find_internet_password(
             server.len() as u32,
             server.as_ptr().cast(),
             security_domain.map_or(0, |s| s.len() as u32),
-            security_domain
-                .map_or(ptr::null(), |s| s.as_ptr().cast()),
+            security_domain.map_or(ptr::null(), |s| s.as_ptr().cast()),
             account.len() as u32,
             account.as_ptr().cast(),
             path.len() as u32,
@@ -328,8 +327,7 @@ impl SecKeychain {
                 server.len() as u32,
                 server.as_ptr().cast(),
                 security_domain.map_or(0, |s| s.len() as u32),
-                security_domain
-                    .map_or(ptr::null(), |s| s.as_ptr().cast()),
+                security_domain.map_or(ptr::null(), |s| s.as_ptr().cast()),
                 account.len() as u32,
                 account.as_ptr().cast(),
                 path.len() as u32,
@@ -479,8 +477,7 @@ mod test {
             .expect("default keychain")
             .set_generic_password(service, account, &pw2)
             .expect("set_generic_password2");
-        let (found, item) =
-            find_generic_password(None, service, account).expect("find_generic_password2");
+        let (found, item) = find_generic_password(None, service, account).expect("find_generic_password2");
         assert_eq!(found.to_owned(), pw2);
 
         item.delete();

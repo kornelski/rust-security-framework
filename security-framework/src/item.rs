@@ -12,7 +12,7 @@ use core_foundation_sys::base::{CFCopyDescription, CFGetTypeID, CFRelease, CFTyp
 use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::item::*;
 use security_framework_sys::keychain_item::{
-    SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate
+    SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
 };
 use std::collections::HashMap;
 use std::fmt;
@@ -74,17 +74,22 @@ pub struct KeyClass(CFStringRef);
 impl KeyClass {
     /// `kSecAttrKeyClassPublic`
     #[inline(always)]
-    #[must_use] pub fn public() -> Self {
+    #[must_use]
+    pub fn public() -> Self {
         unsafe { Self(kSecAttrKeyClassPublic) }
     }
+
     /// `kSecAttrKeyClassPrivate`
     #[inline(always)]
-    #[must_use] pub fn private() -> Self {
+    #[must_use]
+    pub fn private() -> Self {
         unsafe { Self(kSecAttrKeyClassPrivate) }
     }
+
     /// `kSecAttrKeyClassSymmetric`
     #[inline(always)]
-    #[must_use] pub fn symmetric() -> Self {
+    #[must_use]
+    pub fn symmetric() -> Self {
         unsafe { Self(kSecAttrKeyClassSymmetric) }
     }
 }
@@ -234,7 +239,7 @@ impl ItemSearchOptions {
         self.service = Some(CFString::new(service));
         self
     }
-    
+
     /// Search for an item with exactly the given subject.
     #[inline(always)]
     pub fn subject(&mut self, subject: &str) -> &mut Self {
@@ -314,22 +319,16 @@ impl ItemSearchOptions {
             if let Some(case_insensitive) = self.case_insensitive {
                 params.add(
                     &kSecMatchCaseInsensitive.to_void(),
-                    &CFBoolean::from(case_insensitive).to_void()
+                    &CFBoolean::from(case_insensitive).to_void(),
                 );
             }
 
             if let Some(key_class) = self.key_class {
-                params.add(
-                    &kSecAttrKeyClass.to_void(),
-                    &key_class.0.to_void()
-                );
+                params.add(&kSecAttrKeyClass.to_void(), &key_class.0.to_void());
             }
 
             if self.load_refs {
-                params.add(
-                    &kSecReturnRef.to_void(),
-                    &CFBoolean::true_value().to_void(),
-                );
+                params.add(&kSecReturnRef.to_void(), &CFBoolean::true_value().to_void());
             }
 
             if self.load_attributes {
@@ -347,17 +346,11 @@ impl ItemSearchOptions {
             }
 
             if let Some(limit) = self.limit {
-                params.add(
-                    &kSecMatchLimit.to_void(),
-                    &limit.to_value().to_void(),
-                );
+                params.add(&kSecMatchLimit.to_void(), &limit.to_value().to_void());
             }
 
             if let Some(ref label) = self.label {
-                params.add(
-                    &kSecAttrLabel.to_void(),
-                    &label.to_void(),
-                );
+                params.add(&kSecAttrLabel.to_void(), &label.to_void());
             }
 
             if let Some(ref trusted_only) = self.trusted_only {
@@ -368,60 +361,39 @@ impl ItemSearchOptions {
                     } else {
                         CFBoolean::false_value()
                     })
-                    .to_void()
+                    .to_void(),
                 );
             }
 
             if let Some(ref service) = self.service {
-                params.add(
-                    &kSecAttrService.to_void(),
-                    &service.to_void(),
-                );
+                params.add(&kSecAttrService.to_void(), &service.to_void());
             }
-            
+
             #[cfg(target_os = "macos")]
             {
                 if let Some(ref subject) = self.subject {
-                    params.add(
-                        &kSecMatchSubjectWholeString.to_void(),
-                        &subject.to_void(),
-                    );
+                    params.add(&kSecMatchSubjectWholeString.to_void(), &subject.to_void());
                 }
             }
 
             if let Some(ref account) = self.account {
-                params.add(
-                    &kSecAttrAccount.to_void(),
-                    &account.to_void(),
-                );
+                params.add(&kSecAttrAccount.to_void(), &account.to_void());
             }
 
             if let Some(ref access_group) = self.access_group {
-                params.add(
-                    &kSecAttrAccessGroup.to_void(),
-                    &access_group.to_void(),
-                );
+                params.add(&kSecAttrAccessGroup.to_void(), &access_group.to_void());
             }
 
             if let Some(ref pub_key_hash) = self.pub_key_hash {
-                params.add(
-                    &kSecAttrPublicKeyHash.to_void(),
-                    &pub_key_hash.to_void(),
-                );
+                params.add(&kSecAttrPublicKeyHash.to_void(), &pub_key_hash.to_void());
             }
 
             if let Some(ref serial_number) = self.serial_number {
-                params.add(
-                    &kSecAttrSerialNumber.to_void(),
-                    &serial_number.to_void(),
-                );
+                params.add(&kSecAttrSerialNumber.to_void(), &serial_number.to_void());
             }
 
             if let Some(ref app_label) = self.app_label {
-                params.add(
-                    &kSecAttrApplicationLabel.to_void(),
-                    &app_label.to_void(),
-                );
+                params.add(&kSecAttrApplicationLabel.to_void(), &app_label.to_void());
             }
 
             params.to_immutable()
@@ -558,7 +530,7 @@ impl fmt::Debug for SearchResult {
                     debug.field(&k, &v);
                 }
                 debug.finish()
-            }
+            },
             Self::Other => write!(fmt, "SearchResult::Other"),
         }
     }
@@ -580,7 +552,7 @@ impl SearchResult {
                     let val: String = match CFGetTypeID(*v) {
                         cfstring if cfstring == CFString::type_id() => {
                             format!("{}", CFString::wrap_under_get_rule((*v).cast()))
-                        }
+                        },
                         cfdata if cfdata == CFData::type_id() => {
                             let buf = CFData::wrap_under_get_rule((*v).cast());
                             let mut vec = Vec::new();
@@ -630,7 +602,16 @@ impl ItemAddOptions {
     #[inline]
     #[must_use]
     pub fn new(value: ItemAddValue) -> Self {
-        Self{ value, label: None, location: None, service: None, account_name: None, comment: None, description: None, access_group: None }
+        Self {
+            value,
+            label: None,
+            location: None,
+            service: None,
+            account_name: None,
+            comment: None,
+            description: None,
+            access_group: None,
+        }
     }
 
     /// Specifies the `kSecAttrAccount` attribute.
@@ -639,42 +620,49 @@ impl ItemAddOptions {
         self.account_name = Some(account_name.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrAccessGroup` attribute.
     #[inline]
     pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
         self.access_group = Some(access_group.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrComment` attribute.
     #[inline]
     pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
         self.comment = Some(comment.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrDescription` attribute.
     #[inline]
     pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
         self.description = Some(description.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrLabel` attribute.
     #[inline]
     pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
         self.label = Some(label.as_ref().into());
         self
     }
+
     /// Specifies which keychain to add the item to.
     #[inline]
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
     }
+
     /// Specifies the `kSecAttrService` attribute.
     #[inline]
     pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
         self.service = Some(service.as_ref().into());
         self
     }
+
     /// Populates a `CFDictionary` to be passed to `add_item`.
     #[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]
     // CFDictionary should not be exposed in public Rust APIs.
@@ -705,7 +693,7 @@ impl ItemAddOptions {
                     );
                 }
                 #[cfg(target_os = "macos")]
-                Location::DefaultFileKeychain => {}
+                Location::DefaultFileKeychain => {},
                 #[cfg(target_os = "macos")]
                 Location::FileKeychain(keychain) => {
                     dict.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
@@ -733,6 +721,7 @@ impl ItemAddOptions {
 
         dict.to_immutable()
     }
+
     /// Adds the item to the keychain.
     ///
     /// Translates to `SecItemAdd`.
@@ -776,6 +765,7 @@ impl AddRef {
             AddRef::Certificate(_) => Some(ItemClass::certificate()),
         }
     }
+
     fn ref_(&self) -> CFTypeRef {
         match self {
             AddRef::Key(key) => key.as_CFTypeRef(),
@@ -826,54 +816,63 @@ impl ItemUpdateOptions {
         self.value = Some(value);
         self
     }
+
     /// Specifies the `kSecClass` attribute.
     #[inline]
     pub fn set_class(&mut self, class: ItemClass) -> &mut Self {
         self.class = Some(class);
         self
     }
+
     /// Specifies the `kSecAttrAccount` attribute.
     #[inline]
     pub fn set_account_name(&mut self, account_name: impl AsRef<str>) -> &mut Self {
         self.account_name = Some(account_name.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrAccessGroup` attribute.
     #[inline]
     pub fn set_access_group(&mut self, access_group: impl AsRef<str>) -> &mut Self {
         self.access_group = Some(access_group.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrComment` attribute.
     #[inline]
     pub fn set_comment(&mut self, comment: impl AsRef<str>) -> &mut Self {
         self.comment = Some(comment.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrDescription` attribute.
     #[inline]
     pub fn set_description(&mut self, description: impl AsRef<str>) -> &mut Self {
         self.description = Some(description.as_ref().into());
         self
     }
+
     /// Specifies the `kSecAttrLabel` attribute.
     #[inline]
     pub fn set_label(&mut self, label: impl AsRef<str>) -> &mut Self {
         self.label = Some(label.as_ref().into());
         self
     }
+
     /// Specifies which keychain to add the item to.
     #[inline]
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
     }
+
     /// Specifies the `kSecAttrService` attribute.
     #[inline]
     pub fn set_service(&mut self, service: impl AsRef<str>) -> &mut Self {
         self.service = Some(service.as_ref().into());
         self
     }
+
     /// Populates a `CFDictionary` to be passed to `update_item`.
     // CFDictionary should not be exposed in public Rust APIs.
     #[inline]
@@ -910,7 +909,7 @@ impl ItemUpdateOptions {
                     );
                 }
                 #[cfg(target_os = "macos")]
-                Location::DefaultFileKeychain => {}
+                Location::DefaultFileKeychain => {},
                 #[cfg(target_os = "macos")]
                 Location::FileKeychain(keychain) => {
                     dict.add(&unsafe { kSecUseKeychain }.to_void(), &keychain.to_void());
