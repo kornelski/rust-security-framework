@@ -27,6 +27,8 @@ use security_framework_sys::{item::{
     kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
     kSecAttrKeySizeInBits, kSecPrivateKeyAttrs, kSecAttrAccessControl
 }};
+#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+use security_framework_sys::item::kSecAttrSynchronizable;
 #[cfg(target_os = "macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
@@ -381,6 +383,9 @@ pub struct GenerateKeyOptions {
     /// Access control
     #[deprecated(note = "use set_access_control()")]
     pub access_control: Option<SecAccessControl>,
+    /// kSecAttrSynchronizable
+    #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+    pub synchronizable: Option<bool>,
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
@@ -422,6 +427,13 @@ impl GenerateKeyOptions {
         self
     }
 
+    /// Set `synchronizable`
+    #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+    pub fn set_synchronizable(&mut self, synchronizable: bool) -> &mut Self {
+        self.synchronizable = Some(synchronizable);
+        self
+    }
+
     /// Collect options into a `CFDictioanry`
     // CFDictionary should not be exposed in public Rust APIs.
     #[deprecated(note = "Pass the options to SecKey::new")]
@@ -449,8 +461,11 @@ impl GenerateKeyOptions {
         let key_type = self.key_type.unwrap_or_else(KeyType::rsa).to_str();
 
         let size_in_bits = self.size_in_bits.unwrap_or(match () {
+            #[cfg(target_os = "macos")]
+            _ if key_type == KeyType::aes().to_str() => 256,
             _ if key_type == KeyType::rsa().to_str() => 2048,
             _ if key_type == KeyType::ec().to_str() => 256,
+            _ if key_type == KeyType::ec_sec_prime_random().to_str() => 256,
             _ => 256,
         });
         let size_in_bits = CFNumber::from(size_in_bits as i32);
@@ -458,9 +473,13 @@ impl GenerateKeyOptions {
         let mut attribute_key_values = vec![
             (unsafe { kSecAttrKeyType }.to_void(), key_type.to_void()),
             (unsafe { kSecAttrKeySizeInBits }.to_void(), size_in_bits.to_void()),
-            (unsafe { kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()),
-            (unsafe { kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()),
         ];
+        #[cfg(target_os = "macos")]
+        if key_type != KeyType::aes().to_str() {
+                attribute_key_values.push((unsafe { kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
+                attribute_key_values.push((unsafe { kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
+        }
+
         let label = self.label.as_deref().map(CFString::new);
         if let Some(label) = &label {
             attribute_key_values.push((unsafe { kSecAttrLabel }.to_void(), label.to_void()));
@@ -493,6 +512,19 @@ impl GenerateKeyOptions {
                     unsafe { kSecAttrTokenIDSecureEnclave }.to_void(),
                 ));
             }
+        }
+
+        #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+        if let Some(ref synchronizable) = self.synchronizable {
+            attribute_key_values.push((
+                 unsafe { kSecAttrSynchronizable }.to_void(),
+                (if *synchronizable {
+                    CFBoolean::true_value()
+                } else {
+                    CFBoolean::false_value()
+                })
+                .to_void(),
+            ));
         }
 
         CFMutableDictionary::from_CFType_pairs(&attribute_key_values).to_immutable()

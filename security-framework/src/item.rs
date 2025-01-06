@@ -144,6 +144,8 @@ pub struct ItemSearchOptions {
     pub_key_hash: Option<CFData>,
     serial_number: Option<CFData>,
     app_label: Option<CFData>,
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    authentication_context: Option<CFType>,
 }
 
 #[cfg(target_os = "macos")]
@@ -298,6 +300,15 @@ impl ItemSearchOptions {
         self
     }
 
+    // The corresponding value is of type LAContext, and represents a reusable
+    // local authentication context that should be used for keychain item authentication.
+    #[inline(always)]
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {
+        self.authentication_context = unsafe { Some(CFType::wrap_under_create_rule(authentication_context)) };
+        self
+    }
+
     /// Populates a `CFDictionary` to be passed to `update_item` or `delete_item`.
     // CFDictionary should not be exposed in public Rust APIs.
     #[inline]
@@ -394,6 +405,11 @@ impl ItemSearchOptions {
 
             if let Some(ref app_label) = self.app_label {
                 params.add(&kSecAttrApplicationLabel.to_void(), &app_label.to_void());
+            }
+
+            #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+            if let Some(ref authentication_context) = self.authentication_context {
+                params.add(&kSecUseAuthenticationContext.to_void(), &authentication_context.to_void());
             }
 
             params.to_immutable()
