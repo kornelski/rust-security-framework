@@ -347,6 +347,7 @@ impl SecKey {
 }
 
 /// Where to generate the key.
+#[derive(Debug)]
 pub enum Token {
     /// Generate the key in software, compatible with all `KeyType`s.
     Software,
@@ -358,7 +359,7 @@ pub enum Token {
 /// Helper for creating `CFDictionary` attributes for `SecKey::generate`
 /// Recommended reading:
 /// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
-#[derive(Default)]
+#[derive(Debug, Default)]
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub struct GenerateKeyOptions {
     /// kSecAttrKeyType

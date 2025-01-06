@@ -973,6 +973,19 @@ pub enum Location {
     FileKeychain(crate::os::macos::keychain::SecKeychain),
 }
 
+impl fmt::Debug for Location {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+            Self::DataProtectionKeychain => "DataProtectionKeychain",
+            #[cfg(target_os = "macos")]
+            Self::DefaultFileKeychain => "DefaultFileKeychain",
+            #[cfg(target_os = "macos")]
+            Self::FileKeychain(_) => "FileKeychain",
+        })
+    }
+}
+
 /// Translates to `SecItemAdd`. Use `ItemAddOptions` to build an `add_params`
 /// `CFDictionary`.
 #[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]

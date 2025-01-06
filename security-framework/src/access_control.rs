@@ -1,5 +1,6 @@
 //! Access Control support.
 
+use std::fmt;
 use std::ptr::{self, null};
 
 use crate::base::{Error, Result};
@@ -75,5 +76,11 @@ impl SecAccessControl {
                 Ok(Self::wrap_under_create_rule(access_control))
             }
         }
+    }
+}
+
+impl fmt::Debug for SecAccessControl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SecAccessControl").finish_non_exhaustive()
     }
 }
