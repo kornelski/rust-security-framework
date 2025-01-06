@@ -57,7 +57,7 @@ impl SecPolicy {
             .unwrap_or(ptr::null_mut());
         let is_server = protocol_side == SslProtocolSide::SERVER;
         unsafe {
-            let policy = SecPolicyCreateSSL(is_server as _, hostname);
+            let policy = SecPolicyCreateSSL(is_server.into(), hostname);
             Self::wrap_under_create_rule(policy)
         }
     }

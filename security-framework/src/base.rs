@@ -61,7 +61,7 @@ impl Error {
     /// Returns the code of the current error.
     #[inline(always)]
     #[must_use]
-    pub fn code(self) -> OSStatus {
+    pub const fn code(self) -> OSStatus {
         self.0.get() as _
     }
 }

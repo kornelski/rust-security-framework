@@ -27,8 +27,6 @@ use core_foundation::error::{CFError, CFErrorRef};
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use core_foundation::number::CFNumber;
 use security_framework_sys::item::kSecValueRef;
-#[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
-use std::ops::Deref;
 
 declare_TCFType! {
     /// A type representing a certificate.
@@ -160,10 +158,10 @@ impl SecCertificate {
             .find(unsafe { kSecAttrKeyType }.cast::<std::os::raw::c_void>())?;
         let public_keysize = public_key_attributes
             .find(unsafe { kSecAttrKeySizeInBits }.cast::<std::os::raw::c_void>())?;
-        let public_keysize = unsafe { CFNumber::from_void(*public_keysize.deref()) };
+        let public_keysize = unsafe { CFNumber::from_void(*public_keysize) };
         let public_keysize_val = public_keysize.to_i64()? as u32;
         let hdr_bytes = get_asn1_header_bytes(
-            unsafe { CFString::wrap_under_get_rule(*public_key_type.deref() as _) },
+            unsafe { CFString::wrap_under_get_rule(*public_key_type as _) },
             public_keysize_val,
         )?;
         let public_key_data = public_key.external_representation()?;

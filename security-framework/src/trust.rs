@@ -176,7 +176,7 @@ impl SecTrust {
     /// fetch missing intermediate certificates from the network.
     #[inline]
     pub fn set_network_fetch_allowed(&mut self, allowed: bool) -> Result<()> {
-        unsafe { cvt(SecTrustSetNetworkFetchAllowed(self.0, allowed as u8)) }
+        unsafe { cvt(SecTrustSetNetworkFetchAllowed(self.0, u8::from(allowed))) }
     }
 
     /// Attaches Online Certificate Status Protocol (OSCP) response data

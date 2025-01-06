@@ -173,7 +173,7 @@ impl<'a> IntoIterator for &'a PropertySection {
 /// An iterator over the properties in a section.
 pub struct PropertySectionIter<'a>(CFArrayIterator<'a, CFDictionary>);
 
-impl<'a> Iterator for PropertySectionIter<'a> {
+impl Iterator for PropertySectionIter<'_> {
     type Item = CertificateProperty;
 
     #[inline]

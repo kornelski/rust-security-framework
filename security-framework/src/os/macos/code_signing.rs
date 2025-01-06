@@ -224,10 +224,10 @@ impl SecCode {
     /// If `host` is `None` then the code signing root of trust (currently, the
     // system kernel) should be used as the code host.
     pub fn copy_guest_with_attribues(
-        host: Option<&SecCode>,
+        host: Option<&Self>,
         attrs: &GuestAttributes,
         flags: Flags,
-    ) -> Result<SecCode> {
+    ) -> Result<Self> {
         let mut code = MaybeUninit::uninit();
 
         let host = match host {
@@ -243,7 +243,7 @@ impl SecCode {
                 code.as_mut_ptr(),
             ))?;
 
-            Ok(SecCode::wrap_under_create_rule(code.assume_init()))
+            Ok(Self::wrap_under_create_rule(code.assume_init()))
         }
     }
 

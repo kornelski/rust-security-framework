@@ -480,6 +480,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
 }
 
 /// An enum including all objects whose references can be returned from a search.
+///
 /// Note that generic _Keychain Items_, such as passwords and preferences, do
 /// not have specific object types; they are modeled using dictionaries and so
 /// are available directly as search results in variant `SearchResult::Dict`.
@@ -758,19 +759,19 @@ pub enum AddRef {
 impl AddRef {
     fn class(&self) -> Option<ItemClass> {
         match self {
-            AddRef::Key(_) => Some(ItemClass::key()),
+            Self::Key(_) => Some(ItemClass::key()),
             //  kSecClass should not be specified when adding a SecIdentityRef:
             //  https://developer.apple.com/forums/thread/25751
-            AddRef::Identity(_) => None,
-            AddRef::Certificate(_) => Some(ItemClass::certificate()),
+            Self::Identity(_) => None,
+            Self::Certificate(_) => Some(ItemClass::certificate()),
         }
     }
 
     fn ref_(&self) -> CFTypeRef {
         match self {
-            AddRef::Key(key) => key.as_CFTypeRef(),
-            AddRef::Identity(id) => id.as_CFTypeRef(),
-            AddRef::Certificate(cert) => cert.as_CFTypeRef(),
+            Self::Key(key) => key.as_CFTypeRef(),
+            Self::Identity(id) => id.as_CFTypeRef(),
+            Self::Certificate(cert) => cert.as_CFTypeRef(),
         }
     }
 }
@@ -954,13 +955,13 @@ pub enum ItemUpdateValue {
 ///
 /// <https://developer.apple.com/documentation/technotes/tn3137-on-mac-keychains>
 pub enum Location {
-    /// Store the item in the newer DataProtectionKeychain. This is the only
+    /// Store the item in the newer `DataProtectionKeychain`. This is the only
     /// keychain on iOS. On macOS, this is the newer and more consistent
     /// keychain implementation. Keys stored in the Secure Enclave _must_ use
     /// this keychain.
     ///
     /// This keychain requires the calling binary to be codesigned with
-    /// entitlements for the KeychainAccessGroups it is supposed to
+    /// entitlements for the `KeychainAccessGroups` it is supposed to
     /// access.
     #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     DataProtectionKeychain,

@@ -215,7 +215,7 @@ mod encoder {
 
         /// Feeds content bytes into the encoder
         pub fn update_content(&self, content: &[u8]) -> Result<()> {
-            cvt(unsafe { CMSEncoderUpdateContent(self.0, content.as_ptr() as _, content.len()) })?;
+            cvt(unsafe { CMSEncoderUpdateContent(self.0, content.as_ptr().cast(), content.len()) })?;
             Ok(())
         }
 
@@ -273,7 +273,7 @@ mod encoder {
                 content_type_oid.as_ref().map(|oid| oid.as_CFTypeRef()).unwrap_or(ptr::null()),
                 detached_content.into(),
                 signed_attributes.bits(),
-                content.as_ptr() as _,
+                content.as_ptr().cast(),
                 content.len(),
                 &mut out,
             )
@@ -322,7 +322,7 @@ mod decoder {
 
         /// Feeds raw bytes of the message to be decoded into the decoder
         pub fn update_message(&self, message: &[u8]) -> Result<()> {
-            cvt(unsafe { CMSDecoderUpdateMessage(self.0, message.as_ptr() as _, message.len()) })?;
+            cvt(unsafe { CMSDecoderUpdateMessage(self.0, message.as_ptr().cast(), message.len()) })?;
             Ok(())
         }
 

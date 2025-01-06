@@ -44,7 +44,7 @@ fn test_missing_generic_password() {
     };
     let result = get_generic_password(name, name);
     match result {
-        Ok(bytes) => panic!("test_missing_password: get returned {:?}", bytes),
+        Ok(bytes) => panic!("test_missing_password: get returned {bytes:?}"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_generic_password: get failed with status: {}", err.code()),
     };
@@ -60,7 +60,7 @@ fn test_missing_generic_password() {
 fn test_round_trip_empty_generic_password() {
     println!("test_round_trip_empty_generic_password: start");
     let name = "test_empty_generic_password_input";
-    let in_pass = "".as_bytes();
+    let in_pass = b"";
     set_generic_password(name, name, in_pass).unwrap();
     let out_pass = get_generic_password(name, name).unwrap();
     assert_eq!(in_pass, out_pass);
@@ -71,7 +71,7 @@ fn test_round_trip_empty_generic_password() {
 fn test_round_trip_ascii_generic_password() {
     println!("test_round_trip_ascii_generic_password: start");
     let name = "test_round_trip_ascii_generic_password";
-    let password = "test ascii password".as_bytes();
+    let password = b"test ascii password";
     set_generic_password(name, name, password).unwrap();
     let stored_password = get_generic_password(name, name).unwrap();
     assert_eq!(stored_password, password);
@@ -104,7 +104,7 @@ fn test_round_trip_non_utf8_generic_password() {
 fn test_update_generic_password() {
     println!("test_update_generic_password: start");
     let name = "test_update_generic_password";
-    let password = "test ascii password".as_bytes();
+    let password = b"test ascii password";
     set_generic_password(name, name, password).unwrap();
     let stored_password = get_generic_password(name, name).unwrap();
     assert_eq!(stored_password, password);
@@ -127,7 +127,7 @@ fn test_missing_internet_password() {
     };
     let result = get_internet_password(name, None, name, "/test", None, HTTP, Any);
     match result {
-        Ok(bytes) => panic!("test_missing_password: get returned {:?}", bytes),
+        Ok(bytes) => panic!("test_missing_password: get returned {bytes:?}"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_internet_password: get failed with status: {}", err.code()),
     };
@@ -143,7 +143,7 @@ fn test_missing_internet_password() {
 fn test_round_trip_empty_internet_password() {
     println!("test_round_trip_empty_internet_password: start");
     let name = "test_empty_internet_password_input";
-    let in_pass = "".as_bytes();
+    let in_pass = b"";
     set_internet_password(name, None, name, "/test", None, HTTP, Any, in_pass).unwrap();
     let out_pass = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(in_pass, out_pass);
@@ -154,7 +154,7 @@ fn test_round_trip_empty_internet_password() {
 fn test_round_trip_ascii_internet_password() {
     println!("test_round_trip_ascii_internet_password: start");
     let name = "test_round_trip_ascii_internet_password";
-    let password = "test ascii password".as_bytes();
+    let password = b"test ascii password";
     set_internet_password(name, None, name, "/test", None, HTTP, Any, password).unwrap();
     let stored_password = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(stored_password, password);
@@ -187,7 +187,7 @@ fn test_round_trip_non_utf8_internet_password() {
 fn test_update_internet_password() {
     println!("test_update_internet_password: start");
     let name = "test_update_internet_password";
-    let password = "test ascii password".as_bytes();
+    let password = b"test ascii password";
     set_internet_password(name, None, name, "/test", None, HTTP, Any, password).unwrap();
     let stored_password = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(stored_password, password);

@@ -70,8 +70,8 @@ bitflags::bitflags! {
 
 impl Default for Flags {
     #[inline(always)]
-    fn default() -> Flags {
-        Flags::DEFAULTS
+    fn default() -> Self {
+        Self::DEFAULTS
     }
 }
 
@@ -116,11 +116,11 @@ pub struct AuthorizationItemSet<'a> {
     phantom: PhantomData<&'a sys::AuthorizationItemSet>,
 }
 
-impl<'a> Drop for AuthorizationItemSet<'a> {
+impl Drop for AuthorizationItemSet<'_> {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            sys::AuthorizationFreeItemSet(self.inner as *mut sys::AuthorizationItemSet);
+            sys::AuthorizationFreeItemSet(self.inner.cast_mut());
         }
     }
 }
@@ -146,7 +146,7 @@ pub struct AuthorizationItemSetStorage {
 impl Default for AuthorizationItemSetStorage {
     #[inline]
     fn default() -> Self {
-        AuthorizationItemSetStorage {
+        Self {
             names: Vec::new(),
             values: Vec::new(),
             items: Vec::new(),
@@ -171,7 +171,7 @@ impl AuthorizationItemSetBuilder {
     /// owned vectors of `AuthorizationItem`s.
     #[inline(always)]
     #[must_use]
-    pub fn new() -> AuthorizationItemSetBuilder {
+    pub fn new() -> Self {
         Default::default()
     }
 
@@ -237,7 +237,7 @@ impl AuthorizationItemSetBuilder {
 
         self.storage.set = sys::AuthorizationItemSet {
             count: self.storage.items.len() as u32,
-            items: self.storage.items.as_ptr() as *mut sys::AuthorizationItem,
+            items: self.storage.items.as_ptr().cast_mut(),
         };
 
         self.storage
@@ -278,7 +278,7 @@ impl TryFrom<AuthorizationExternalForm> for Authorization {
             return Err(Error::from_code(status));
         }
 
-        let auth = Authorization {
+        let auth = Self {
             handle: unsafe { handle.assume_init() },
             free_flags: Flags::default(),
         };
@@ -331,7 +331,7 @@ impl Authorization {
             return Err(Error::from_code(status));
         }
 
-        Ok(Authorization {
+        Ok(Self {
             handle: unsafe { handle.assume_init() },
             free_flags: Default::default(),
         })

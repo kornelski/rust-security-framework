@@ -159,7 +159,7 @@ impl SecKey {
         if !error.is_null() {
             Err(unsafe { CFError::wrap_under_create_rule(error) })
         } else {
-            Ok(unsafe { SecKey::wrap_under_create_rule(sec_key) })
+            Ok(unsafe { Self::wrap_under_create_rule(sec_key) })
         }
     }
 
@@ -167,6 +167,7 @@ impl SecKey {
     /// kSecAttrKeyClassPublic and kSecAttrKeyClassPrivate, the value is the
     /// hash of the public key.
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    #[must_use]
     pub fn application_label(&self) -> Option<Vec<u8>> {
         self.attributes()
             .find(unsafe { kSecAttrApplicationLabel.to_void() })
@@ -204,7 +205,7 @@ impl SecKey {
             return None;
         }
 
-        Some(unsafe { SecKey::wrap_under_create_rule(pub_seckey) })
+        Some(unsafe { Self::wrap_under_create_rule(pub_seckey) })
     }
 
     #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
@@ -216,11 +217,11 @@ impl SecKey {
             SecKeyCreateEncryptedData(self.as_concrete_TypeRef(), algorithm.into(), CFData::from_buffer(input).as_concrete_TypeRef(), &mut error)
         };
 
-        if !error.is_null() {
-            Err(unsafe { CFError::wrap_under_create_rule(error) })
-        } else {
+        if error.is_null() {
             let output = unsafe { CFData::wrap_under_create_rule(output) };
             Ok(output.to_vec())
+        } else {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
         }
     }
 
@@ -233,11 +234,11 @@ impl SecKey {
             SecKeyCreateDecryptedData(self.as_concrete_TypeRef(), algorithm.into(), CFData::from_buffer(input).as_concrete_TypeRef(), &mut error)
         };
 
-        if !error.is_null() {
-            Err(unsafe { CFError::wrap_under_create_rule(error) })
-        } else {
+        if error.is_null() {
             let output = unsafe { CFData::wrap_under_create_rule(output) };
             Ok(output.to_vec())
+        } else {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
         }
     }
 
@@ -256,11 +257,11 @@ impl SecKey {
             )
         };
 
-        if !error.is_null() {
-            Err(unsafe { CFError::wrap_under_create_rule(error) })
-        } else {
+        if error.is_null() {
             let output = unsafe { CFData::wrap_under_create_rule(output) };
             Ok(output.to_vec())
+        } else {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
         }
     }
 
@@ -292,7 +293,7 @@ impl SecKey {
     pub fn key_exchange(
         &self,
         algorithm: Algorithm,
-        public_key: &SecKey,
+        public_key: &Self,
         requested_size: usize,
         shared_info: Option<&[u8]>,
     ) -> Result<Vec<u8>, CFError> {
@@ -311,7 +312,7 @@ impl SecKey {
                 params.push((
                     CFString::wrap_under_get_rule(kSecKeyKeyExchangeParameterSharedInfo),
                     CFData::from_buffer(shared_info).as_CFType(),
-                ))
+                ));
             };
 
             let parameters = CFDictionary::from_CFType_pairs(&params);
@@ -326,11 +327,11 @@ impl SecKey {
                 &mut error,
             );
 
-            if !error.is_null() {
-                Err(CFError::wrap_under_create_rule(error))
-            } else {
+            if error.is_null() {
                 let output = CFData::wrap_under_create_rule(output);
                 Ok(output.to_vec())
+            } else {
+                Err(CFError::wrap_under_create_rule(error))
             }
         }
     }

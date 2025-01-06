@@ -57,7 +57,7 @@ impl<'a> ImportOptions<'a> {
     /// Creates a new builder with default options.
     #[inline(always)]
     #[must_use]
-    pub fn new() -> ImportOptions<'a> {
+    pub fn new() -> Self {
         ImportOptions::default()
     }
 
@@ -65,21 +65,21 @@ impl<'a> ImportOptions<'a> {
     ///
     /// The extension of the file will used as a hint for parsing.
     #[inline]
-    pub fn filename(&mut self, filename: &str) -> &mut ImportOptions<'a> {
+    pub fn filename(&mut self, filename: &str) -> &mut Self {
         self.filename = Some(CFString::from_str(filename).unwrap());
         self
     }
 
     /// Sets the passphrase to be used to decrypt the imported data.
     #[inline]
-    pub fn passphrase(&mut self, passphrase: &str) -> &mut ImportOptions<'a> {
+    pub fn passphrase(&mut self, passphrase: &str) -> &mut Self {
         self.passphrase = Some(CFString::from_str(passphrase).unwrap().into_CFType());
         self
     }
 
     /// Sets the passphrase to be used to decrypt the imported data.
     #[inline]
-    pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut ImportOptions<'a> {
+    pub fn passphrase_bytes(&mut self, passphrase: &[u8]) -> &mut Self {
         self.passphrase = Some(CFData::from_buffer(passphrase).into_CFType());
         self
     }
@@ -87,14 +87,14 @@ impl<'a> ImportOptions<'a> {
     /// If set, the user will be prompted to imput the passphrase used to
     /// decrypt the imported data.
     #[inline(always)]
-    pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut ImportOptions<'a> {
+    pub fn secure_passphrase(&mut self, secure_passphrase: bool) -> &mut Self {
         self.secure_passphrase = secure_passphrase;
         self
     }
 
     /// If set, imported items will have no access controls imposed on them.
     #[inline(always)]
-    pub fn no_access_control(&mut self, no_access_control: bool) -> &mut ImportOptions<'a> {
+    pub fn no_access_control(&mut self, no_access_control: bool) -> &mut Self {
         self.no_access_control = no_access_control;
         self
     }
@@ -102,7 +102,7 @@ impl<'a> ImportOptions<'a> {
     /// Sets the title of the alert popup used with the `secure_passphrase`
     /// option.
     #[inline]
-    pub fn alert_title(&mut self, alert_title: &str) -> &mut ImportOptions<'a> {
+    pub fn alert_title(&mut self, alert_title: &str) -> &mut Self {
         self.alert_title = Some(CFString::from_str(alert_title).unwrap());
         self
     }
@@ -110,14 +110,14 @@ impl<'a> ImportOptions<'a> {
     /// Sets the prompt of the alert popup used with the `secure_passphrase`
     /// option.
     #[inline]
-    pub fn alert_prompt(&mut self, alert_prompt: &str) -> &mut ImportOptions<'a> {
+    pub fn alert_prompt(&mut self, alert_prompt: &str) -> &mut Self {
         self.alert_prompt = Some(CFString::from_str(alert_prompt).unwrap());
         self
     }
 
     /// Sets the object into which imported items will be placed.
     #[inline(always)]
-    pub fn items(&mut self, items: &'a mut SecItems) -> &mut ImportOptions<'a> {
+    pub fn items(&mut self, items: &'a mut SecItems) -> &mut Self {
         self.items = Some(items);
         self
     }
@@ -126,7 +126,7 @@ impl<'a> ImportOptions<'a> {
     ///
     /// This must be specified to import `SecIdentity`s.
     #[inline]
-    pub fn keychain(&mut self, keychain: &SecKeychain) -> &mut ImportOptions<'a> {
+    pub fn keychain(&mut self, keychain: &SecKeychain) -> &mut Self {
         self.keychain = Some(keychain.clone());
         self
     }

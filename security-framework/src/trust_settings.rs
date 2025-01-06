@@ -31,7 +31,7 @@ pub enum Domain {
 
 impl From<Domain> for SecTrustSettingsDomain {
     #[inline]
-    fn from(domain: Domain) -> SecTrustSettingsDomain {
+    fn from(domain: Domain) -> Self {
         match domain {
             Domain::User => kSecTrustSettingsDomainUser,
             Domain::Admin => kSecTrustSettingsDomainAdmin,
@@ -90,7 +90,7 @@ impl TrustSettings {
     /// to learn what the aggregate trust setting for that certificate within this domain.
     #[inline(always)]
     #[must_use]
-    pub fn new(domain: Domain) -> Self {
+    pub const fn new(domain: Domain) -> Self {
         Self { domain }
     }
 

@@ -223,7 +223,7 @@ impl<S> MidHandshakeSslStream<S> {
     /// Returns the error which caused the handshake interruption.
     #[inline(always)]
     #[must_use]
-    pub fn error(&self) -> &Error {
+    pub const fn error(&self) -> &Error {
         &self.error
     }
 
@@ -267,7 +267,7 @@ impl<S> MidHandshakeClientBuilder<S> {
 
     /// Restarts the handshake process.
     pub fn handshake(self) -> result::Result<SslStream<S>, ClientHandshakeError<S>> {
-        let MidHandshakeClientBuilder {
+        let Self {
             stream,
             domain,
             certs,
@@ -284,7 +284,7 @@ impl<S> MidHandshakeClientBuilder<S> {
             };
 
             if stream.would_block() {
-                let ret = MidHandshakeClientBuilder {
+                let ret = Self {
                     stream,
                     domain,
                     certs,
@@ -299,12 +299,9 @@ impl<S> MidHandshakeClientBuilder<S> {
                     result = stream.handshake();
                     continue;
                 }
-                let mut trust = match stream.context().peer_trust2()? {
-                    Some(trust) => trust,
-                    None => {
-                        result = stream.handshake();
-                        continue;
-                    },
+                let mut trust = if let Some(trust) = stream.context().peer_trust2()? { trust } else {
+                    result = stream.handshake();
+                    continue;
                 };
                 trust.set_anchor_certificates(&certs)?;
                 trust.set_trust_anchor_certificates_only(self.trust_certs_only)?;
@@ -772,7 +769,7 @@ impl SslContext {
     pub fn set_session_tickets_enabled(&mut self, enabled: bool) -> Result<()> {
         #[cfg(feature = "OSX_10_13")]
         {
-            unsafe { cvt(SSLSetSessionTicketsEnabled(self.0, enabled as Boolean)) }
+            unsafe { cvt(SSLSetSessionTicketsEnabled(self.0, Boolean::from(enabled))) }
         }
         #[cfg(not(feature = "OSX_10_13"))]
         {
@@ -1290,7 +1287,7 @@ impl ClientBuilder {
     /// Configures the set of protocols used for ALPN.
     #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&mut self, protocols: &[&str]) -> &mut Self {
-        self.alpn = Some(protocols.iter().map(|s| s.to_string()).collect());
+        self.alpn = Some(protocols.iter().map(|s| (*s).to_string()).collect());
         self
     }
 
@@ -1431,7 +1428,7 @@ impl ServerBuilder {
             .collect();
         if identities.len() == 1 {
             let (identity, certs) = identities.pop().unwrap();
-            Ok(ServerBuilder::new(&identity, &certs))
+            Ok(Self::new(&identity, &certs))
         } else {
             // This error code is not really helpful
             Err(Error::from_code(errSecParam))
