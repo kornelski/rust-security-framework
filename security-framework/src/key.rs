@@ -363,20 +363,27 @@ pub enum Token {
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub struct GenerateKeyOptions {
     /// kSecAttrKeyType
+    #[deprecated(note = "use set_key_type()")]
     pub key_type: Option<KeyType>,
     /// kSecAttrKeySizeInBits
+    #[deprecated(note = "use set_size_in_bits()")]
     pub size_in_bits: Option<u32>,
     /// kSecAttrLabel
+    #[deprecated(note = "use set_label()")]
     pub label: Option<String>,
     /// kSecAttrTokenID
+    #[deprecated(note = "use set_token()")]
     pub token: Option<Token>,
     /// Which keychain to store the key in, if any.
+    #[deprecated(note = "use set_location()")]
     pub location: Option<Location>,
     /// Access control
+    #[deprecated(note = "use set_access_control()")]
     pub access_control: Option<SecAccessControl>,
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+#[allow(deprecated)]
 impl GenerateKeyOptions {
     /// Set `key_type`
     pub fn set_key_type(&mut self, key_type: KeyType) -> &mut Self {
