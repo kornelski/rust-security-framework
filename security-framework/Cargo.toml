@@ -37,6 +37,7 @@ default = ["OSX_10_12"]
 alpn = []
 session-tickets = []
 job-bless = []
+# Enables `GenerateKeyOptions::set_synchronizable`. Warning: not backwards-compatible!
 sync-keychain = ["OSX_10_13"]
 
 OSX_10_12 = ["security-framework-sys/OSX_10_12"]

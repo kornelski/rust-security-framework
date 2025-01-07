@@ -300,8 +300,8 @@ impl ItemSearchOptions {
         self
     }
 
-    // The corresponding value is of type LAContext, and represents a reusable
-    // local authentication context that should be used for keychain item authentication.
+    /// The corresponding value is of type LAContext, and represents a reusable
+    /// local authentication context that should be used for keychain item authentication.
     #[inline(always)]
     #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {

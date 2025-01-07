@@ -21,15 +21,12 @@ use core_foundation::error::{CFError, CFErrorRef};
 use security_framework_sys::{
     item::{kSecAttrKeyTypeRSA, kSecValueRef},
     keychain_item::SecItemDelete,
-    key::SecKeyCopyKeyExchangeResult
 };
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use security_framework_sys::{item::{
     kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
     kSecAttrKeySizeInBits, kSecPrivateKeyAttrs, kSecAttrAccessControl
 }};
-#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
-use security_framework_sys::item::kSecAttrSynchronizable;
 #[cfg(target_os = "macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
@@ -322,7 +319,7 @@ impl SecKey {
 
             let mut error: CFErrorRef = std::ptr::null_mut();
 
-            let output = SecKeyCopyKeyExchangeResult(
+            let output = security_framework_sys::key::SecKeyCopyKeyExchangeResult(
                 self.as_concrete_TypeRef(),
                 algorithm.into(),
                 public_key.as_concrete_TypeRef(),
@@ -384,9 +381,9 @@ pub struct GenerateKeyOptions {
     /// Access control
     #[deprecated(note = "use set_access_control()")]
     pub access_control: Option<SecAccessControl>,
-    /// kSecAttrSynchronizable
+    /// `kSecAttrSynchronizable`
     #[cfg(feature = "sync-keychain")]
-    pub synchronizable: Option<bool>,
+    synchronizable: Option<bool>,
 }
 
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
@@ -428,7 +425,7 @@ impl GenerateKeyOptions {
         self
     }
 
-    /// Set `synchronizable`
+    /// Set `synchronizable` (`kSecAttrSynchronizable`)
     #[cfg(feature = "sync-keychain")]
     pub fn set_synchronizable(&mut self, synchronizable: bool) -> &mut Self {
         self.synchronizable = Some(synchronizable);
