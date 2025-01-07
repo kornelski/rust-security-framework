@@ -518,13 +518,8 @@ impl GenerateKeyOptions {
         #[cfg(feature = "sync-keychain")]
         if let Some(ref synchronizable) = self.synchronizable {
             attribute_key_values.push((
-                 unsafe { kSecAttrSynchronizable }.to_void(),
-                (if *synchronizable {
-                    CFBoolean::true_value()
-                } else {
-                    CFBoolean::false_value()
-                })
-                .to_void(),
+                 unsafe { security_framework_sys::item::kSecAttrSynchronizable }.to_void(),
+                CFBoolean::from(*synchronizable).to_void(),
             ));
         }
 

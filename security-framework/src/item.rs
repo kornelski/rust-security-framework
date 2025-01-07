@@ -367,12 +367,7 @@ impl ItemSearchOptions {
             if let Some(ref trusted_only) = self.trusted_only {
                 params.add(
                     &kSecMatchTrustedOnly.to_void(),
-                    &(if *trusted_only {
-                        CFBoolean::true_value()
-                    } else {
-                        CFBoolean::false_value()
-                    })
-                    .to_void(),
+                    &CFBoolean::from(*trusted_only).to_void(),
                 );
             }
 
