@@ -18,7 +18,7 @@ edition = "2021"
 rust-version = "1.70"
 
 [dependencies]
-security-framework-sys = { version = "2.13", default-features = false, path = "../security-framework-sys" }
+security-framework-sys = { version = "2.14", default-features = false, path = "../security-framework-sys" }
 bitflags = "2.6"
 core-foundation = "0.10"
 core-foundation-sys = "0.8.6"
