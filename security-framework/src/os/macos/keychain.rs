@@ -1,5 +1,5 @@
 //! Keychain support.
-
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::base::{Boolean, TCFType};
 use security_framework_sys::base::{errSecSuccess, SecKeychainRef};
 use security_framework_sys::keychain::*;

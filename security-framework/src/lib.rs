@@ -4,9 +4,6 @@
 #![allow(clippy::manual_non_exhaustive)] // MSRV
 #![allow(clippy::bad_bit_mask)] // bitflags
 
-#[macro_use]
-extern crate core_foundation;
-
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 

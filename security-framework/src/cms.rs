@@ -3,6 +3,7 @@
 use std::{fmt, ptr};
 
 use core_foundation::array::CFArray;
+use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
 use core_foundation::string::CFString;
 use core_foundation_sys::array::CFArrayRef;
@@ -15,7 +16,6 @@ use security_framework_sys::trust::SecTrustRef;
 
 use crate::base::Result;
 use crate::certificate::SecCertificate;
-use crate::core_foundation::base::TCFType;
 use crate::cvt;
 use crate::policy::SecPolicy;
 use crate::trust::SecTrust;
@@ -30,6 +30,7 @@ pub use encoder::CMS_DIGEST_ALGORITHM_SHA256;
 
 mod encoder {
     use super::*;
+    use core_foundation::{declare_TCFType, impl_TCFType};
     use crate::identity::SecIdentity;
 
     /// SHA1 digest algorithm
@@ -284,6 +285,7 @@ mod encoder {
 }
 
 mod decoder {
+    use core_foundation::{declare_TCFType, impl_TCFType};
     use super::*;
 
     /// Holds a result of the `CMSDecoder::get_signer_status` function

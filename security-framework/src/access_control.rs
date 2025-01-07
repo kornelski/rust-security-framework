@@ -2,8 +2,8 @@
 
 use std::fmt;
 use std::ptr::{self, null};
-
 use crate::base::{Error, Result};
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::base::{kCFAllocatorDefault, CFOptionFlags, TCFType};
 use core_foundation::string::CFString;
 use security_framework_sys::access_control::{

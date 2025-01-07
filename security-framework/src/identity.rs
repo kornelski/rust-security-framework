@@ -1,5 +1,6 @@
 //! Identity support.
 
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::base::{TCFType, ToVoid};
 use core_foundation::dictionary::CFMutableDictionary;
 use security_framework_sys::base::SecIdentityRef;

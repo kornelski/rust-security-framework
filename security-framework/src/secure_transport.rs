@@ -73,7 +73,7 @@
 //! ```
 #[allow(unused_imports)]
 use core_foundation::array::{CFArray, CFArrayRef};
-
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::base::{Boolean, TCFType};
 #[cfg(feature = "alpn")]
 use core_foundation::string::CFString;

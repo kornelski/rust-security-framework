@@ -1,5 +1,6 @@
 //! Encryption key support
 
+use core_foundation::{declare_TCFType, impl_TCFType};
 use crate::cvt;
 use core_foundation::{
     base::TCFType, string::{CFStringRef, CFString},

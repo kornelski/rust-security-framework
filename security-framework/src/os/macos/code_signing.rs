@@ -1,9 +1,9 @@
 //! Code signing services.
 
+use core_foundation::{declare_TCFType, impl_TCFType};
 use std::fmt::Debug;
 use std::mem::MaybeUninit;
 use std::str::FromStr;
-
 use core_foundation::base::{TCFType, TCFTypeRef, ToVoid};
 use core_foundation::data::CFDataRef;
 use core_foundation::dictionary::CFMutableDictionary;

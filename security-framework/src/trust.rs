@@ -1,5 +1,5 @@
 //! Trust evaluation support.
-
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::array::CFArray;
 #[cfg(target_os = "macos")]
 use core_foundation::array::CFArrayRef;

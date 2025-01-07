@@ -1,5 +1,5 @@
 //! Certificate support.
-
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::array::{CFArray, CFArrayRef};
 use core_foundation::base::{TCFType, ToVoid};
 use core_foundation::data::CFData;
