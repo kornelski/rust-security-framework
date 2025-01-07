@@ -384,7 +384,7 @@ pub struct GenerateKeyOptions {
     #[deprecated(note = "use set_access_control()")]
     pub access_control: Option<SecAccessControl>,
     /// kSecAttrSynchronizable
-    #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+    #[cfg(feature = "sync-keychain")]
     pub synchronizable: Option<bool>,
 }
 
@@ -428,7 +428,7 @@ impl GenerateKeyOptions {
     }
 
     /// Set `synchronizable`
-    #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+    #[cfg(feature = "sync-keychain")]
     pub fn set_synchronizable(&mut self, synchronizable: bool) -> &mut Self {
         self.synchronizable = Some(synchronizable);
         self
@@ -514,7 +514,7 @@ impl GenerateKeyOptions {
             }
         }
 
-        #[cfg(all(feature = "sync-keychain", any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos")))]
+        #[cfg(feature = "sync-keychain")]
         if let Some(ref synchronizable) = self.synchronizable {
             attribute_key_values.push((
                  unsafe { kSecAttrSynchronizable }.to_void(),
