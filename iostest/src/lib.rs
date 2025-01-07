@@ -63,7 +63,7 @@ fn test_round_trip_empty_generic_password() {
     let in_pass = b"";
     set_generic_password(name, name, in_pass).unwrap();
     let out_pass = get_generic_password(name, name).unwrap();
-    assert_eq!(in_pass, out_pass);
+    assert_eq!(in_pass.as_slice(), out_pass);
     delete_generic_password(name, name).unwrap();
     println!("test_round_trip_empty_generic_password: pass");
 }
@@ -74,7 +74,7 @@ fn test_round_trip_ascii_generic_password() {
     let password = b"test ascii password";
     set_generic_password(name, name, password).unwrap();
     let stored_password = get_generic_password(name, name).unwrap();
-    assert_eq!(stored_password, password);
+    assert_eq!(password.as_slice(), stored_password);
     delete_generic_password(name, name).unwrap();
     println!("test_round_trip_ascii_generic_password: pass");
 }
@@ -104,7 +104,7 @@ fn test_round_trip_non_utf8_generic_password() {
 fn test_update_generic_password() {
     println!("test_update_generic_password: start");
     let name = "test_update_generic_password";
-    let password = b"test ascii password";
+    let password = b"test ascii password".as_slice();
     set_generic_password(name, name, password).unwrap();
     let stored_password = get_generic_password(name, name).unwrap();
     assert_eq!(stored_password, password);
@@ -143,7 +143,7 @@ fn test_missing_internet_password() {
 fn test_round_trip_empty_internet_password() {
     println!("test_round_trip_empty_internet_password: start");
     let name = "test_empty_internet_password_input";
-    let in_pass = b"";
+    let in_pass = b"".as_slice();
     set_internet_password(name, None, name, "/test", None, HTTP, Any, in_pass).unwrap();
     let out_pass = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(in_pass, out_pass);
@@ -154,7 +154,7 @@ fn test_round_trip_empty_internet_password() {
 fn test_round_trip_ascii_internet_password() {
     println!("test_round_trip_ascii_internet_password: start");
     let name = "test_round_trip_ascii_internet_password";
-    let password = b"test ascii password";
+    let password = b"test ascii password".as_slice();
     set_internet_password(name, None, name, "/test", None, HTTP, Any, password).unwrap();
     let stored_password = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(stored_password, password);
@@ -179,7 +179,7 @@ fn test_round_trip_non_utf8_internet_password() {
     let password: [u8; 10] = [0, 121, 122, 123, 40, 50, 126, 127, 8, 9];
     set_internet_password(name, None, name, "/test", None, HTTP, Any, &password).unwrap();
     let stored_password = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
-    assert_eq!(stored_password, password);
+    assert_eq!(stored_password, password.as_slice());
     delete_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     println!("test_round_trip_non_utf8_internet_password: pass");
 }
@@ -187,7 +187,7 @@ fn test_round_trip_non_utf8_internet_password() {
 fn test_update_internet_password() {
     println!("test_update_internet_password: start");
     let name = "test_update_internet_password";
-    let password = b"test ascii password";
+    let password = b"test ascii password".as_slice();
     set_internet_password(name, None, name, "/test", None, HTTP, Any, password).unwrap();
     let stored_password = get_internet_password(name, None, name, "/test", None, HTTP, Any).unwrap();
     assert_eq!(stored_password, password);
