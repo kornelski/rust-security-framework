@@ -50,6 +50,7 @@ pub mod secure_transport;
 pub mod trust;
 #[cfg(target_os = "macos")]
 pub mod trust_settings;
+pub mod utils;
 
 #[cfg(target_os = "macos")]
 trait Pkcs12ImportOptionsInternals {
