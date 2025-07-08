@@ -64,6 +64,10 @@ name = "find_internet_password"
 [[example]]
 name = "set_internet_password"
 
+[[example]]
+name = "biometric_password"
+required-features = ["OSX_10_13"]
+
 [package.metadata.docs.rs]
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
 features = ["OSX_10_15"]

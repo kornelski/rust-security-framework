@@ -106,6 +106,15 @@ impl PasswordOptions {
         Self { query }
     }
 
+    /// Add access control to the password with protection mode
+    pub fn set_access_control(&mut self, protection: crate::access_control::ProtectionMode, options: AccessControlOptions) {
+        #[allow(deprecated)]
+        self.query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
+            SecAccessControl::create_with_protection(Some(protection), options.bits()).unwrap().into_CFType(),
+        ));
+    }
+
     /// Add access control to the password
     pub fn set_access_control_options(&mut self, options: AccessControlOptions) {
         #[allow(deprecated)]
@@ -121,6 +130,17 @@ impl PasswordOptions {
         self.query.push((
             unsafe { CFString::wrap_under_get_rule(kSecAttrAccessGroup) },
             CFString::from(group).into_CFType(),
+        ));
+    }
+
+    /// Add authentication context for biometric authentication
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub fn set_authentication_context(&mut self, context: *mut std::os::raw::c_void) {
+        use security_framework_sys::item::kSecUseAuthenticationContext;
+        #[allow(deprecated)]
+        self.query.push((
+            unsafe { CFString::wrap_under_get_rule(kSecUseAuthenticationContext) },
+            unsafe { CFType::wrap_under_create_rule(context) },
         ));
     }
 }

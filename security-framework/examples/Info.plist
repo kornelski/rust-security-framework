@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>biometric_password</string>
+	<key>CFBundleIdentifier</key>
+	<string>2TM4K8523U.biometric-test</string>
+	<key>CFBundleName</key>
+	<string>Biometric Password Example</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.13</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID to secure password access.</string>
+	<key>NSTouchIDUsageDescription</key>
+	<string>This app uses Touch ID to secure password access.</string>
+</dict>
+</plist>

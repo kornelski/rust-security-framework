@@ -49,6 +49,21 @@ pub fn get_generic_password(service: &str, account: &str) -> Result<Vec<u8>> {
     get_password_and_release(ret)
 }
 
+/// Get the generic password using the given password options, including authentication context.
+/// If no matching keychain entry exists, fails with error code `errSecItemNotFound`.
+pub fn get_generic_password_options(mut options: PasswordOptions) -> Result<Vec<u8>> {
+    #[allow(deprecated)]
+    options.query.push((
+        unsafe { CFString::wrap_under_get_rule(kSecReturnData) },
+        CFBoolean::from(true).into_CFType(),
+    ));
+    #[allow(deprecated)]
+    let params = CFDictionary::from_CFType_pairs(&options.query);
+    let mut ret: CFTypeRef = std::ptr::null();
+    cvt(unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut ret) })?;
+    get_password_and_release(ret)
+}
+
 /// Delete the generic password keychain entry for the given service and account.
 /// If none exists, fails with error code `errSecItemNotFound`.
 pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
