@@ -68,7 +68,6 @@ impl Error {
 
 impl From<OSStatus> for Error {
     #[inline(always)]
-    #[must_use]
     fn from(code: OSStatus) -> Self {
         Self::from_code(code)
     }

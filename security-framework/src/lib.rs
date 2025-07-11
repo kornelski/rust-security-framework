@@ -43,6 +43,7 @@ pub mod item;
 pub mod key;
 pub mod os;
 pub mod passwords;
+#[doc(hidden)]
 pub mod passwords_options;
 pub mod policy;
 pub mod random;

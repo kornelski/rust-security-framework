@@ -1,9 +1,13 @@
 //! Support for password options, to be used with the passwords module
+//!
+
+// NB: re-export these types in the `passwords` module!
 
 use crate::access_control::SecAccessControl;
 use core_foundation::base::{CFOptionFlags, CFType, TCFType};
+use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
-use core_foundation::string::CFString;
+use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::access_control::*;
 use security_framework_sys::item::{
     kSecAttrAccessControl, kSecAttrAccessGroup, kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword
@@ -51,16 +55,15 @@ impl PasswordOptions {
     /// attributes, but this interface doesn't allow specifying them.
     #[must_use]
     pub fn new_generic_password(service: &str, account: &str) -> Self {
-        let query = vec![
+        #[allow(deprecated)]
+        Self { query: vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
                 unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword).into_CFType() },
             ),
             (unsafe { CFString::wrap_under_get_rule(kSecAttrService) }, CFString::from(service).into_CFType()),
             (unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) }, CFString::from(account).into_CFType()),
-        ];
-        #[allow(deprecated)]
-        Self { query }
+        ] }
     }
 
     /// Create a new internet password options
@@ -76,7 +79,8 @@ impl PasswordOptions {
         protocol: SecProtocolType,
         authentication_type: SecAuthenticationType,
     ) -> Self {
-        let mut query = vec![
+        #[allow(deprecated)]
+        let mut this = Self { query: vec![
             (
                 unsafe { CFString::wrap_under_get_rule(kSecClass) },
                 unsafe { CFString::wrap_under_get_rule(kSecClassInternetPassword) }.into_CFType(),
@@ -89,38 +93,46 @@ impl PasswordOptions {
                 unsafe { CFString::wrap_under_get_rule(kSecAttrAuthenticationType) },
                 CFNumber::from(authentication_type as i32).into_CFType(),
             ),
-        ];
+        ] };
         if let Some(domain) = security_domain {
-            query.push((
-                unsafe { CFString::wrap_under_get_rule(kSecAttrSecurityDomain) },
-                CFString::from(domain).into_CFType(),
-            ));
+            unsafe {
+                this.push_query(kSecAttrSecurityDomain, CFString::from(domain));
+            }
         }
         if let Some(port) = port {
-            query.push((
-                unsafe { CFString::wrap_under_get_rule(kSecAttrPort) },
-                CFNumber::from(i32::from(port)).into_CFType(),
-            ));
+            unsafe {
+                this.push_query(kSecAttrPort, CFNumber::from(i32::from(port)));
+            }
         }
-        #[allow(deprecated)]
-        Self { query }
+        this
     }
 
     /// Add access control to the password
     pub fn set_access_control_options(&mut self, options: AccessControlOptions) {
-        #[allow(deprecated)]
-        self.query.push((
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) },
-            SecAccessControl::create_with_flags(options.bits()).unwrap().into_CFType(),
-        ));
+        unsafe {
+            self.push_query(kSecAttrAccessControl, SecAccessControl::create_with_flags(options.bits()).unwrap());
+        }
     }
 
     /// Add access group to the password
     pub fn set_access_group(&mut self, group: &str) {
+        unsafe {
+            self.push_query(kSecAttrAccessGroup, CFString::from(group));
+        }
+    }
+
+    /// The key must be a `kSec*` constant.
+    /// Value is any owned ObjC object, like `CFString`.
+    pub(crate) unsafe fn push_query(&mut self, static_key_constant: CFStringRef, value: impl TCFType) {
         #[allow(deprecated)]
         self.query.push((
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessGroup) },
-            CFString::from(group).into_CFType(),
+            unsafe { CFString::wrap_under_get_rule(static_key_constant) },
+            value.into_CFType(),
         ));
+    }
+
+    pub(crate) fn to_dictionary(&self) -> CFDictionary<CFString, CFType> {
+        #[allow(deprecated)]
+        CFDictionary::from_CFType_pairs(&self.query[..])
     }
 }
