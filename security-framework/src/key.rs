@@ -156,10 +156,10 @@ impl SecKey {
     pub fn generate(attributes: CFDictionary) -> Result<Self, CFError> {
         let mut error: CFErrorRef = ::std::ptr::null_mut();
         let sec_key = unsafe { SecKeyCreateRandomKey(attributes.as_concrete_TypeRef(), &mut error) };
-        if !error.is_null() {
-            Err(unsafe { CFError::wrap_under_create_rule(error) })
-        } else {
+        if error.is_null() {
             Ok(unsafe { Self::wrap_under_create_rule(sec_key) })
+        } else {
+            Err(unsafe { CFError::wrap_under_create_rule(error) })
         }
     }
 
@@ -313,7 +313,7 @@ impl SecKey {
                     CFString::wrap_under_get_rule(kSecKeyKeyExchangeParameterSharedInfo),
                     CFData::from_buffer(shared_info).as_CFType(),
                 ));
-            };
+            }
 
             let parameters = CFDictionary::from_CFType_pairs(&params);
 
@@ -460,11 +460,11 @@ impl GenerateKeyOptions {
 
         let size_in_bits = self.size_in_bits.unwrap_or(match () {
             #[cfg(target_os = "macos")]
-            _ if key_type == KeyType::aes().to_str() => 256,
-            _ if key_type == KeyType::rsa().to_str() => 2048,
-            _ if key_type == KeyType::ec().to_str() => 256,
-            _ if key_type == KeyType::ec_sec_prime_random().to_str() => 256,
-            _ => 256,
+            () if key_type == KeyType::aes().to_str() => 256,
+            () if key_type == KeyType::rsa().to_str() => 2048,
+            () if key_type == KeyType::ec().to_str() => 256,
+            () if key_type == KeyType::ec_sec_prime_random().to_str() => 256,
+            () => 256,
         });
         let size_in_bits = CFNumber::from(size_in_bits as i32);
 
@@ -515,7 +515,7 @@ impl GenerateKeyOptions {
         #[cfg(feature = "sync-keychain")]
         if let Some(ref synchronizable) = self.synchronizable {
             attribute_key_values.push((
-                 unsafe { security_framework_sys::item::kSecAttrSynchronizable }.to_void(),
+                unsafe { security_framework_sys::item::kSecAttrSynchronizable }.to_void(),
                 CFBoolean::from(*synchronizable).to_void(),
             ));
         }

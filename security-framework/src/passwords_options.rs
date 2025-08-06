@@ -10,7 +10,9 @@ use core_foundation::number::CFNumber;
 use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::access_control::*;
 use security_framework_sys::item::{
-    kSecAttrAccessControl, kSecAttrAccessGroup, kSecAttrAccount, kSecAttrAuthenticationType, kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer, kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword
+    kSecAttrAccessControl, kSecAttrAccessGroup, kSecAttrAccount, kSecAttrAuthenticationType,
+    kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
+    kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
 };
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 

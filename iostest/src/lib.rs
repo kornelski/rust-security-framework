@@ -41,19 +41,19 @@ fn test_missing_generic_password() {
         Ok(()) => (),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_generic_password: delete failed with status: {}", err.code()),
-    };
+    }
     let result = get_generic_password(name, name);
     match result {
         Ok(bytes) => panic!("test_missing_password: get returned {bytes:?}"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_generic_password: get failed with status: {}", err.code()),
-    };
+    }
     let result = delete_generic_password(name, name);
     match result {
         Ok(()) => panic!("test_missing_generic_password: second delete found a password"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_generic_password: delete failed with status: {}", err.code()),
-    };
+    }
     println!("test_missing_generic_password: pass");
 }
 
@@ -124,19 +124,19 @@ fn test_missing_internet_password() {
         Ok(()) => (),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_internet_password: delete failed with status: {}", err.code()),
-    };
+    }
     let result = get_internet_password(name, None, name, "/test", None, HTTP, Any);
     match result {
         Ok(bytes) => panic!("test_missing_password: get returned {bytes:?}"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_internet_password: get failed with status: {}", err.code()),
-    };
+    }
     let result = delete_internet_password(name, None, name, "/test", None, HTTP, Any);
     match result {
         Ok(()) => panic!("test_missing_internet_password: second delete found a password"),
         Err(err) if err.code() == errSecItemNotFound => (),
         Err(err) => panic!("test_missing_internet_password: delete failed with status: {}", err.code()),
-    };
+    }
     println!("test_missing_internet_password: pass");
 }
 

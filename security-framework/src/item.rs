@@ -678,6 +678,7 @@ impl ItemAddOptions {
     /// Populates a `CFDictionary` to be passed to `add_item`.
     #[deprecated(since = "3.0.0", note = "use `ItemAddOptions::add` instead")]
     // CFDictionary should not be exposed in public Rust APIs.
+    #[must_use]
     pub fn to_dictionary(&self) -> CFDictionary {
         let mut dict = CFMutableDictionary::from_CFType_pairs(&[]);
 

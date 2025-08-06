@@ -197,7 +197,7 @@ impl SecKeychain {
         service: &str,
         account: &str,
     ) -> Result<(SecKeychainItemPassword, SecKeychainItem)> {
-        find_generic_password(Some(&[self.clone()]), service, account)
+        find_generic_password(Some(std::slice::from_ref(self)), service, account)
     }
 
     /// Find internet password in this keychain
@@ -214,7 +214,7 @@ impl SecKeychain {
         authentication_type: SecAuthenticationType,
     ) -> Result<(SecKeychainItemPassword, SecKeychainItem)> {
         find_internet_password(
-            Some(&[self.clone()]),
+            Some(std::slice::from_ref(self)),
             server,
             security_domain,
             account,

@@ -4,7 +4,7 @@
 //! version of these functions in the macOS extensions module.
 
 #[doc(inline)]
-pub use crate::passwords_options::{PasswordOptions, AccessControlOptions};
+pub use crate::passwords_options::{AccessControlOptions, PasswordOptions};
 
 use crate::base::Result;
 use crate::{cvt, Error};
@@ -200,19 +200,19 @@ mod test {
             Ok(()) => (), // this is ok because the name _might_ be in the keychain
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_generic: delete failed with status: {}", err.code()),
-        };
+        }
         let result = get_generic_password(name, name);
         match result {
             Ok(bytes) => panic!("missing_generic: get returned {bytes:?}"),
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_generic: get failed with status: {}", err.code()),
-        };
+        }
         let result = delete_generic_password(name, name);
         match result {
             Ok(()) => panic!("missing_generic: second delete found a password"),
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_generic: delete failed with status: {}", err.code()),
-        };
+        }
     }
 
     #[test]
@@ -256,13 +256,13 @@ mod test {
                 "missing_internet: delete failed with status: {}",
                 err.code()
             ),
-        };
+        }
         let result = get_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
             Ok(bytes) => panic!("missing_internet: get returned {bytes:?}"),
             Err(err) if err.code() == errSecItemNotFound => (),
             Err(err) => panic!("missing_internet: get failed with status: {}", err.code()),
-        };
+        }
         let result = delete_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
             Ok(()) => panic!("missing_internet: second delete found a password"),
@@ -271,7 +271,7 @@ mod test {
                 "missing_internet: delete failed with status: {}",
                 err.code()
             ),
-        };
+        }
     }
 
     #[test]

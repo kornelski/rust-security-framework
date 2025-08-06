@@ -63,7 +63,7 @@ pub enum TrustSettingsForCertificate {
 impl TrustSettingsForCertificate {
     /// Create from `kSecTrustSettingsResult*` constant
     fn new(value: i64) -> Self {
-        if value < 0 || value > i64::from(u32::max_value()) {
+        if value < 0 || value > i64::from(u32::MAX) {
             return Self::Invalid;
         }
         match value as u32 {

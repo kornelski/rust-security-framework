@@ -22,5 +22,8 @@ OSX_10_13 = ["OSX_10_12", "security-framework-sys/OSX_10_13"]
 [package.metadata.release]
 release = false
 
-[lints]
-workspace = true
+[lints.clippy]
+all = "allow"
+
+[lints.rust]
+missing_abi = "allow"

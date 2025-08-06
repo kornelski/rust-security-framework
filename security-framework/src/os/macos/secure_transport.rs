@@ -83,7 +83,7 @@ macro_rules! impl_options {
                 unsafe {
                     cvt(SSLSetSessionOption(self.as_inner(),
                                             $opt,
-                                            value as ::core_foundation::base::Boolean))
+                                            ::core_foundation::base::Boolean::from(value)))
                 }
             }
 

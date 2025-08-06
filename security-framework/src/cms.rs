@@ -30,8 +30,8 @@ pub use encoder::CMS_DIGEST_ALGORITHM_SHA256;
 
 mod encoder {
     use super::*;
-    use core_foundation::{declare_TCFType, impl_TCFType};
     use crate::identity::SecIdentity;
+    use core_foundation::{declare_TCFType, impl_TCFType};
 
     /// SHA1 digest algorithm
     pub const CMS_DIGEST_ALGORITHM_SHA1: &str = "sha1";
@@ -557,9 +557,7 @@ mod tests {
         let identities = import_keystore();
 
         let chain = identities
-            .iter()
-            .filter_map(|id| id.cert_chain.as_ref())
-            .next()
+            .iter().find_map(|id| id.cert_chain.as_ref())
             .unwrap();
 
         let message = cms_encode_content(
@@ -582,15 +580,11 @@ mod tests {
         let identities = import_keystore();
 
         let chain = identities
-            .iter()
-            .filter_map(|id| id.cert_chain.as_ref())
-            .next()
+            .iter().find_map(|id| id.cert_chain.as_ref())
             .unwrap();
 
         let identity = identities
-            .iter()
-            .filter_map(|id| id.identity.as_ref())
-            .next()
+            .iter().find_map(|id| id.identity.as_ref())
             .unwrap();
 
         let message = cms_encode_content(
@@ -614,15 +608,11 @@ mod tests {
         let identities = import_keystore();
 
         let chain = identities
-            .iter()
-            .filter_map(|id| id.cert_chain.as_ref())
-            .next()
+            .iter().find_map(|id| id.cert_chain.as_ref())
             .unwrap();
 
         let identity = identities
-            .iter()
-            .filter_map(|id| id.identity.as_ref())
-            .next()
+            .iter().find_map(|id| id.identity.as_ref())
             .unwrap();
 
         let message = cms_encode_content(

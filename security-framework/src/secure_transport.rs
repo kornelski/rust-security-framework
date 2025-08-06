@@ -71,12 +71,13 @@
 //!     });
 //! }
 //! ```
+#![allow(clippy::result_large_err)]
 #[allow(unused_imports)]
 use core_foundation::array::{CFArray, CFArrayRef};
-use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::base::{Boolean, TCFType};
 #[cfg(feature = "alpn")]
 use core_foundation::string::CFString;
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
 use std::os::raw::c_void;
 
@@ -299,7 +300,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                     result = stream.handshake();
                     continue;
                 }
-                let mut trust = if let Some(trust) = stream.context().peer_trust2()? { trust } else {
+                let Some(mut trust) = stream.context().peer_trust2()? else {
                     result = stream.handshake();
                     continue;
                 };
@@ -456,7 +457,7 @@ macro_rules! impl_options {
             $(#[$a])*
             #[inline(always)]
             pub fn $set(&mut self, value: bool) -> Result<()> {
-                unsafe { cvt(SSLSetSessionOption(self.0, $opt, value as Boolean)) }
+                unsafe { cvt(SSLSetSessionOption(self.0, $opt, Boolean::from(value))) }
             }
 
             #[allow(deprecated)]
@@ -775,7 +776,7 @@ impl SslContext {
         {
             dlsym! { fn SSLSetSessionTicketsEnabled(SSLContextRef, Boolean) -> OSStatus }
             if let Some(f) = SSLSetSessionTicketsEnabled.get() {
-                unsafe { cvt(f(self.0, enabled as Boolean)) }
+                unsafe { cvt(f(self.0, Boolean::from(enabled))) }
             } else {
                 Err(Error::from_code(errSecUnimplemented))
             }
@@ -1194,7 +1195,7 @@ impl ClientBuilder {
     /// verifying the server's certificate.
     #[inline]
     pub fn anchor_certificates(&mut self, certs: &[SecCertificate]) -> &mut Self {
-        self.certs = certs.to_owned();
+        certs.clone_into(&mut self.certs);
         self
     }
 
@@ -1253,20 +1254,20 @@ impl ClientBuilder {
 
     /// Set a whitelist of enabled ciphers. Any ciphers not whitelisted will be disabled.
     pub fn whitelist_ciphers(&mut self, whitelisted_ciphers: &[CipherSuite]) -> &mut Self {
-        self.whitelisted_ciphers = whitelisted_ciphers.to_owned();
+        whitelisted_ciphers.clone_into(&mut self.whitelisted_ciphers);
         self
     }
 
     /// Set a blacklist of disabled ciphers. Blacklisted ciphers will be disabled.
     pub fn blacklist_ciphers(&mut self, blacklisted_ciphers: &[CipherSuite]) -> &mut Self {
-        self.blacklisted_ciphers = blacklisted_ciphers.to_owned();
+        blacklisted_ciphers.clone_into(&mut self.blacklisted_ciphers);
         self
     }
 
     /// Use the specified identity as a SSL/TLS client certificate.
     pub fn identity(&mut self, identity: &SecIdentity, chain: &[SecCertificate]) -> &mut Self {
         self.identity = Some(identity.clone());
-        self.chain = chain.to_owned();
+        chain.clone_into(&mut self.chain);
         self
     }
 

@@ -1,11 +1,11 @@
 //! Trust evaluation support.
-use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation::array::CFArray;
 #[cfg(target_os = "macos")]
 use core_foundation::array::CFArrayRef;
 use core_foundation::base::TCFType;
 use core_foundation::data::CFData;
 use core_foundation::date::CFDate;
+use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation_sys::base::{Boolean, CFIndex};
 
 use security_framework_sys::trust::*;

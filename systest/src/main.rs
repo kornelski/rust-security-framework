@@ -4,6 +4,7 @@
 #![allow(deprecated)]
 #![allow(deref_nullptr)]
 #![allow(invalid_value)] // mem::uninitialized has to stay
+#![allow(clippy::all)]
 
 use core_foundation_sys::base::{CFOptionFlags, OSStatus};
 use core_foundation_sys::string::CFStringRef;
