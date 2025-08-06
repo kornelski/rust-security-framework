@@ -114,6 +114,13 @@ impl PasswordOptions {
         }
     }
 
+    /// Add access control to the password
+    pub fn set_access_control(&mut self, access_control: SecAccessControl) {
+        unsafe {
+            self.push_query(kSecAttrAccessControl, access_control);
+        }
+    }
+
     /// Add access group to the password
     pub fn set_access_group(&mut self, group: &str) {
         unsafe {
