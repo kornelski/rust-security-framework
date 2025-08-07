@@ -48,6 +48,8 @@ extern "C" {
     pub static kSecUseAuthenticationContext: CFStringRef;
     #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecAttrSynchronizable: CFStringRef;
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub static kSecAttrSynchronizableAny: CFStringRef;
 
     pub static kSecAttrKeySizeInBits: CFStringRef;
 
