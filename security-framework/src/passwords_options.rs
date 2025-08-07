@@ -5,6 +5,8 @@
 
 use crate::access_control::SecAccessControl;
 use core_foundation::base::{CFOptionFlags, CFType, TCFType};
+#[allow(unused_imports)]
+use core_foundation::boolean::CFBoolean;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::{CFString, CFStringRef};
@@ -14,6 +16,10 @@ use security_framework_sys::item::{
     kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
     kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
 };
+#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+use security_framework_sys::item::kSecAttrSynchronizable;
+#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+use security_framework_sys::item::kSecAttrSynchronizableAny;
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 
 /// `PasswordOptions` constructor
@@ -127,6 +133,41 @@ impl PasswordOptions {
     pub fn set_access_group(&mut self, group: &str) {
         unsafe {
             self.push_query(kSecAttrAccessGroup, CFString::from(group));
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    /// Specify whether password is cloud-synchronized, not cloud-synchronized, or either (`None`).
+    ///
+    /// Note: cloud-synchronized and not-cloud-synchronized passwords are kept
+    /// in completely different stores, so they are uniquely identified not just
+    /// by their `service` and `account` but also their cloud-synchronized option.
+    ///
+    /// If you specify a non-`None` value for this option, any operation you
+    /// perform - whether set, get, or delete - will only affect the store matching
+    /// the value: Some(`true`) will only affect the cloud-synchronized store and
+    /// Some(`false`) will only affect the not-cloud-synchronized store.
+    ///
+    /// If you specify `None` for this option, the effect depends on your operation:
+    ///
+    /// - Performing a delete will delete from both stores.
+    /// - Performing a get will return values from both stores, but since get only
+    ///   returns one value you can't be sure which store that value was in.
+    /// - Performing a set will update existing values in both stores. _But_, before
+    ///   doing any updates, set will first try to create a new value in the
+    ///   not-cloud-synchronized store (interpreting `None` as `false`). If
+    ///   that creation attempt succeeds, no update will be done of any existing
+    ///   value in the cloud-synchronized store. Thus, only if there is an existing
+    ///   value in the not-cloud-synchronized store will set update the
+    ///   cloud-synchronized store.
+    pub fn set_access_synchronized(&mut self, synchronized: Option<bool>) {
+        unsafe {
+            if let Some(synchronizable) = synchronized {
+                self.push_query(kSecAttrSynchronizable, CFBoolean::from(synchronizable));
+            } else {
+                let either = CFString::wrap_under_get_rule(kSecAttrSynchronizableAny);
+                self.push_query(kSecAttrSynchronizable, either);
+            }
         }
     }
 
