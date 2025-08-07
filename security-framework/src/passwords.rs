@@ -71,7 +71,7 @@ pub fn delete_generic_password(service: &str, account: &str) -> Result<()> {
 /// See [`PasswordOptions`] and [`new_generic_password`](PasswordOptions::new_generic_password).
 ///
 /// ```rust
-/// use security_framework::passwords::{generic_password, PasswordOptions};
+/// use security_framework::passwords::{delete_generic_password_options, PasswordOptions};
 /// delete_generic_password_options(PasswordOptions::new_generic_password("service", "account"));
 /// ```
 pub fn delete_generic_password_options(options: PasswordOptions) -> Result<()> {
