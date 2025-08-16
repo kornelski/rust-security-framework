@@ -16,9 +16,9 @@ use security_framework_sys::item::{
     kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
     kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
 };
-#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use security_framework_sys::item::kSecAttrSynchronizable;
-#[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+#[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use security_framework_sys::item::kSecAttrSynchronizableAny;
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 
@@ -136,7 +136,7 @@ impl PasswordOptions {
         }
     }
 
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     /// Specify whether password is cloud-synchronized, not cloud-synchronized, or either (`None`).
     ///
     /// Note: cloud-synchronized and not-cloud-synchronized passwords are kept
