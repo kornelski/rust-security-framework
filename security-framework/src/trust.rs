@@ -357,7 +357,7 @@ mod test {
         let cert = certificate();
         let ssl_policy = SecPolicy::create_ssl(SslProtocolSide::CLIENT, Some("certifi.io"));
 
-        let trust = SecTrust::create_with_certificates(&[cert.clone()], &[ssl_policy.clone()]).unwrap();
+        let trust = SecTrust::create_with_certificates(std::slice::from_ref(&cert), std::slice::from_ref(&ssl_policy)).unwrap();
         trust.evaluate().unwrap();
         assert!(trust.certificate_at_index(1).is_none());
 

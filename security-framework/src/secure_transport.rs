@@ -310,7 +310,7 @@ impl<S> MidHandshakeClientBuilder<S> {
                 trust.set_policy(&policy)?;
                 trust.evaluate_with_error().map_err(|error| {
                     #[cfg(feature = "log")]
-                    log::warn!("SecTrustEvaluateWithError: {}", error.to_string());
+                    log::warn!("SecTrustEvaluateWithError: {error}");
                     Error::from_code(error.code() as _)
                 })?;
                 result = stream.handshake();
@@ -1480,10 +1480,7 @@ mod test {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("foobar.com"));
         let stream = p!(TcpStream::connect("google.com:443"));
-        match ctx.handshake(stream) {
-            Ok(_) => panic!("expected failure"),
-            Err(_) => {},
-        }
+        ctx.handshake(stream).expect_err("expected failure");
     }
 
     #[test]

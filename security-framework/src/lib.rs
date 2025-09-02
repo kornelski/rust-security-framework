@@ -5,6 +5,9 @@
 #![allow(non_upper_case_globals)]
 #![allow(clippy::manual_non_exhaustive)] // MSRV
 #![allow(clippy::bad_bit_mask)] // bitflags
+#![allow(clippy::struct_excessive_bools)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::ignore_without_reason)]
 
 use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;

@@ -304,8 +304,8 @@ impl ItemSearchOptions {
     /// local authentication context that should be used for keychain item authentication.
     #[inline(always)]
     #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
-    pub fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {
-        self.authentication_context = unsafe { Some(CFType::wrap_under_create_rule(authentication_context)) };
+    pub fn authentication_context(&mut self, authentication_context: Option<CFType>) -> &mut Self {
+        self.authentication_context = authentication_context;
         self
     }
 
