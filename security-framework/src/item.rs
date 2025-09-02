@@ -302,12 +302,20 @@ impl ItemSearchOptions {
         self
     }
 
+    #[doc(hidden)]
+    #[deprecated(note = "use local_authentication_context")]
+    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    pub unsafe fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {
+        self.authentication_context = unsafe { Some(CFType::wrap_under_create_rule(authentication_context)) };
+        self
+    }
+
     /// The corresponding value is of type LAContext, and represents a reusable
     /// local authentication context that should be used for keychain item authentication.
     #[inline(always)]
     #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
-    pub fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {
-        self.authentication_context = unsafe { Some(CFType::wrap_under_create_rule(authentication_context)) };
+    pub fn local_authentication_context<LAContext: TCFType>(&mut self, authentication_context: Option<LAContext>) -> &mut Self {
+        self.authentication_context = authentication_context.map(|la| la.into_CFType());
         self
     }
 
