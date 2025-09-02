@@ -594,7 +594,7 @@ mod tests {
             .unwrap();
 
         let message = cms_encode_content(
-            &[identity.clone()],
+            std::slice::from_ref(identity),
             &chain[0..1],
             None,
             false,
@@ -622,7 +622,7 @@ mod tests {
             .unwrap();
 
         let message = cms_encode_content(
-            &[identity.clone()],
+            std::slice::from_ref(identity),
             &chain[0..1],
             None,
             false,

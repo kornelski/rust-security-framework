@@ -232,9 +232,8 @@ mod test {
         let value = properties
             .get(CertificateOid::x509_v1_signature_algorithm())
             .unwrap();
-        let section = match value.get() {
-            PropertyType::Section(section) => section,
-            _ => panic!(),
+        let PropertyType::Section(section) = value.get() else {
+            panic!()
         };
         let properties = section
             .iter()

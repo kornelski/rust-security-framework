@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 //! Access functionality.
 use core_foundation::base::TCFType;
 use core_foundation::{declare_TCFType, impl_TCFType};
