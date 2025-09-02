@@ -23,6 +23,11 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
+      - name: Fix time MSRV
+        run: |
+          cargo update -p time --precise 0.3.41
+          cargo update -p time-core --precise 0.1.4
+
       - name: Run cargo test
         run: cargo test --all-features --all
 
