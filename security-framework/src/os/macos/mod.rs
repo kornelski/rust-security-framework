@@ -28,6 +28,8 @@ pub(crate) mod test {
 
     #[must_use]
     pub(crate) fn identity(dir: &Path) -> SecIdentity {
+        // openssl req -new -key key-from-keychain.p12 -out req.csr -subj "/CN=foobar.com"
+        // openssl x509 -req -in req.csr -CA server.der -CAkey server.key -CAcreateserial -out put-into-keychain.crt -days 3650 -sha256
         let keychain = keychain(dir);
         let mut items = p!(ItemSearchOptions::new()
             .class(ItemClass::identity())
