@@ -28,7 +28,6 @@ pub(crate) mod test {
 
     #[must_use]
     pub(crate) fn identity(dir: &Path) -> SecIdentity {
-        // FIXME https://github.com/rust-lang/rust/issues/30018
         let keychain = keychain(dir);
         let mut items = p!(ItemSearchOptions::new()
             .class(ItemClass::identity())

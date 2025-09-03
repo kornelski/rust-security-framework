@@ -220,7 +220,7 @@ mod test {
     fn fingerprint() {
         let certificate = certificate();
         let fingerprint = p!(certificate.fingerprint());
-        assert_eq!("af9dd180a326ae08b37e6398f9262f8b9d4c55674a233a7c84975024f873655d", hex::encode(fingerprint));
+        assert_eq!("4703d8573aaeb1d75e6b04a75555b4ddc38b220e193947b172019b3e2c3da084", hex::encode(fingerprint));
     }
 
     #[test]
@@ -243,6 +243,6 @@ mod test {
             PropertyType::String(ref s) => s.to_string(),
             _ => panic!(),
         };
-        assert_eq!(algorithm, "1.2.840.113549.1.1.5");
+        assert_eq!(algorithm, "1.2.840.113549.1.1.11");
     }
 }
