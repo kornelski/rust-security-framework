@@ -64,6 +64,7 @@ trait Pkcs12ImportOptionsInternals {
 #[cfg(target_os = "macos")]
 trait ItemSearchOptionsInternals {
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
+    fn ignore_legacy_keychains(&mut self) -> &mut Self;
 }
 
 trait AsInner {

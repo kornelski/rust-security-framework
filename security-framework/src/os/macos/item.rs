@@ -12,12 +12,25 @@ pub trait ItemSearchOptionsExt {
     ///
     /// If this is not called, the default keychain will be searched.
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
+
+    /// Only search the protected data keychains.
+    ///
+    /// Has no effect if a legacy keychain has been explicitly specified
+    /// using [keychains](ItemSearchOptionsExt::keychains).
+    ///
+    /// Has no effect except in sandboxed applications on macOS 10.15 and above
+    fn ignore_legacy_keychains(&mut self) -> &mut Self;
 }
 
 impl ItemSearchOptionsExt for ItemSearchOptions {
     #[inline(always)]
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         ItemSearchOptionsInternals::keychains(self, keychains)
+    }
+
+    #[inline(always)]
+    fn ignore_legacy_keychains(&mut self) -> &mut Self {
+        ItemSearchOptionsInternals::ignore_legacy_keychains(self)
     }
 }
 

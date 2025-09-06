@@ -128,6 +128,7 @@ pub struct ItemSearchOptions {
     keychains: Option<CFArray<SecKeychain>>,
     #[cfg(not(target_os = "macos"))]
     keychains: Option<CFArray<CFType>>,
+    ignore_legacy_keychains: bool,  // defined everywhere, only consulted on macOS
     case_insensitive: Option<bool>,
     class: Option<ItemClass>,
     key_class: Option<KeyClass>,
@@ -155,6 +156,12 @@ impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
     #[inline]
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
+        self
+    }
+    
+    #[inline]
+    fn ignore_legacy_keychains(&mut self) -> &mut Self {
+        self.ignore_legacy_keychains = true;
         self
     }
 }
@@ -339,6 +346,15 @@ impl ItemSearchOptions {
                     &kSecMatchSearchList.to_void(),
                     &keychains.as_CFType().to_void(),
                 );
+            }
+            else {
+                if self.ignore_legacy_keychains {
+                    #[cfg(all(target_os = "macos", feature = "OSX_10_15"))]
+                    params.add(
+                        &kSecUseDataProtectionKeychain.to_void(),
+                        &CFBoolean::true_value().to_void(),
+                    )
+                }
             }
 
             if let Some(class) = self.class {
