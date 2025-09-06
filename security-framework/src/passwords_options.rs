@@ -13,6 +13,7 @@ use core_foundation::string::{CFString, CFStringRef};
 use security_framework_sys::access_control::*;
 use security_framework_sys::item::{
     kSecAttrAccessControl, kSecAttrAccessGroup, kSecAttrAccount, kSecAttrAuthenticationType,
+    kSecAttrComment, kSecAttrDescription, kSecAttrLabel,
     kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
     kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
 };
@@ -20,6 +21,8 @@ use security_framework_sys::item::{
 use security_framework_sys::item::kSecAttrSynchronizable;
 #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use security_framework_sys::item::kSecAttrSynchronizableAny;
+#[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+use security_framework_sys::item::kSecUseDataProtectionKeychain;
 use security_framework_sys::keychain::{SecAuthenticationType, SecProtocolType};
 
 /// `PasswordOptions` constructor
@@ -168,6 +171,35 @@ impl PasswordOptions {
                 let either = CFString::wrap_under_get_rule(kSecAttrSynchronizableAny);
                 self.push_query(kSecAttrSynchronizable, either);
             }
+        }
+    }
+
+    /// Set the comment on the password
+    pub fn set_comment(&mut self, comment: &str) {
+        unsafe {
+            self.push_query(kSecAttrComment, CFString::from(comment));
+        }
+    }
+
+    /// Add a description to the password
+    pub fn set_description(&mut self, description: &str) {
+        unsafe {
+            self.push_query(kSecAttrDescription, CFString::from(description));
+        }
+    }
+
+    /// Add a label to the password
+    pub fn set_label(&mut self, label: &str) {
+        unsafe {
+            self.push_query(kSecAttrLabel, CFString::from(label));
+        }
+    }
+
+    #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    /// Use the data protection keychain (always true except on macOS)
+    pub fn use_protected_keychain(&mut self) {
+        unsafe {
+            self.push_query(kSecUseDataProtectionKeychain, CFBoolean::from(true));
         }
     }
 
