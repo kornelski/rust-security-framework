@@ -106,7 +106,7 @@ use crate::identity::SecIdentity;
 use crate::import_export::Pkcs12ImportOptions;
 use crate::policy::SecPolicy;
 use crate::trust::SecTrust;
-use crate::{cvt, AsInner};
+use crate::cvt;
 use security_framework_sys::base::errSecParam;
 
 /// Specifies a side of a TLS session.
@@ -441,11 +441,8 @@ impl fmt::Debug for SslContext {
 unsafe impl Sync for SslContext {}
 unsafe impl Send for SslContext {}
 
-impl AsInner for SslContext {
-    type Inner = SSLContextRef;
-
-    #[inline(always)]
-    fn as_inner(&self) -> SSLContextRef {
+impl SslContext {
+    pub(crate) fn as_inner(&self) -> SSLContextRef {
         self.0
     }
 }

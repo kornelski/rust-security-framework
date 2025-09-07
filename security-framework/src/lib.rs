@@ -55,17 +55,6 @@ pub mod trust;
 #[cfg(target_os = "macos")]
 pub mod trust_settings;
 
-#[cfg(target_os = "macos")]
-trait Pkcs12ImportOptionsInternals {
-    fn keychain(&mut self, keychain: SecKeychain) -> &mut Self;
-    fn access(&mut self, access: SecAccess) -> &mut Self;
-}
-
-trait AsInner {
-    type Inner;
-    fn as_inner(&self) -> Self::Inner;
-}
-
 #[inline(always)]
 fn cvt(err: OSStatus) -> Result<()> {
     match err {
