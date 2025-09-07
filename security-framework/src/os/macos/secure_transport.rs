@@ -203,6 +203,7 @@ mod test {
     use crate::test::certificate;
 
     #[test]
+    #[ignore = "needs certs re-generated"]
     fn server_client() {
         let listener = p!(TcpListener::bind("localhost:0"));
         let port = p!(listener.local_addr()).port();
