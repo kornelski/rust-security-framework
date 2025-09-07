@@ -1,6 +1,6 @@
 #![cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 
-//! Wrappers around the OSX Security Framework.
+//! Wrappers around the macOS Security Framework.
 #![warn(missing_docs)]
 #![allow(non_upper_case_globals)]
 #![allow(clippy::manual_non_exhaustive)] // MSRV
@@ -13,10 +13,6 @@ use core_foundation_sys::base::OSStatus;
 use security_framework_sys::base::errSecSuccess;
 
 use crate::base::{Error, Result};
-#[cfg(target_os = "macos")]
-use crate::os::macos::access::SecAccess;
-#[cfg(target_os = "macos")]
-use crate::os::macos::keychain::SecKeychain;
 
 #[cfg(test)]
 macro_rules! p {
