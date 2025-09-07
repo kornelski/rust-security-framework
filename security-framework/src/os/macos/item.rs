@@ -1,44 +1,34 @@
 //! OSX specific functionality for items.
 use crate::item::ItemSearchOptions;
 use crate::os::macos::keychain::SecKeychain;
-use crate::ItemSearchOptionsInternals;
 
 // Moved to crate::Key
 pub use crate::key::KeyType;
 
-/// An extension trait adding OSX specific functionality to `ItemSearchOptions`.
+// TODO: mark as deprecated
+#[doc(hidden)]
+/// An obsolete trait for `ItemSearchOptions`. Use methods on `ItemSearchOptions` directly.
 pub trait ItemSearchOptionsExt {
     /// Search within the specified keychains.
     ///
     /// If this is not called, the default keychain will be searched.
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self;
 
-    /// Only search the protected data keychains.
-    ///
-    /// Has no effect if a legacy keychain has been explicitly specified
-    /// using [keychains](ItemSearchOptionsExt::keychains).
-    ///
-    /// Has no effect except in sandboxed applications on macOS 10.15 and above
-    fn ignore_legacy_keychains(&mut self) -> &mut Self;
+    // Do not extend this trait; use `impl ItemSearchOptions` directly
 }
 
 impl ItemSearchOptionsExt for ItemSearchOptions {
-    #[inline(always)]
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
-        ItemSearchOptionsInternals::keychains(self, keychains)
+        ItemSearchOptions::keychains(self, keychains)
     }
 
-    #[inline(always)]
-    fn ignore_legacy_keychains(&mut self) -> &mut Self {
-        ItemSearchOptionsInternals::ignore_legacy_keychains(self)
-    }
+    // Do not extend this trait; use `impl ItemSearchOptions` directly
 }
 
 #[cfg(test)]
 mod test {
     use crate::item::*;
     use crate::os::macos::certificate::SecCertificateExt;
-    use crate::os::macos::item::ItemSearchOptionsExt;
     use crate::os::macos::test::keychain;
     use tempfile::tempdir;
 

@@ -152,15 +152,24 @@ pub struct ItemSearchOptions {
 }
 
 #[cfg(target_os = "macos")]
-impl crate::ItemSearchOptionsInternals for ItemSearchOptions {
+impl ItemSearchOptions {
+    /// Search within the specified macOS keychains.
+    ///
+    /// If this is not called, the default keychain will be searched.
     #[inline]
-    fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
+    pub fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
     
+    /// Only search the protected data macOS keychains.
+    ///
+    /// Has no effect if a legacy keychain has been explicitly specified
+    /// using [keychains](ItemSearchOptions::keychains).
+    ///
+    /// Has no effect except in sandboxed applications on macOS 10.15 and above
     #[inline]
-    fn ignore_legacy_keychains(&mut self) -> &mut Self {
+    pub fn ignore_legacy_keychains(&mut self) -> &mut Self {
         self.ignore_legacy_keychains = true;
         self
     }
