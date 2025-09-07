@@ -5,6 +5,9 @@ on:
   push:
     branches: main
 
+env:
+  RUST_BACKTRACE: 1
+
 jobs:
   test:
     name: Tests

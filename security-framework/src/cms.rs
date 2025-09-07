@@ -524,9 +524,9 @@ mod tests {
     fn test_decode_encrypted() {
         let _lock = import_keystore();
 
-        let decoder = CMSDecoder::create().unwrap();
-        decoder.update_message(ENCRYPTED_CMS).unwrap();
-        decoder.finalize_message().unwrap();
+        let decoder = CMSDecoder::create().expect("create");
+        decoder.update_message(ENCRYPTED_CMS).expect("update");
+        decoder.finalize_message().expect("finalize");
 
         assert!(decoder.is_content_encrypted().unwrap());
         assert_eq!(decoder.get_content().unwrap(), b"encrypted message\n");
