@@ -514,9 +514,9 @@ mod tests {
     static SHARED_KEYCHAIN: Mutex<()> = Mutex::new(());
 
     fn import_keystore() -> (MutexGuard<'static, ()>, Vec<ImportedIdentity>) {
-        let mut import_opts = Pkcs12ImportOptions::new();
-        let id = import_opts.passphrase("cms").import(KEYSTORE).unwrap();
         let lock = SHARED_KEYCHAIN.lock().unwrap();
+        let mut import_opts = Pkcs12ImportOptions::new();
+        let id = import_opts.passphrase("cms").import(KEYSTORE).expect("import keystore.p12");
         (lock, id)
     }
 
