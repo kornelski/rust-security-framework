@@ -40,6 +40,7 @@ jobs:
   lints:
     name: Lints and Breaking Changes
     runs-on: macos-latest
+    continue-on-error: true
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2

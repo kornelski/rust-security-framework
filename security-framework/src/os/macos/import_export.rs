@@ -316,8 +316,6 @@ mod test {
 
     #[test]
     fn pkcs12_import() {
-        use super::Pkcs12ImportOptionsExt;
-
         let dir = tempdir().unwrap();
         let keychain = keychain::CreateOptions::new()
             .password("password")
