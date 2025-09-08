@@ -438,9 +438,7 @@ impl GenerateKeyOptions {
     pub fn to_dictionary(&self) -> CFDictionary {
         #[cfg(target_os = "macos")]
         use security_framework_sys::item::kSecUseKeychain;
-        use security_framework_sys::item::{
-            kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs,
-        };
+        use security_framework_sys::item::{kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecPublicKeyAttrs};
 
         let is_permanent = CFBoolean::from(self.location.is_some());
         let mut private_attributes = CFMutableDictionary::from_CFType_pairs(&[(
@@ -474,8 +472,8 @@ impl GenerateKeyOptions {
         ];
         #[cfg(target_os = "macos")]
         if key_type != KeyType::aes().to_str() {
-                attribute_key_values.push((unsafe { kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
-                attribute_key_values.push((unsafe { kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
+            attribute_key_values.push((unsafe { kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
+            attribute_key_values.push((unsafe { kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
         }
 
         let label = self.label.as_deref().map(CFString::new);

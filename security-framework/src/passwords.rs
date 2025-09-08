@@ -252,23 +252,13 @@ mod test {
     #[test]
     fn missing_internet() {
         let name = "a string not likely to already be in the keychain as service or account";
-        let (server, domain, account, path, port, protocol, auth) = (
-            name,
-            None,
-            name,
-            "/",
-            Some(8080u16),
-            SecProtocolType::HTTP,
-            SecAuthenticationType::Any,
-        );
+        let (server, domain, account, path, port, protocol, auth) =
+            (name, None, name, "/", Some(8080u16), SecProtocolType::HTTP, SecAuthenticationType::Any);
         let result = delete_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
             Ok(()) => (), // this is ok because the name _might_ be in the keychain
             Err(err) if err.code() == errSecItemNotFound => (),
-            Err(err) => panic!(
-                "missing_internet: delete failed with status: {}",
-                err.code()
-            ),
+            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
         }
         let result = get_internet_password(server, domain, account, path, port, protocol, auth);
         match result {
@@ -280,38 +270,19 @@ mod test {
         match result {
             Ok(()) => panic!("missing_internet: second delete found a password"),
             Err(err) if err.code() == errSecItemNotFound => (),
-            Err(err) => panic!(
-                "missing_internet: delete failed with status: {}",
-                err.code()
-            ),
+            Err(err) => panic!("missing_internet: delete failed with status: {}", err.code()),
         }
     }
 
     #[test]
     fn roundtrip_internet() {
         let name = "roundtrip_internet";
-        let (server, domain, account, path, port, protocol, auth) = (
-            name,
-            None,
-            name,
-            "/",
-            Some(8080u16),
-            SecProtocolType::HTTP,
-            SecAuthenticationType::Any,
-        );
-        set_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-            name.as_bytes(),
-        )
-        .expect("set_internet_password");
-        let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
-            .expect("get_internet_password");
+        let (server, domain, account, path, port, protocol, auth) =
+            (name, None, name, "/", Some(8080u16), SecProtocolType::HTTP, SecAuthenticationType::Any);
+        set_internet_password(server, domain, account, path, port, protocol, auth, name.as_bytes())
+            .expect("set_internet_password");
+        let pass =
+            get_internet_password(server, domain, account, path, port, protocol, auth).expect("get_internet_password");
         assert_eq!(name.as_bytes(), pass);
         delete_internet_password(server, domain, account, path, port, protocol, auth)
             .expect("delete_internet_password");
@@ -320,44 +291,19 @@ mod test {
     #[test]
     fn update_internet() {
         let name = "update_internet";
-        let (server, domain, account, path, port, protocol, auth) = (
-            name,
-            None,
-            name,
-            "/",
-            Some(8080u16),
-            SecProtocolType::HTTP,
-            SecAuthenticationType::Any,
-        );
+        let (server, domain, account, path, port, protocol, auth) =
+            (name, None, name, "/", Some(8080u16), SecProtocolType::HTTP, SecAuthenticationType::Any);
 
         // cleanup after failed test
         let _ = delete_internet_password(server, domain, account, path, port, protocol, auth);
 
-        set_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-            name.as_bytes(),
-        )
-        .expect("set_internet_password");
+        set_internet_password(server, domain, account, path, port, protocol, auth, name.as_bytes())
+            .expect("set_internet_password");
         let alternate = "alternate_internet_password";
-        set_internet_password(
-            server,
-            domain,
-            account,
-            path,
-            port,
-            protocol,
-            auth,
-            alternate.as_bytes(),
-        )
-        .expect("set_internet_password");
-        let pass = get_internet_password(server, domain, account, path, port, protocol, auth)
-            .expect("get_internet_password");
+        set_internet_password(server, domain, account, path, port, protocol, auth, alternate.as_bytes())
+            .expect("set_internet_password");
+        let pass =
+            get_internet_password(server, domain, account, path, port, protocol, auth).expect("get_internet_password");
         assert_eq!(pass, alternate.as_bytes());
         delete_internet_password(server, domain, account, path, port, protocol, auth)
             .expect("delete_internet_password");

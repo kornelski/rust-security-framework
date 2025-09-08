@@ -102,11 +102,11 @@ use std::slice;
 use crate::base::{Error, Result};
 use crate::certificate::SecCertificate;
 use crate::cipher_suite::CipherSuite;
+use crate::cvt;
 use crate::identity::SecIdentity;
 use crate::import_export::Pkcs12ImportOptions;
 use crate::policy::SecPolicy;
 use crate::trust::SecTrust;
-use crate::cvt;
 use security_framework_sys::base::errSecParam;
 
 /// Specifies a side of a TLS session.
@@ -328,20 +328,16 @@ impl<S> MidHandshakeClientBuilder<S> {
 pub struct SessionState(SSLSessionState);
 
 impl SessionState {
-    /// The session has not yet started.
-    pub const IDLE: Self = Self(kSSLIdle);
-
-    /// The session is in the handshake process.
-    pub const HANDSHAKE: Self = Self(kSSLHandshake);
-
-    /// The session is connected.
-    pub const CONNECTED: Self = Self(kSSLConnected);
-
-    /// The session has been terminated.
-    pub const CLOSED: Self = Self(kSSLClosed);
-
     /// The session has been aborted due to an error.
     pub const ABORTED: Self = Self(kSSLAborted);
+    /// The session has been terminated.
+    pub const CLOSED: Self = Self(kSSLClosed);
+    /// The session is connected.
+    pub const CONNECTED: Self = Self(kSSLConnected);
+    /// The session is in the handshake process.
+    pub const HANDSHAKE: Self = Self(kSSLHandshake);
+    /// The session has not yet started.
+    pub const IDLE: Self = Self(kSSLIdle);
 }
 
 /// Specifies a server's requirement for client certificates.
@@ -349,12 +345,10 @@ impl SessionState {
 pub struct SslAuthenticate(SSLAuthenticate);
 
 impl SslAuthenticate {
-    /// Do not request a client certificate.
-    pub const NEVER: Self = Self(kNeverAuthenticate);
-
     /// Require a client certificate.
     pub const ALWAYS: Self = Self(kAlwaysAuthenticate);
-
+    /// Do not request a client certificate.
+    pub const NEVER: Self = Self(kNeverAuthenticate);
     /// Request but do not require a client certificate.
     pub const TRY: Self = Self(kTryAuthenticate);
 }
@@ -366,14 +360,12 @@ pub struct SslClientCertificateState(SSLClientCertificateState);
 impl SslClientCertificateState {
     /// A client certificate has not been requested or sent.
     pub const NONE: Self = Self(kSSLClientCertNone);
-
+    /// A client certificate has been received but has failed to validate.
+    pub const REJECTED: Self = Self(kSSLClientCertRejected);
     /// A client certificate has been requested but not recieved.
     pub const REQUESTED: Self = Self(kSSLClientCertRequested);
     /// A client certificate has been received and successfully validated.
     pub const SENT: Self = Self(kSSLClientCertSent);
-
-    /// A client certificate has been received but has failed to validate.
-    pub const REJECTED: Self = Self(kSSLClientCertRejected);
 }
 
 /// Specifies protocol versions.
@@ -381,43 +373,33 @@ impl SslClientCertificateState {
 pub struct SslProtocol(SSLProtocol);
 
 impl SslProtocol {
-    /// No protocol has been or should be negotiated or specified; use the default.
-    pub const UNKNOWN: Self = Self(kSSLProtocolUnknown);
-
+    /// All supported TLS/SSL versions are accepted.
+    pub const ALL: Self = Self(kSSLProtocolAll);
+    /// The `DTLSv1` protocol is preferred.
+    pub const DTLS1: Self = Self(kDTLSProtocol1);
+    /// Only the SSL 2.0 protocol is accepted.
+    pub const SSL2: Self = Self(kSSLProtocol2);
     /// The SSL 3.0 protocol is preferred, though SSL 2.0 may be used if the peer does not support
     /// SSL 3.0.
     pub const SSL3: Self = Self(kSSLProtocol3);
-
+    /// Only the SSL 3.0 protocol is accepted.
+    pub const SSL3_ONLY: Self = Self(kSSLProtocol3Only);
     /// The TLS 1.0 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.0.
     pub const TLS1: Self = Self(kTLSProtocol1);
-
     /// The TLS 1.1 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.1.
     pub const TLS11: Self = Self(kTLSProtocol11);
-
     /// The TLS 1.2 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.2.
     pub const TLS12: Self = Self(kTLSProtocol12);
-
     /// The TLS 1.3 protocol is preferred, though lower versions may be used
     /// if the peer does not support TLS 1.3.
     pub const TLS13: Self = Self(kTLSProtocol13);
-
-    /// Only the SSL 2.0 protocol is accepted.
-    pub const SSL2: Self = Self(kSSLProtocol2);
-
-    /// The `DTLSv1` protocol is preferred.
-    pub const DTLS1: Self = Self(kDTLSProtocol1);
-
-    /// Only the SSL 3.0 protocol is accepted.
-    pub const SSL3_ONLY: Self = Self(kSSLProtocol3Only);
-
     /// Only the TLS 1.0 protocol is accepted.
     pub const TLS1_ONLY: Self = Self(kTLSProtocol1Only);
-
-    /// All supported TLS/SSL versions are accepted.
-    pub const ALL: Self = Self(kSSLProtocolAll);
+    /// No protocol has been or should be negotiated or specified; use the default.
+    pub const UNKNOWN: Self = Self(kSSLProtocolUnknown);
 }
 
 declare_TCFType! {
@@ -812,20 +794,14 @@ impl SslContext {
     }
 
     fn into_stream<S>(self, stream: S) -> Result<SslStream<S>>
-    where
-        S: Read + Write,
-    {
+    where S: Read + Write {
         unsafe {
             let ret = SSLSetIOFuncs(self.0, read_func::<S>, write_func::<S>);
             if ret != errSecSuccess {
                 return Err(Error::from_code(ret));
             }
 
-            let stream = Connection {
-                stream,
-                err: None,
-                panic: None,
-            };
+            let stream = Connection { stream, err: None, panic: None };
             let stream = Box::into_raw(Box::new(stream));
             let ret = SSLSetConnection(self.0, stream.cast());
             if ret != errSecSuccess {
@@ -833,10 +809,7 @@ impl SslContext {
                 return Err(Error::from_code(ret));
             }
 
-            Ok(SslStream {
-                ctx: self,
-                _m: PhantomData,
-            })
+            Ok(SslStream { ctx: self, _m: PhantomData })
         }
     }
 
@@ -874,9 +847,7 @@ unsafe extern "C" fn read_func<S>(
     data: *mut c_void,
     data_length: *mut usize,
 ) -> OSStatus
-where
-    S: Read,
-{
+where S: Read {
     let conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts_mut(data.cast::<u8>(), *data_length);
     let mut start = 0;
@@ -911,9 +882,7 @@ unsafe extern "C" fn write_func<S>(
     data: *const c_void,
     data_length: *mut usize,
 ) -> OSStatus
-where
-    S: Write,
-{
+where S: Write {
     let conn: &mut Connection<S> = &mut *(connection as *mut _);
     let data = slice::from_raw_parts(data as *mut u8, *data_length);
     let mut start = 0;

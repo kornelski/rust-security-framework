@@ -1,5 +1,4 @@
-use crate::base::SecCertificateRef;
-use crate::base::SecKeyRef;
+use crate::base::{SecCertificateRef, SecKeyRef};
 use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{Boolean, CFIndex, CFTypeID, CFTypeRef, OSStatus};
 use core_foundation_sys::date::CFDateRef;
@@ -42,14 +41,8 @@ extern "C" {
     #[deprecated(note = "deprecated by Apple")]
     pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef, ix: CFIndex) -> SecCertificateRef;
     pub fn SecTrustSetVerifyDate(trust: SecTrustRef, verifyDate: CFDateRef) -> OSStatus;
-    pub fn SecTrustSetAnchorCertificates(
-        trust: SecTrustRef,
-        anchorCertificates: CFArrayRef,
-    ) -> OSStatus;
-    pub fn SecTrustSetAnchorCertificatesOnly(
-        trust: SecTrustRef,
-        anchorCertificatesOnly: Boolean,
-    ) -> OSStatus;
+    pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef, anchorCertificates: CFArrayRef) -> OSStatus;
+    pub fn SecTrustSetAnchorCertificatesOnly(trust: SecTrustRef, anchorCertificatesOnly: Boolean) -> OSStatus;
     #[cfg(target_os = "macos")]
     pub fn SecTrustCopyAnchorCertificates(anchors: *mut CFArrayRef) -> OSStatus;
     #[deprecated(note = "deprecated by Apple")]

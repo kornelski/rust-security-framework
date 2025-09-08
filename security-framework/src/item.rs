@@ -355,15 +355,12 @@ impl ItemSearchOptions {
                     &kSecMatchSearchList.to_void(),
                     &keychains.as_CFType().to_void(),
                 );
-            }
-            else {
-                if self.ignore_legacy_keychains {
-                    #[cfg(all(target_os = "macos", feature = "OSX_10_15"))]
-                    params.add(
-                        &kSecUseDataProtectionKeychain.to_void(),
-                        &CFBoolean::true_value().to_void(),
-                    )
-                }
+            } else if self.ignore_legacy_keychains {
+                #[cfg(all(target_os = "macos", feature = "OSX_10_15"))]
+                params.add(
+                    &kSecUseDataProtectionKeychain.to_void(),
+                    &CFBoolean::true_value().to_void(),
+                )
             }
 
             if let Some(class) = self.class {

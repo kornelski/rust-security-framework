@@ -12,8 +12,7 @@ use security_framework_sys::trust_settings::*;
 
 use std::ptr;
 
-use crate::base::Error;
-use crate::base::Result;
+use crate::base::{Error, Result};
 use crate::certificate::SecCertificate;
 use crate::cvt;
 

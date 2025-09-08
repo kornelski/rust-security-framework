@@ -1,5 +1,4 @@
 //! Support for password options, to be used with the passwords module
-//!
 
 // NB: re-export these types in the `passwords` module!
 

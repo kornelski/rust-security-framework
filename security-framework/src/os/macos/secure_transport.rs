@@ -8,8 +8,8 @@ use std::slice;
 
 use crate::base::Result;
 use crate::certificate::SecCertificate;
-use crate::secure_transport::{MidHandshakeSslStream, SslContext};
 use crate::cvt;
+use crate::secure_transport::{MidHandshakeSslStream, SslContext};
 
 /// An extension trait adding OSX specific functionality to the `SslContext`
 /// type.

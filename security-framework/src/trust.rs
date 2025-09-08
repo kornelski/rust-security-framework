@@ -23,26 +23,20 @@ use core_foundation::error::{CFError, CFErrorRef};
 pub struct TrustResult(SecTrustResultType);
 
 impl TrustResult {
-    /// An invalid setting or result.
-    pub const INVALID: Self = Self(kSecTrustResultInvalid);
-
-    /// You may proceed.
-    pub const PROCEED: Self = Self(kSecTrustResultProceed);
-
     /// Indicates a denial by the user, do not proceed.
     pub const DENY: Self = Self(kSecTrustResultDeny);
-
-    /// The certificate is implicitly trusted.
-    pub const UNSPECIFIED: Self = Self(kSecTrustResultUnspecified);
-
-    /// Indicates a trust policy failure that the user can override.
-    pub const RECOVERABLE_TRUST_FAILURE: Self = Self(kSecTrustResultRecoverableTrustFailure);
-
     /// Indicates a trust policy failure that the user cannot override.
     pub const FATAL_TRUST_FAILURE: Self = Self(kSecTrustResultFatalTrustFailure);
-
+    /// An invalid setting or result.
+    pub const INVALID: Self = Self(kSecTrustResultInvalid);
     /// An error not related to trust validation.
     pub const OTHER_ERROR: Self = Self(kSecTrustResultOtherError);
+    /// You may proceed.
+    pub const PROCEED: Self = Self(kSecTrustResultProceed);
+    /// Indicates a trust policy failure that the user can override.
+    pub const RECOVERABLE_TRUST_FAILURE: Self = Self(kSecTrustResultRecoverableTrustFailure);
+    /// The certificate is implicitly trusted.
+    pub const UNSPECIFIED: Self = Self(kSecTrustResultUnspecified);
 }
 
 impl TrustResult {

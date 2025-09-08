@@ -126,7 +126,8 @@ mod encoder {
             cvt(unsafe {
                 CMSEncoderAddRecipients(
                     self.0,
-                    if recipients.is_empty() { ptr::null() } else { recipients.as_CFTypeRef() })
+                    if recipients.is_empty() { ptr::null() } else { recipients.as_CFTypeRef() },
+                )
             })?;
             Ok(())
         }
@@ -246,7 +247,8 @@ mod encoder {
                     self.0,
                     timestamp_policy.map(|p| p.as_void_ptr()).unwrap_or(ptr::null()),
                     signer_index,
-                    &mut out)
+                    &mut out,
+                )
             })?;
 
             Ok(out)
@@ -285,8 +287,8 @@ mod encoder {
 }
 
 mod decoder {
-    use core_foundation::{declare_TCFType, impl_TCFType};
     use super::*;
+    use core_foundation::{declare_TCFType, impl_TCFType};
 
     /// Holds a result of the `CMSDecoder::get_signer_status` function
     pub struct SignerStatus {
@@ -467,9 +469,7 @@ mod decoder {
             cvt(unsafe {
                 CMSDecoderCopySignerTimestampWithPolicy(
                     self.0,
-                    timestamp_policy
-                        .map(|p| p.as_void_ptr())
-                        .unwrap_or(ptr::null()),
+                    timestamp_policy.map(|p| p.as_void_ptr()).unwrap_or(ptr::null()),
                     signer_index,
                     &mut out,
                 )
@@ -479,14 +479,9 @@ mod decoder {
         }
 
         /// Returns an array containing the certificates from a timestamp response
-        pub fn get_signer_timestamp_certificates(
-            &self,
-            signer_index: usize,
-        ) -> Result<Vec<SecCertificate>> {
+        pub fn get_signer_timestamp_certificates(&self, signer_index: usize) -> Result<Vec<SecCertificate>> {
             let mut out: CFArrayRef = ptr::null_mut();
-            cvt(unsafe {
-                CMSDecoderCopySignerTimestampCertificates(self.0, signer_index, &mut out)
-            })?;
+            cvt(unsafe { CMSDecoderCopySignerTimestampCertificates(self.0, signer_index, &mut out) })?;
 
             if out.is_null() {
                 Ok(Vec::new())
@@ -500,12 +495,11 @@ mod decoder {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Mutex;
-    use std::sync::MutexGuard;
     use crate::cms::{cms_encode_content, CMSDecoder, SignedAttributes};
     use crate::import_export::{ImportedIdentity, Pkcs12ImportOptions};
     use crate::policy::SecPolicy;
     use security_framework_sys::cms::CMSSignerStatus;
+    use std::sync::{Mutex, MutexGuard};
 
     const KEYSTORE: &[u8] = include_bytes!("../test/cms/keystore.p12");
     const ENCRYPTED_CMS: &[u8] = include_bytes!("../test/cms/encrypted.p7m");

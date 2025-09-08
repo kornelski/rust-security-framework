@@ -2,10 +2,8 @@
 
 use core_foundation::string::CFString;
 use core_foundation_sys::base::OSStatus;
-use std::error;
-use std::fmt;
 use std::num::NonZeroI32;
-use std::result;
+use std::{error, fmt, result};
 
 /// A `Result` type commonly returned by functions.
 pub type Result<T, E = Error> = result::Result<T, E>;
