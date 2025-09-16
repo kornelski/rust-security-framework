@@ -121,6 +121,28 @@ impl From<i64> for Limit {
     }
 }
 
+/// Specifies whether a search should match cloud-synchronized items.
+#[derive(Debug, Copy, Clone)]
+pub enum CloudSync {
+    /// Match only items that are cloud-synchronized.
+    MatchSyncYes,
+    /// Match only items that are not cloud-synchronized.
+    MatchSyncNo,
+    /// Match items whether they are cloud-synchronized or not.
+    MatchSyncAny,
+}
+
+impl From<Option<bool>> for CloudSync {
+    #[inline]
+    fn from(is_sync: Option<bool>) -> Self {
+        match is_sync {
+            Some(true) => Self::MatchSyncYes,
+            Some(false) => Self::MatchSyncNo,
+            None => Self::MatchSyncAny,
+        }
+    }
+}
+
 /// A builder type to search for items in keychains.
 #[derive(Default)]
 pub struct ItemSearchOptions {
@@ -142,6 +164,7 @@ pub struct ItemSearchOptions {
     subject: Option<CFString>,
     account: Option<CFString>,
     access_group: Option<CFString>,
+    cloud_sync: Option<CloudSync>,
     pub_key_hash: Option<CFData>,
     serial_number: Option<CFData>,
     app_label: Option<CFData>,
@@ -277,6 +300,14 @@ impl ItemSearchOptions {
     /// Search for an item with a specific access group.
     pub fn access_group(&mut self, access_group: &str) -> &mut Self {
         self.access_group = Some(CFString::new(access_group));
+        self
+    }
+
+    /// Search for an item based on whether it's cloud-synchronized
+    ///
+    /// If not specified, only searches non-synchronized entries.
+    pub fn cloud_sync<T: Into<CloudSync>>(&mut self, spec: T) -> &mut Self {
+        self.cloud_sync = Some(spec.into());
         self
     }
 
@@ -428,6 +459,20 @@ impl ItemSearchOptions {
 
             if let Some(ref access_group) = self.access_group {
                 params.add(&kSecAttrAccessGroup.to_void(), &access_group.to_void());
+            }
+
+            if let Some(ref cloud_sync) = self.cloud_sync {
+                match cloud_sync {
+                    CloudSync::MatchSyncYes => {
+                        params.add(&kSecAttrSynchronizable.to_void(), &CFBoolean::true_value().to_void());
+                    }
+                    CloudSync::MatchSyncNo => {
+                        params.add(&kSecAttrSynchronizable.to_void(), &CFBoolean::false_value().to_void());
+                    }
+                    CloudSync::MatchSyncAny => {
+                        params.add(&kSecAttrSynchronizable.to_void(), &kSecAttrSynchronizableAny.to_void());
+                    }
+                }
             }
 
             if let Some(ref pub_key_hash) = self.pub_key_hash {
