@@ -871,7 +871,8 @@ where S: Read {
             }
         }
         errSecSuccess
-    })).unwrap_or_else(|e| {
+    }))
+    .unwrap_or_else(|e| {
         conn.panic = Some(e);
         errSecIO
     });
@@ -917,7 +918,8 @@ where S: Write {
             return ret;
         }
         errSecSuccess
-    })).unwrap_or_else(|e| {
+    }))
+    .unwrap_or_else(|e| {
         conn.panic = Some(e);
         errSecIO
     });

@@ -150,7 +150,7 @@ pub struct ItemSearchOptions {
     keychains: Option<CFArray<SecKeychain>>,
     #[cfg(not(target_os = "macos"))]
     keychains: Option<CFArray<CFType>>,
-    ignore_legacy_keychains: bool,  // defined everywhere, only consulted on macOS
+    ignore_legacy_keychains: bool, // defined everywhere, only consulted on macOS
     case_insensitive: Option<bool>,
     class: Option<ItemClass>,
     key_class: Option<KeyClass>,
@@ -184,7 +184,7 @@ impl ItemSearchOptions {
         self.keychains = Some(CFArray::from_CFTypes(keychains));
         self
     }
-    
+
     /// Only search the protected data macOS keychains.
     ///
     /// Has no effect if a legacy keychain has been explicitly specified
@@ -465,13 +465,13 @@ impl ItemSearchOptions {
                 match cloud_sync {
                     CloudSync::MatchSyncYes => {
                         params.add(&kSecAttrSynchronizable.to_void(), &CFBoolean::true_value().to_void());
-                    }
+                    },
                     CloudSync::MatchSyncNo => {
                         params.add(&kSecAttrSynchronizable.to_void(), &CFBoolean::false_value().to_void());
-                    }
+                    },
                     CloudSync::MatchSyncAny => {
                         params.add(&kSecAttrSynchronizable.to_void(), &kSecAttrSynchronizableAny.to_void());
-                    }
+                    },
                 }
             }
 
@@ -660,11 +660,10 @@ impl SearchResult {
                             let mut vec = Vec::new();
                             vec.extend_from_slice(buf.bytes());
                             format!("{}", String::from_utf8_lossy(&vec))
-                        }
-                        cfdate if cfdate == CFDate::type_id() => format!(
-                            "{}",
-                            CFString::wrap_under_create_rule(CFCopyDescription(*v))
-                        ),
+                        },
+                        cfdate if cfdate == CFDate::type_id() => {
+                            format!("{}", CFString::wrap_under_create_rule(CFCopyDescription(*v)))
+                        },
                         _ => String::from("unknown"),
                     };
                     retmap.insert(format!("{keycfstr}"), val);

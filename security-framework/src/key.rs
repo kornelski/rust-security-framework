@@ -495,8 +495,8 @@ impl GenerateKeyOptions {
                     unsafe { security_framework_sys::item::kSecUseKeychain }.to_void(),
                     keychain.as_concrete_TypeRef().to_void(),
                 ));
-            }
-            _ => {}
+            },
+            _ => {},
         }
 
         match self.token.as_ref().unwrap_or(&Token::Software) {

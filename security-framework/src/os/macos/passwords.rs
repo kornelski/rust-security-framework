@@ -130,8 +130,7 @@ pub fn find_generic_password(
     }
 }
 
-/// * `keychains` is an array of keychains to search or None to search
-///   the default keychain.
+/// * `keychains` is an array of keychains to search or None to search the default keychain.
 /// * `server`: server name.
 /// * `security_domain`: security domain. This parameter is optional.
 /// * `account`: account name.
