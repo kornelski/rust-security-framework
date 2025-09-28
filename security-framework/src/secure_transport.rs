@@ -884,39 +884,42 @@ unsafe extern "C" fn write_func<S>(
 ) -> OSStatus
 where S: Write {
     let conn: &mut Connection<S> = &mut *(connection as *mut _);
-    let data = slice::from_raw_parts(data as *mut u8, *data_length);
-    let mut start = 0;
-    let mut ret = errSecSuccess;
+    let mut written = 0;
 
-    while start < data.len() {
-        let write_res = panic::catch_unwind(AssertUnwindSafe(|| {
-            let count = conn.stream.write(&data[start..])?;
-            // Need to flush during the handshake so that the handshake doesn't stall on buffered
-            // write streams. It would be better if we only flushed automatically during the
-            // handshake, and not for the remainder of the stream.
-            conn.stream.flush()?;
-            Ok(count)
-        }));
-        match write_res {
-            Ok(Ok(0)) => {
-                ret = errSSLClosedNoNotify;
-                break;
-            },
-            Ok(Ok(len)) => start += len,
-            Ok(Err(e)) => {
-                ret = translate_err(&e);
-                conn.err = Some(e);
-                break;
-            },
-            Err(e) => {
-                ret = errSecIO;
-                conn.panic = Some(e);
-                break;
-            },
+    let ret = panic::catch_unwind(AssertUnwindSafe(|| {
+        let mut data = slice::from_raw_parts(data.cast::<u8>(), *data_length);
+        while !data.is_empty() {
+            match conn.stream.write(data) {
+                Ok(0) => return errSSLClosedNoNotify,
+                Ok(len) => {
+                    let Some(rest) = data.get(len..) else {
+                        return errSecIO;
+                    };
+                    data = rest;
+                    written += len;
+                },
+                Err(e) => {
+                    let ret = translate_err(&e);
+                    conn.err = Some(e);
+                    return ret;
+                },
+            };
         }
-    }
+        // Need to flush during the handshake so that the handshake doesn't stall on buffered
+        // write streams. It would be better if we only flushed automatically during the
+        // handshake, and not for the remainder of the stream.
+        if let Err(e) = conn.stream.flush() {
+            let ret = translate_err(&e);
+            conn.err = Some(e);
+            return ret;
+        }
+        errSecSuccess
+    })).unwrap_or_else(|e| {
+        conn.panic = Some(e);
+        errSecIO
+    });
 
-    *data_length = start;
+    *data_length = written;
     ret
 }
 
