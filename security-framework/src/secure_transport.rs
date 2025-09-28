@@ -889,7 +889,15 @@ where S: Write {
     let mut ret = errSecSuccess;
 
     while start < data.len() {
-        match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.write(&data[start..]))) {
+        let write_res = panic::catch_unwind(AssertUnwindSafe(|| {
+            let count = conn.stream.write(&data[start..])?;
+            // Need to flush during the handshake so that the handshake doesn't stall on buffered
+            // write streams. It would be better if we only flushed automatically during the
+            // handshake, and not for the remainder of the stream.
+            conn.stream.flush()?;
+            Ok(count)
+        }));
+        match write_res {
             Ok(Ok(0)) => {
                 ret = errSSLClosedNoNotify;
                 break;
