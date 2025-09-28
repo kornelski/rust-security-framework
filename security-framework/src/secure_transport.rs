@@ -485,7 +485,7 @@ impl SslContext {
             cvt(SSLGetPeerDomainNameLength(self.0, &mut len))?;
             let mut buf = vec![0; len];
             cvt(SSLGetPeerDomainName(self.0, buf.as_mut_ptr().cast(), &mut len))?;
-            Ok(String::from_utf8(buf).unwrap())
+            String::from_utf8(buf).map_err(|_| Error::from_code(-1))
         }
     }
 
