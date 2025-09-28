@@ -19,7 +19,7 @@ pub trait ItemSearchOptionsExt {
 
 impl ItemSearchOptionsExt for ItemSearchOptions {
     fn keychains(&mut self, keychains: &[SecKeychain]) -> &mut Self {
-        ItemSearchOptions::keychains(self, keychains)
+        Self::keychains(self, keychains)
     }
 
     // Do not extend this trait; use `impl ItemSearchOptions` directly

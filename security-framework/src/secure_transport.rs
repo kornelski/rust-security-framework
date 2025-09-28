@@ -868,7 +868,7 @@ where S: Read {
                     conn.err = Some(e);
                     return ret;
                 },
-            };
+            }
         }
         errSecSuccess
     })).unwrap_or_else(|e| {
@@ -906,7 +906,7 @@ where S: Write {
                     conn.err = Some(e);
                     return ret;
                 },
-            };
+            }
         }
         // Need to flush during the handshake so that the handshake doesn't stall on buffered
         // write streams. It would be better if we only flushed automatically during the

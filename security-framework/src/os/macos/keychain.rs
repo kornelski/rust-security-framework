@@ -98,10 +98,10 @@ impl SecKeychain {
     pub fn disable_user_interaction() -> Result<KeychainUserInteractionLock> {
         let code = unsafe { SecKeychainSetUserInteractionAllowed(0u8) };
 
-        if code != errSecSuccess {
-            Err(Error::from_code(code))
-        } else {
+        if code == errSecSuccess {
             Ok(KeychainUserInteractionLock)
+        } else {
+            Err(Error::from_code(code))
         }
     }
 
@@ -112,10 +112,10 @@ impl SecKeychain {
         let mut state: Boolean = 0;
         let code = unsafe { SecKeychainGetUserInteractionAllowed(&mut state) };
 
-        if code != errSecSuccess {
-            Err(Error::from_code(code))
-        } else {
+        if code == errSecSuccess {
             Ok(state != 0)
+        } else {
+            Err(Error::from_code(code))
         }
     }
 }

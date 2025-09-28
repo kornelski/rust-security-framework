@@ -32,11 +32,11 @@ pub trait Pkcs12ImportOptionsExt {
 
 impl Pkcs12ImportOptionsExt for Pkcs12ImportOptions {
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
-        Pkcs12ImportOptions::keychain(self, keychain)
+        Self::keychain(self, keychain)
     }
 
     fn access(&mut self, access: SecAccess) -> &mut Self {
-        Pkcs12ImportOptions::access(self, access)
+        Self::access(self, access)
     }
 }
 
