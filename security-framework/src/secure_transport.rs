@@ -849,31 +849,34 @@ unsafe extern "C" fn read_func<S>(
 ) -> OSStatus
 where S: Read {
     let conn: &mut Connection<S> = &mut *(connection as *mut _);
-    let data = slice::from_raw_parts_mut(data.cast::<u8>(), *data_length);
-    let mut start = 0;
-    let mut ret = errSecSuccess;
+    let mut read = 0;
 
-    while start < data.len() {
-        match panic::catch_unwind(AssertUnwindSafe(|| conn.stream.read(&mut data[start..]))) {
-            Ok(Ok(0)) => {
-                ret = errSSLClosedNoNotify;
-                break;
-            },
-            Ok(Ok(len)) => start += len,
-            Ok(Err(e)) => {
-                ret = translate_err(&e);
-                conn.err = Some(e);
-                break;
-            },
-            Err(e) => {
-                ret = errSecIO;
-                conn.panic = Some(e);
-                break;
-            },
+    let ret = panic::catch_unwind(AssertUnwindSafe(|| {
+        let mut data = slice::from_raw_parts_mut(data.cast::<u8>(), *data_length);
+        while !data.is_empty() {
+            match conn.stream.read(data) {
+                Ok(0) => return errSSLClosedNoNotify,
+                Ok(len) => {
+                    let Some(rest) = data.get_mut(len..) else {
+                        return errSecIO;
+                    };
+                    data = rest;
+                    read += len;
+                },
+                Err(e) => {
+                    let ret = translate_err(&e);
+                    conn.err = Some(e);
+                    return ret;
+                },
+            };
         }
-    }
+        errSecSuccess
+    })).unwrap_or_else(|e| {
+        conn.panic = Some(e);
+        errSecIO
+    });
 
-    *data_length = start;
+    *data_length = read;
     ret
 }
 
