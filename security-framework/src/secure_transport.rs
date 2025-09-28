@@ -1458,6 +1458,49 @@ mod test {
     }
 
     #[test]
+    fn connect_buffered_stream() {
+        use std::io::BufWriter;
+
+        /// Small wrapper around a `TcpStream` to provide buffered writes.
+        #[derive(Debug)]
+        struct BufferedTcpStream {
+            reader: TcpStream,
+            writer: BufWriter<TcpStream>,
+        }
+
+        impl BufferedTcpStream {
+            fn new(tcp: TcpStream) -> std::io::Result<Self> {
+                Ok(Self {
+                    writer: BufWriter::with_capacity(500, tcp.try_clone()?),
+                    reader: tcp,
+                })
+            }
+        }
+
+        impl Read for BufferedTcpStream {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                self.reader.read(buf)
+            }
+        }
+
+        impl Write for BufferedTcpStream {
+            fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+                self.writer.write(buf)
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                self.writer.flush()
+            }
+        }
+
+        let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
+        p!(ctx.set_peer_domain_name("google.com"));
+        let stream = p!(TcpStream::connect("google.com:443"));
+        let stream = p!(BufferedTcpStream::new(stream));
+        p!(ctx.handshake(stream));
+    }
+
+    #[test]
     fn load_page() {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
