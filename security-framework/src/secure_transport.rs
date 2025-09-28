@@ -1403,13 +1403,13 @@ impl ServerBuilder {
             .import(pkcs12_der)?
             .into_iter()
             .filter_map(|idendity| {
-                let certs = idendity.cert_chain.unwrap_or_default();
-                idendity.identity.map(|identity| (identity, certs))
+                Some((idendity.identity?, idendity.cert_chain.unwrap_or_default()))
             })
+            .take(2)
             .collect();
         if identities.len() == 1 {
             let (identity, certs) = identities.pop().unwrap();
-            Ok(Self::new(&identity, &certs))
+            Ok(Self { identity, certs })
         } else {
             // This error code is not really helpful
             Err(Error::from_code(errSecParam))
