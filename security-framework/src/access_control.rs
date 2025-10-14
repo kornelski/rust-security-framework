@@ -53,22 +53,33 @@ impl SecAccessControl {
     }
 
     /// Create `AccessControl` object from a protection value and flags.
-    pub fn create_with_protection(protection: Option<ProtectionMode>, flags: CFOptionFlags) -> Result<Self> {
-        let protection_val = protection.map(|v| {
-            match v {
-                ProtectionMode::AccessibleWhenPasscodeSetThisDeviceOnly => unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly) },
-                ProtectionMode::AccessibleWhenUnlockedThisDeviceOnly => unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleWhenUnlockedThisDeviceOnly) },
-                ProtectionMode::AccessibleWhenUnlocked => unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleWhenUnlocked) },
-                ProtectionMode::AccessibleAfterFirstUnlockThisDeviceOnly => unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly) },
-                ProtectionMode::AccessibleAfterFirstUnlock => unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleAfterFirstUnlock) },
-            }
-        }).unwrap_or_else(|| {
-            unsafe { CFString::wrap_under_get_rule(kSecAttrAccessibleWhenUnlocked) }
-        });
+    pub fn create_with_protection(
+        protection: Option<ProtectionMode>,
+        flags: CFOptionFlags,
+    ) -> Result<Self> {
+        let protection_cfstring = match protection {
+            Some(ProtectionMode::AccessibleWhenPasscodeSetThisDeviceOnly) => unsafe {
+                kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+            },
+            Some(ProtectionMode::AccessibleWhenUnlockedThisDeviceOnly) => unsafe {
+                kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            },
+            Some(ProtectionMode::AccessibleWhenUnlocked) => unsafe {
+                kSecAttrAccessibleWhenUnlocked
+            },
+            Some(ProtectionMode::AccessibleAfterFirstUnlockThisDeviceOnly) => unsafe {
+                kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            },
+            Some(ProtectionMode::AccessibleAfterFirstUnlock) => unsafe {
+                kSecAttrAccessibleAfterFirstUnlock
+            },
+            None => unsafe { kSecAttrAccessibleWhenUnlocked },
+        };
+
         unsafe {
             let access_control = SecAccessControlCreateWithFlags(
                 kCFAllocatorDefault,
-                protection_val.as_CFTypeRef(),
+                protection_cfstring as core_foundation::base::CFTypeRef,
                 flags,
                 ptr::null_mut(),
             );
