@@ -67,7 +67,7 @@ impl SecKeychainItem {
     pub fn set_password(&mut self, password: &[u8]) -> Result<()> {
         unsafe {
             cvt(SecKeychainItemModifyAttributesAndData(
-                self.as_CFTypeRef() as *mut _,
+                self.as_concrete_TypeRef(),
                 ptr::null(),
                 password.len() as u32,
                 password.as_ptr().cast(),
@@ -80,7 +80,7 @@ impl SecKeychainItem {
     #[inline]
     pub fn delete(self) {
         unsafe {
-            SecKeychainItemDelete(self.as_CFTypeRef() as *mut _);
+            SecKeychainItemDelete(self.as_concrete_TypeRef());
         }
     }
 }

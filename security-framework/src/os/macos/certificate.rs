@@ -7,7 +7,6 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
 use security_framework_sys::certificate::*;
-use std::os::raw::c_void;
 use std::ptr;
 
 use crate::base::Error;
@@ -110,7 +109,7 @@ impl CertificateProperties {
     pub fn get(&self, oid: CertificateOid) -> Option<CertificateProperty> {
         unsafe {
             self.0
-                .find(oid.as_ptr().cast::<c_void>())
+                .find(oid.as_ptr().to_void())
                 .map(|value| CertificateProperty(CFDictionary::wrap_under_get_rule(*value as *mut _)))
         }
     }

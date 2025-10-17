@@ -131,7 +131,7 @@ impl TrustSettings {
         let trust_settings: CFTypeRef = ptr::null_mut();
         cvt(unsafe {
             SecTrustSettingsSetTrustSettings(
-                cert.as_CFTypeRef() as *mut _,
+                cert.as_concrete_TypeRef(),
                 domain.into(),
                 trust_settings,
             )

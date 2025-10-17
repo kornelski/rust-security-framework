@@ -119,7 +119,7 @@ impl Pkcs12ImportOptions {
                     .find(kSecImportItemTrust)
                     .map(|trust| SecTrust::wrap_under_get_rule(*trust as *mut _));
                 let cert_chain = raw_item
-                    .find(kSecImportItemCertChain.cast())
+                    .find(kSecImportItemCertChain)
                     .map(|cert_chain| {
                         CFArray::<SecCertificate>::wrap_under_get_rule((*cert_chain).cast())
                             .iter()
