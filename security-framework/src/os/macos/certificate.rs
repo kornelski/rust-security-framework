@@ -73,8 +73,8 @@ impl SecCertificateExt for SecCertificate {
                 CFArray::from_CFTypes(&oids)
             });
 
-            let keys = match keys {
-                Some(ref keys) => keys.as_concrete_TypeRef(),
+            let keys = match &keys {
+                Some(keys) => keys.as_concrete_TypeRef(),
                 None => ptr::null_mut(),
             };
 

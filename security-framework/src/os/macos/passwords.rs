@@ -100,9 +100,9 @@ pub fn find_generic_password(
 ) -> Result<(SecKeychainItemPassword, SecKeychainItem)> {
     let keychains_or_none = keychains.map(CFArray::from_CFTypes);
 
-    let keychains_or_null = match keychains_or_none {
+    let keychains_or_null = match &keychains_or_none {
         None => ptr::null(),
-        Some(ref keychains) => keychains.as_CFTypeRef(),
+        Some(keychains) => keychains.as_CFTypeRef(),
     };
 
     let mut data_len = 0;
@@ -151,9 +151,9 @@ pub fn find_internet_password(
 ) -> Result<(SecKeychainItemPassword, SecKeychainItem)> {
     let keychains_or_none = keychains.map(CFArray::from_CFTypes);
 
-    let keychains_or_null = match keychains_or_none {
+    let keychains_or_null = match &keychains_or_none {
         None => ptr::null(),
-        Some(ref keychains) => keychains.as_CFTypeRef(),
+        Some(keychains) => keychains.as_CFTypeRef(),
     };
 
     let mut data_len = 0;

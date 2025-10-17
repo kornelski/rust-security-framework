@@ -177,17 +177,17 @@ impl Builder {
 
     fn finish(&self, mut transform: SecTransform, data: &CFData) -> Result<CFData, CFError> {
         unsafe {
-            if let Some(ref padding) = self.padding {
+            if let Some(padding) = &self.padding {
                 let key = CFString::wrap_under_get_rule(kSecPaddingKey);
                 transform.set_attribute(&key, &padding.to_str())?;
             }
 
-            if let Some(ref mode) = self.mode {
+            if let Some(mode) = &self.mode {
                 let key = CFString::wrap_under_get_rule(kSecEncryptionMode);
                 transform.set_attribute(&key, &mode.to_str())?;
             }
 
-            if let Some(ref iv) = self.iv {
+            if let Some(iv) = &self.iv {
                 let key = CFString::wrap_under_get_rule(kSecIVKey);
                 transform.set_attribute(&key, iv)?;
             }

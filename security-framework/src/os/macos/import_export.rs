@@ -136,8 +136,8 @@ impl<'a> ImportOptions<'a> {
         let data = CFData::from_buffer(data);
         let data = data.as_concrete_TypeRef();
 
-        let filename = match self.filename {
-            Some(ref filename) => filename.as_concrete_TypeRef(),
+        let filename = match &self.filename {
+            Some(filename) => filename.as_concrete_TypeRef(),
             None => ptr::null(),
         };
 
@@ -152,7 +152,7 @@ impl<'a> ImportOptions<'a> {
             keyAttributes: ptr::null(),
         };
 
-        if let Some(ref passphrase) = self.passphrase {
+        if let Some(passphrase) = &self.passphrase {
             key_params.passphrase = passphrase.as_CFTypeRef();
         }
 
@@ -164,22 +164,22 @@ impl<'a> ImportOptions<'a> {
             key_params.flags |= kSecKeyNoAccessControl;
         }
 
-        if let Some(ref alert_title) = self.alert_title {
+        if let Some(alert_title) = &self.alert_title {
             key_params.alertTitle = alert_title.as_concrete_TypeRef();
         }
 
-        if let Some(ref alert_prompt) = self.alert_prompt {
+        if let Some(alert_prompt) = &self.alert_prompt {
             key_params.alertPrompt = alert_prompt.as_concrete_TypeRef();
         }
 
-        let keychain = match self.keychain {
-            Some(ref keychain) => keychain.as_concrete_TypeRef(),
+        let keychain = match &self.keychain {
+            Some(keychain) => keychain.as_concrete_TypeRef(),
             None => ptr::null_mut(),
         };
 
         let mut raw_items = ptr::null();
         let items_ref = match self.items {
-            Some(_) => std::ptr::addr_of_mut!(raw_items),
+            Some(_) => &mut raw_items,
             None => ptr::null_mut(),
         };
 
@@ -198,7 +198,7 @@ impl<'a> ImportOptions<'a> {
                 return Err(Error::from_code(ret));
             }
 
-            if let Some(ref mut items) = self.items {
+            if let Some(items) = &mut self.items {
                 let raw_items = CFArray::<CFType>::wrap_under_create_rule(raw_items);
                 for item in raw_items.iter() {
                     let type_id = item.type_of();

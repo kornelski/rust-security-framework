@@ -1324,12 +1324,12 @@ impl ClientBuilder {
         if self.use_sni {
             ctx.set_peer_domain_name(domain)?;
         }
-        if let Some(ref identity) = self.identity {
+        if let Some(identity) = &self.identity {
             ctx.set_certificate(identity, &self.chain)?;
         }
         #[cfg(feature = "alpn")]
         {
-            if let Some(ref alpn) = self.alpn {
+            if let Some(alpn) = &self.alpn {
                 ctx.set_alpn_protocols(&alpn.iter().map(|s| &**s).collect::<Vec<_>>())?;
             }
         }

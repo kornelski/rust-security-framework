@@ -87,7 +87,7 @@ impl Pkcs12ImportOptions {
 
             let mut options = vec![];
 
-            if let Some(ref passphrase) = self.passphrase {
+            if let Some(passphrase) = &self.passphrase {
                 options.push((
                     CFString::wrap_under_get_rule(kSecImportExportPassphrase),
                     passphrase.as_CFType(),
@@ -147,14 +147,14 @@ impl Pkcs12ImportOptions {
     #[cfg(target_os = "macos")]
     fn import_setup(&self, options: &mut Vec<(CFString, CFType)>) {
         unsafe {
-            if let Some(ref keychain) = self.keychain {
+            if let Some(keychain) = &self.keychain {
                 options.push((
                     CFString::wrap_under_get_rule(kSecImportExportKeychain),
                     keychain.as_CFType(),
                 ));
             }
 
-            if let Some(ref access) = self.access {
+            if let Some(access) = &self.access {
                 options.push((
                     CFString::wrap_under_get_rule(kSecImportExportAccess),
                     access.as_CFType(),
