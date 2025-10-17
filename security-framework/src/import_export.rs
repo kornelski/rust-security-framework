@@ -19,6 +19,7 @@ use crate::os::macos::keychain::SecKeychain;
 use crate::trust::SecTrust;
 
 /// Information about an imported identity.
+#[derive(Clone)]
 pub struct ImportedIdentity {
     /// The label of the identity.
     pub label: Option<String>,
