@@ -20,6 +20,7 @@ use crate::trust::SecTrust;
 
 /// Information about an imported identity.
 #[derive(Clone)]
+#[non_exhaustive]
 pub struct ImportedIdentity {
     /// The label of the identity.
     pub label: Option<String>,
@@ -31,7 +32,6 @@ pub struct ImportedIdentity {
     pub cert_chain: Option<Vec<SecCertificate>>,
     /// The identity itself.
     pub identity: Option<SecIdentity>,
-    _p: (),
 }
 
 /// A builder type to import an identity from PKCS#12 formatted data.
@@ -136,7 +136,6 @@ impl Pkcs12ImportOptions {
                     trust,
                     cert_chain,
                     identity,
-                    _p: (),
                 });
             }
 
