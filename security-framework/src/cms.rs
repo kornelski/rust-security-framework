@@ -499,24 +499,23 @@ mod tests {
     use crate::import_export::{ImportedIdentity, Pkcs12ImportOptions};
     use crate::policy::SecPolicy;
     use security_framework_sys::cms::CMSSignerStatus;
-    use std::sync::{Mutex, MutexGuard};
+    use std::sync::OnceLock;
 
     const KEYSTORE: &[u8] = include_bytes!("../test/cms/keystore.p12");
     const ENCRYPTED_CMS: &[u8] = include_bytes!("../test/cms/encrypted.p7m");
     const SIGNED_ENCRYPTED_CMS: &[u8] = include_bytes!("../test/cms/signed-encrypted.p7m");
+    static KEYSTORE_IDENTITY: OnceLock<Vec<ImportedIdentity>> = OnceLock::new();
 
-    static SHARED_KEYCHAIN: Mutex<()> = Mutex::new(());
-
-    fn import_keystore() -> (MutexGuard<'static, ()>, Vec<ImportedIdentity>) {
-        let lock = SHARED_KEYCHAIN.lock().unwrap();
-        let mut import_opts = Pkcs12ImportOptions::new();
-        let id = import_opts.passphrase("cms").import(KEYSTORE).expect("import keystore.p12");
-        (lock, id)
+    fn import_keystore() -> &'static [ImportedIdentity] {
+        KEYSTORE_IDENTITY.get_or_init(|| {
+            let mut import_opts = Pkcs12ImportOptions::new();
+            import_opts.passphrase("cms").import(KEYSTORE).expect("import keystore.p12")
+        })
     }
 
     #[test]
     fn test_decode_encrypted() {
-        let _lock = import_keystore();
+        let _ = import_keystore();
 
         let decoder = CMSDecoder::create().expect("create");
         decoder.update_message(ENCRYPTED_CMS).expect("update");
@@ -530,7 +529,7 @@ mod tests {
 
     #[test]
     fn test_decode_signed_and_encrypted() {
-        let _lock = import_keystore();
+        let _ = import_keystore();
 
         let decoder = CMSDecoder::create().unwrap();
         decoder.update_message(SIGNED_ENCRYPTED_CMS).unwrap();
@@ -554,7 +553,7 @@ mod tests {
 
     #[test]
     fn test_encode_encrypted() {
-        let (_lock, identities) = import_keystore();
+        let identities = import_keystore();
 
         let chain = identities
             .iter().find_map(|id| id.cert_chain.as_ref())
@@ -577,7 +576,7 @@ mod tests {
 
     #[test]
     fn test_encode_signed_encrypted() {
-        let (_lock, identities) = import_keystore();
+        let identities = import_keystore();
 
         let chain = identities
             .iter().find_map(|id| id.cert_chain.as_ref())
@@ -605,7 +604,7 @@ mod tests {
 
     #[test]
     fn test_encode_with_cms_encoder() {
-        let (_lock, identities) = import_keystore();
+        let identities = import_keystore();
 
         let chain = identities
             .iter().find_map(|id| id.cert_chain.as_ref())
