@@ -44,6 +44,7 @@ impl Pkcs12ImportOptionsExt for Pkcs12ImportOptions {
 #[derive(Default)]
 pub struct ImportOptions<'a> {
     filename: Option<CFString>,
+    input_format: Option<SecExternalFormat>,
     passphrase: Option<CFType>,
     secure_passphrase: bool,
     no_access_control: bool,
@@ -67,6 +68,13 @@ impl<'a> ImportOptions<'a> {
     #[inline]
     pub fn filename(&mut self, filename: &str) -> &mut Self {
         self.filename = Some(CFString::from_str(filename).unwrap());
+        self
+    }
+
+    /// Require input data to be PKCS#12
+    #[inline]
+    pub fn pkcs12(&mut self) -> &mut Self {
+        self.input_format = Some(kSecFormatPKCS12);
         self
     }
 
@@ -141,6 +149,15 @@ impl<'a> ImportOptions<'a> {
             None => ptr::null(),
         };
 
+        let mut input_format_out;
+        let input_format_ptr = match self.input_format {
+            None => ptr::null_mut(),
+            Some(format) => {
+                input_format_out = format;
+                &mut input_format_out
+            },
+        };
+
         let mut key_params = SecItemImportExportKeyParameters {
             version: SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION,
             flags: 0,
@@ -187,7 +204,7 @@ impl<'a> ImportOptions<'a> {
             let ret = SecItemImport(
                 data,
                 filename,
-                ptr::null_mut(),
+                input_format_ptr,
                 ptr::null_mut(),
                 0,
                 &key_params,
