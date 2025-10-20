@@ -48,6 +48,7 @@ pub struct ImportOptions<'a> {
     passphrase: Option<CFType>,
     secure_passphrase: bool,
     no_access_control: bool,
+    access: Option<SecAccess>,
     alert_title: Option<CFString>,
     alert_prompt: Option<CFString>,
     items: Option<&'a mut SecItems>,
@@ -104,6 +105,13 @@ impl<'a> ImportOptions<'a> {
     #[inline(always)]
     pub fn no_access_control(&mut self, no_access_control: bool) -> &mut Self {
         self.no_access_control = no_access_control;
+        self
+    }
+
+    /// Specifies the access control to be associated with the identity. macOS only.
+    #[inline(always)]
+    pub fn access(&mut self, access: SecAccess) -> &mut Self {
+        self.access = Some(access);
         self
     }
 
@@ -179,6 +187,10 @@ impl<'a> ImportOptions<'a> {
 
         if self.no_access_control {
             key_params.flags |= kSecKeyNoAccessControl;
+        }
+
+        if let Some(access) = &self.access {
+            key_params.accessRef = access.as_concrete_TypeRef();
         }
 
         if let Some(alert_title) = &self.alert_title {
