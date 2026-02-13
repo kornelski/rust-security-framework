@@ -61,7 +61,7 @@ jobs:
         run: cargo clippy --all-features
 
   ios:
-    name: iOS compile-check
+    name: iOS and Intel compile-check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -71,23 +71,10 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          target: aarch64-apple-ios
+          target: aarch64-apple-ios,x86_64-apple-darwin
 
-      - name: Run check
+      - name: Run check iOS
         run: cargo check --all-features -p security-framework --target aarch64-apple-ios
 
-  apple-intel:
-    name: Old x86-64 test
-    runs-on: macos-13
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-          target: x86_64-apple-darwin
-      - name: Run test
-        run: cargo test --all-features -p security-framework --target x86_64-apple-darwin
-
+      - name: Run check Intel
+        run: cargo check --all-features -p security-framework --target x86_64-apple-darwin
