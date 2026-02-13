@@ -391,7 +391,7 @@ impl ItemSearchOptions {
                 params.add(
                     &kSecUseDataProtectionKeychain.to_void(),
                     &CFBoolean::true_value().to_void(),
-                )
+                );
             }
 
             if let Some(class) = self.class {

@@ -2,12 +2,14 @@ use core_foundation_sys::array::CFArrayRef;
 use core_foundation_sys::base::{CFAllocatorRef, CFTypeID, OSStatus};
 use core_foundation_sys::data::CFDataRef;
 #[cfg(target_os = "macos")]
+use crate::base::SecKeychainRef;
+#[cfg(target_os = "macos")]
 use core_foundation_sys::dictionary::CFDictionaryRef;
 #[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 use core_foundation_sys::error::CFErrorRef;
 use core_foundation_sys::string::CFStringRef;
 
-use crate::base::{SecCertificateRef, SecKeyRef, SecKeychainRef};
+use crate::base::{SecCertificateRef, SecKeyRef};
 
 extern "C" {
     #[cfg(target_os = "macos")]
@@ -57,6 +59,7 @@ extern "C" {
         allocator: CFAllocatorRef,
         data: CFDataRef,
     ) -> SecCertificateRef;
+    #[cfg(target_os = "macos")]
     pub fn SecCertificateAddToKeychain(
         certificate: SecCertificateRef,
         keychain: SecKeychainRef,

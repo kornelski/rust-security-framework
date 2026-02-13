@@ -423,6 +423,7 @@ impl fmt::Debug for SslContext {
 unsafe impl Sync for SslContext {}
 unsafe impl Send for SslContext {}
 
+#[cfg(target_os = "macos")]
 impl SslContext {
     pub(crate) fn as_inner(&self) -> SSLContextRef {
         self.0
@@ -959,10 +960,10 @@ impl<S> SslStream<S> {
     fn handshake(mut self) -> result::Result<Self, HandshakeError<S>> {
         match unsafe { SSLHandshake(self.ctx.0) } {
             errSecSuccess => Ok(self),
-            reason @ errSSLPeerAuthCompleted
-            | reason @ errSSLClientCertRequested
-            | reason @ errSSLWouldBlock
-            | reason @ errSSLClientHelloReceived => {
+            reason @ (errSSLPeerAuthCompleted
+            | errSSLClientCertRequested
+            | errSSLWouldBlock
+            | errSSLClientHelloReceived) => {
                 Err(HandshakeError::Interrupted(MidHandshakeSslStream {
                     stream: self,
                     error: Error::from_code(reason),
@@ -1582,7 +1583,7 @@ mod test {
     fn client_alpn_accept() {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
-        p!(ctx.set_alpn_protocols(&vec!["h2"]));
+        p!(ctx.set_alpn_protocols(&["h2"]));
         let stream = p!(TcpStream::connect("google.com:443"));
         let stream = ctx.handshake(stream).unwrap();
         assert_eq!(vec!["h2"], stream.context().alpn_protocols().unwrap());
@@ -1593,7 +1594,7 @@ mod test {
     fn client_alpn_reject() {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
-        p!(ctx.set_alpn_protocols(&vec!["h2c"]));
+        p!(ctx.set_alpn_protocols(&["h2c"]));
         let stream = p!(TcpStream::connect("google.com:443"));
         let stream = ctx.handshake(stream).unwrap();
         assert!(stream.context().alpn_protocols().is_err());

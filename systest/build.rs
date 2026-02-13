@@ -18,6 +18,8 @@ fn main() {
             .header("Security/SecTrustSettings.h")
             .header("Security/Authorization.h")
             .header("Security/AuthorizationDB.h")
+            .header("Security/CMSEncoder.h")
+            .header("Security/CMSDecoder.h")
             .header("Security/CodeSigning.h");
     }
 
@@ -25,6 +27,7 @@ fn main() {
         .header("Security/SecCertificate.h")
         .header("Security/CipherSuite.h")
         .header("Security/SecIdentity.h")
+        .header("Security/SecAccessControl.h")
         .header("Security/SecImportExport.h")
         .header("Security/SecItem.h")
         .header("Security/SecKey.h")
@@ -32,8 +35,6 @@ fn main() {
         .header("Security/SecRandom.h")
         .header("Security/SecureTransport.h")
         .header("Security/SecTrust.h")
-        .header("Security/CMSEncoder.h")
-        .header("Security/CMSDecoder.h")
         .flag("-Wno-deprecated-declarations")
         .type_name(|name, _, _| name.to_string())
         .skip_signededness(|s| s.ends_with("Ref") || s.ends_with("Func"))

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Test library for newer iOS-style APIs.
 //!
 //! This library exercises the iOS-style password APIs.
