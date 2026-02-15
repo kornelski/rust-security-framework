@@ -75,7 +75,6 @@
 #[allow(unused_imports)]
 use core_foundation::array::{CFArray, CFArrayRef};
 use core_foundation::base::{Boolean, TCFType};
-#[cfg(feature = "alpn")]
 use core_foundation::string::CFString;
 use core_foundation::{declare_TCFType, impl_TCFType};
 use core_foundation_sys::base::{kCFAllocatorDefault, OSStatus};
@@ -698,14 +697,14 @@ impl SslContext {
     /// Configures the set of protocols use for ALPN.
     ///
     /// This is only used for client-side connections.
-    pub fn set_alpn_protocols(&mut self, protocols: &[&str]) -> Result<()> {
+    pub fn set_alpn_protocols(&mut self, protocols: &[impl AsRef<str>]) -> Result<()> {
         // When CFMutableArray is added to core-foundation and IntoIterator trait
         // is implemented for CFMutableArray, the code below should directly collect
         // into a CFMutableArray.
         let protocols = CFArray::from_CFTypes(
             &protocols
                 .iter()
-                .map(|proto| CFString::new(proto))
+                .map(|proto| CFString::new(proto.as_ref()))
                 .collect::<Vec<_>>(),
         );
 
@@ -1110,7 +1109,7 @@ pub struct ClientBuilder {
     danger_accept_invalid_hostnames: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
-    alpn: Option<Vec<String>>,
+    alpn: Option<Vec<Box<str>>>,
     enable_session_tickets: bool,
 }
 
@@ -1239,7 +1238,7 @@ impl ClientBuilder {
 
     /// Configures the set of protocols used for ALPN.
     pub fn alpn_protocols(&mut self, protocols: &[&str]) -> &mut Self {
-        self.alpn = Some(protocols.iter().map(|s| (*s).to_string()).collect());
+        self.alpn = Some(protocols.iter().copied().map(Box::from).collect());
         self
     }
 
@@ -1296,7 +1295,7 @@ impl ClientBuilder {
             ctx.set_certificate(identity, &self.chain)?;
         }
         if let Some(alpn) = &self.alpn {
-            ctx.set_alpn_protocols(&alpn.iter().map(|s| &**s).collect::<Vec<_>>())?;
+            ctx.set_alpn_protocols(alpn)?;
         }
         if self.enable_session_tickets {
             // We must use the domain here to ensure that we go through certificate validation
