@@ -197,7 +197,6 @@ mod test {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn public_key() {
         let certificate = certificate();
         p!(certificate.public_key());

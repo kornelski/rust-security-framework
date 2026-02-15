@@ -536,7 +536,7 @@ impl ItemSearchOptions {
     }
 }
 
-unsafe fn get_item(item: CFTypeRef) -> SearchResult {
+unsafe fn get_item(item: CFTypeRef) -> SearchResult { unsafe {
     let type_id = CFGetTypeID(item);
 
     if type_id == CFData::type_id() {
@@ -571,7 +571,7 @@ unsafe fn get_item(item: CFTypeRef) -> SearchResult {
     };
 
     SearchResult::Ref(reference)
-}
+} }
 
 /// An enum including all objects whose references can be returned from a search.
 ///

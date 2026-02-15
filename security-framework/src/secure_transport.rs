@@ -809,11 +809,16 @@ unsafe extern "C" fn read_func<S>(
     data_length: *mut usize,
 ) -> OSStatus
 where S: Read {
-    let conn: &mut Connection<S> = &mut *(connection as *mut _);
+    if data.is_null() || data_length.is_null() || connection.is_null() {
+        return errSecParam;
+    }
+
+    let conn: &mut Connection<S> = unsafe { &mut *(connection as *mut _) };
+    let data = unsafe { slice::from_raw_parts_mut(data.cast::<u8>(), *data_length) };
     let mut read = 0;
 
     let ret = panic::catch_unwind(AssertUnwindSafe(|| {
-        let mut data = slice::from_raw_parts_mut(data.cast::<u8>(), *data_length);
+        let mut data = data;
         while !data.is_empty() {
             match conn.stream.read(data) {
                 Ok(0) => return errSSLClosedNoNotify,
@@ -838,7 +843,9 @@ where S: Read {
         errSecIO
     });
 
-    *data_length = read;
+    unsafe {
+        *data_length = read;
+    }
     ret
 }
 
@@ -848,11 +855,17 @@ unsafe extern "C" fn write_func<S>(
     data_length: *mut usize,
 ) -> OSStatus
 where S: Write {
-    let conn: &mut Connection<S> = &mut *(connection as *mut _);
+    if data.is_null() || data_length.is_null() || connection.is_null() {
+        return errSecParam;
+    }
+
+    let conn: &mut Connection<S> = unsafe { &mut *(connection as *mut _) };
     let mut written = 0;
+    let mut data = unsafe {
+        slice::from_raw_parts(data.cast::<u8>(), *data_length)
+    };
 
     let ret = panic::catch_unwind(AssertUnwindSafe(|| {
-        let mut data = slice::from_raw_parts(data.cast::<u8>(), *data_length);
         while !data.is_empty() {
             match conn.stream.write(data) {
                 Ok(0) => return errSSLClosedNoNotify,
@@ -885,7 +898,7 @@ where S: Write {
         errSecIO
     });
 
-    *data_length = written;
+    unsafe { *data_length = written };
     ret
 }
 

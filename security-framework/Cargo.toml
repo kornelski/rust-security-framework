@@ -1,6 +1,6 @@
 [package]
 name = "security-framework"
-version = "3.6.0"
+version = "3.7.0"
 authors = [
     "Steven Fackler <sfackler@gmail.com>",
     "Kornel <kornel@geekhood.net>",
@@ -14,8 +14,8 @@ categories = ["os::macos-apis", "cryptography", "api-bindings"]
 readme = "README.md"
 keywords = ["iOS", "TLS", "SSL", "crypto", "keychain"]
 exclude = ["test/*"]
-edition = "2021"
-rust-version = "1.72"
+edition = "2024"
+rust-version = "1.85"
 
 [dependencies]
 security-framework-sys = { version = "2.16", default-features = false, path = "../security-framework-sys" }
@@ -28,7 +28,7 @@ log = { version = "0.4.20", optional = true }
 [dev-dependencies]
 hex = "0.4.3"
 env_logger = "0.11"
-x509-parser = "0.16"
+x509-parser = "0.18"
 time = "0.3.23"
 tempfile = "3.12.0"
 
