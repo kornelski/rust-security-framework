@@ -36,8 +36,10 @@ pub type SecTrustRef = *mut __SecTrust;
 
 extern "C" {
     pub fn SecTrustGetTypeID() -> CFTypeID;
+    #[cfg(any(feature = "macos-12", not(target_os = "macos")))]
+    pub fn SecTrustCopyCertificateChain(trust: SecTrustRef) -> CFArrayRef;
     pub fn SecTrustGetCertificateCount(trust: SecTrustRef) -> CFIndex;
-    #[deprecated(note = "deprecated by Apple")]
+    #[deprecated(note = "deprecated by Apple, use SecTrustCopyCertificateChain")]
     pub fn SecTrustGetCertificateAtIndex(trust: SecTrustRef, ix: CFIndex) -> SecCertificateRef;
     pub fn SecTrustSetVerifyDate(trust: SecTrustRef, verifyDate: CFDateRef) -> OSStatus;
     pub fn SecTrustSetAnchorCertificates(trust: SecTrustRef, anchorCertificates: CFArrayRef) -> OSStatus;

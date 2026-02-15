@@ -236,11 +236,27 @@ impl SecTrust {
         Ok(())
     }
 
+    /// Gets the whole evaluated certificate chain.
+    ///
+    /// Note: evaluate must first be called on the `SecTrust`.
+    #[cfg(any(feature = "macos-12", not(target_os = "macos")))]
+    pub fn chain(&self) -> Vec<SecCertificate> {
+        let array = unsafe { SecTrustCopyCertificateChain(self.0) };
+
+        if array.is_null() {
+            return vec![];
+        }
+
+        let array = unsafe { CFArray::<SecCertificate>::wrap_under_create_rule(array) };
+        array.into_iter().map(|c| c.clone()).collect()
+    }
+
     /// Returns the number of certificates in an evaluated certificate chain.
     ///
     /// Note: evaluate must first be called on the `SecTrust`.
     #[inline(always)]
     #[must_use]
+    #[deprecated(note = "deprecated by Apple, use chain(), enable macos-12 feature")]
     // FIXME: this should have been usize. Don't expose CFIndex in Rust APIs.
     pub fn certificate_count(&self) -> CFIndex {
         unsafe { SecTrustGetCertificateCount(self.0) }
@@ -249,7 +265,7 @@ impl SecTrust {
     /// Returns a specific certificate from the certificate chain used to evaluate trust.
     ///
     /// Note: evaluate must first be called on the `SecTrust`.
-    #[deprecated(note = "deprecated by Apple")]
+    #[deprecated(note = "deprecated by Apple, use chain(), enable macos-12 feature")]
     #[must_use]
     pub fn certificate_at_index(&self, ix: CFIndex) -> Option<SecCertificate> {
         #[allow(deprecated)]

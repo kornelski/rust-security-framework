@@ -49,6 +49,8 @@ OSX_10_13 = []
 # Always enabled
 OSX_10_14 = []
 OSX_10_15 = ["security-framework-sys/OSX_10_15"]
+# Enable features that require macOS 12
+macos-12 = ["security-framework-sys/macos-12"]
 
 nightly = [] # not used, doesn't do anything, only for back compat
 

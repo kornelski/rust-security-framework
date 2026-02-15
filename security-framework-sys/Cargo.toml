@@ -32,6 +32,8 @@ OSX_10_13 = []
 OSX_10_14 = []
 # Enable APIs that require macOS 10.15
 OSX_10_15 = []
+# Enable features that require macOS 12
+macos-12 = []
 
 [package.metadata.docs.rs]
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]
