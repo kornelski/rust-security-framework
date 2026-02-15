@@ -1,9 +1,6 @@
 #![allow(bad_style)]
 
-#[cfg_attr(
-    any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"),
-    link(name = "Security", kind = "framework")
-)]
+#[cfg_attr(target_vendor = "apple", link(name = "Security", kind = "framework"))]
 extern "C" {}
 
 /// macOS only
@@ -14,7 +11,6 @@ pub mod access_control;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;
-#[cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
 pub mod certificate;
 /// macOS only
 #[cfg(target_os = "macos")]

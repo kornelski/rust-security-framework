@@ -33,22 +33,22 @@ time = "0.3.23"
 tempfile = "3.12.0"
 
 [features]
-default = ["OSX_10_12"]
+default = ["OSX_10_14", "alpn", "session-tickets"]
+# Always enabled
 alpn = []
+# Always enabled
 session-tickets = []
 job-bless = []
 # Enables `GenerateKeyOptions::set_synchronizable`. Warning: not backwards-compatible!
 sync-keychain = ["OSX_10_13"]
 
-OSX_10_12 = ["security-framework-sys/OSX_10_12"]
-OSX_10_13 = [
-    "OSX_10_12",
-    "security-framework-sys/OSX_10_13",
-    "alpn",
-    "session-tickets",
-]
-OSX_10_14 = ["OSX_10_13", "security-framework-sys/OSX_10_14"]
-OSX_10_15 = ["OSX_10_14", "security-framework-sys/OSX_10_15"]
+# Always enabled
+OSX_10_12 = []
+# Always enabled
+OSX_10_13 = []
+# Always enabled
+OSX_10_14 = []
+OSX_10_15 = ["security-framework-sys/OSX_10_15"]
 
 nightly = [] # not used, doesn't do anything, only for back compat
 

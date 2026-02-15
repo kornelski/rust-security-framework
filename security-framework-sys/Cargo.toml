@@ -17,16 +17,21 @@ core-foundation-sys = "0.8.6"
 libc = "0.2.150"
 
 [features]
-default = ["OSX_10_12"]
+default = ["OSX_10_13"]
 # Always enabled. No-op.
 OSX_10_9 = []
 # Always enabled. No-op.
-OSX_10_10 = ["OSX_10_9"]
-OSX_10_11 = ["OSX_10_10"]
-OSX_10_12 = ["OSX_10_11"]
-OSX_10_13 = ["OSX_10_12"]
-OSX_10_14 = ["OSX_10_13"]
-OSX_10_15 = ["OSX_10_14"]
+OSX_10_10 = []
+# Always enabled. No-op.
+OSX_10_11 = []
+# Always enabled. No-op.
+OSX_10_12 = []
+# Always enabled. No-op.
+OSX_10_13 = []
+# Always enabled. No-op.
+OSX_10_14 = []
+# Enable APIs that require macOS 10.15
+OSX_10_15 = []
 
 [package.metadata.docs.rs]
 targets = ["x86_64-apple-darwin", "aarch64-apple-ios"]

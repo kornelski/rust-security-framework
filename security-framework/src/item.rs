@@ -168,9 +168,7 @@ pub struct ItemSearchOptions {
     pub_key_hash: Option<CFData>,
     serial_number: Option<CFData>,
     app_label: Option<CFData>,
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     authentication_context: Option<CFType>,
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     skip_authenticated_items: bool,
 }
 
@@ -351,7 +349,6 @@ impl ItemSearchOptions {
 
     #[doc(hidden)]
     #[deprecated(note = "use local_authentication_context")]
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub unsafe fn authentication_context(&mut self, authentication_context: *mut std::os::raw::c_void) -> &mut Self {
         self.authentication_context = unsafe { Some(CFType::wrap_under_create_rule(authentication_context)) };
         self
@@ -360,7 +357,6 @@ impl ItemSearchOptions {
     /// The corresponding value is of type LAContext, and represents a reusable
     /// local authentication context that should be used for keychain item authentication.
     #[inline(always)]
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn local_authentication_context<LAContext: TCFType>(&mut self, authentication_context: Option<LAContext>) -> &mut Self {
         self.authentication_context = authentication_context.map(|la| la.into_CFType());
         self
@@ -368,7 +364,6 @@ impl ItemSearchOptions {
 
     /// Whether to skip items in the search that require authentication (default false)
     #[inline(always)]
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub fn skip_authenticated_items(&mut self, do_skip: bool) -> &mut Self {
         self.skip_authenticated_items = do_skip;
         self
@@ -487,12 +482,10 @@ impl ItemSearchOptions {
                 params.add(&kSecAttrApplicationLabel.to_void(), &app_label.to_void());
             }
 
-            #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
             if let Some(authentication_context) = &self.authentication_context {
                 params.add(&kSecUseAuthenticationContext.to_void(), &authentication_context.to_void());
             }
 
-            #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
             if self.skip_authenticated_items {
                 params.add(&kSecUseAuthenticationUI.to_void(), &kSecUseAuthenticationUISkip.to_void());
             }
@@ -787,7 +780,7 @@ impl ItemAddOptions {
 
         if let Some(location) = &self.location {
             match location {
-                #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+                #[cfg(any(feature = "OSX_10_15", not(target_os = "macos")))]
                 Location::DataProtectionKeychain => {
                     dict.add(
                         &unsafe { kSecUseDataProtectionKeychain }.to_void(),
@@ -1003,7 +996,7 @@ impl ItemUpdateOptions {
         }
         if let Some(location) = &self.location {
             match location {
-                #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+                #[cfg(any(feature = "OSX_10_15", not(target_os = "macos")))]
                 Location::DataProtectionKeychain => {
                     dict.add(
                         &unsafe { kSecUseDataProtectionKeychain }.to_void(),
@@ -1064,7 +1057,7 @@ pub enum Location {
     /// This keychain requires the calling binary to be codesigned with
     /// entitlements for the `KeychainAccessGroups` it is supposed to
     /// access.
-    #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+    #[cfg(any(feature = "OSX_10_15", not(target_os = "macos")))]
     DataProtectionKeychain,
     /// Store the key in the default file-based keychain. On macOS, defaults to
     /// the Login keychain.
@@ -1078,7 +1071,7 @@ pub enum Location {
 impl fmt::Debug for Location {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
-            #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+            #[cfg(any(feature = "OSX_10_15", not(target_os = "macos")))]
             Self::DataProtectionKeychain => "DataProtectionKeychain",
             #[cfg(target_os = "macos")]
             Self::DefaultFileKeychain => "DefaultFileKeychain",

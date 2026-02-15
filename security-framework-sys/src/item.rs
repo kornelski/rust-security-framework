@@ -41,19 +41,12 @@ extern "C" {
     pub static kSecUseKeychain: CFStringRef;
     #[cfg(any(feature = "OSX_10_15", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecUseDataProtectionKeychain: CFStringRef;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecAttrTokenID: CFStringRef;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecAttrTokenIDSecureEnclave: CFStringRef;
-    #[cfg(any(feature = "OSX_10_13", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecUseAuthenticationContext: CFStringRef;
-    #[cfg(any(feature = "OSX_10_11", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecUseAuthenticationUI: CFStringRef;
-    #[cfg(any(feature = "OSX_10_11", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecUseAuthenticationUISkip: CFStringRef;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecAttrSynchronizable: CFStringRef;
-    #[cfg(any(feature = "OSX_10_9", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecAttrSynchronizableAny: CFStringRef;
 
     pub static kSecAttrKeySizeInBits: CFStringRef;
@@ -79,9 +72,7 @@ extern "C" {
     pub static kSecAttrAccessGroup: CFStringRef;
     pub static kSecAttrAccessGroupToken: CFStringRef;
 
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecKeyKeyExchangeParameterRequestedSize: CFStringRef;
-    #[cfg(any(feature = "OSX_10_12", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
     pub static kSecKeyKeyExchangeParameterSharedInfo: CFStringRef;
 
     pub static kSecAttrAuthenticationType: CFStringRef;

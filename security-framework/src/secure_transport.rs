@@ -681,24 +681,10 @@ impl SslContext {
     }
 
     /// Returns the set of protocols selected via ALPN if it succeeded.
-    #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&self) -> Result<Vec<String>> {
         let mut array: CFArrayRef = ptr::null();
         unsafe {
-            #[cfg(feature = "OSX_10_13")]
-            {
-                cvt(SSLCopyALPNProtocols(self.0, &mut array))?;
-            }
-
-            #[cfg(not(feature = "OSX_10_13"))]
-            {
-                dlsym! { fn SSLCopyALPNProtocols(SSLContextRef, *mut CFArrayRef) -> OSStatus }
-                if let Some(f) = SSLCopyALPNProtocols.get() {
-                    cvt(f(self.0, &mut array))?;
-                } else {
-                    return Err(Error::from_code(errSecUnimplemented));
-                }
-            }
+            cvt(SSLCopyALPNProtocols(self.0, &mut array))?;
 
             if array.is_null() {
                 return Ok(vec![]);
@@ -712,7 +698,6 @@ impl SslContext {
     /// Configures the set of protocols use for ALPN.
     ///
     /// This is only used for client-side connections.
-    #[cfg(feature = "alpn")]
     pub fn set_alpn_protocols(&mut self, protocols: &[&str]) -> Result<()> {
         // When CFMutableArray is added to core-foundation and IntoIterator trait
         // is implemented for CFMutableArray, the code below should directly collect
@@ -724,19 +709,7 @@ impl SslContext {
                 .collect::<Vec<_>>(),
         );
 
-        #[cfg(feature = "OSX_10_13")]
-        {
-            unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
-        }
-        #[cfg(not(feature = "OSX_10_13"))]
-        {
-            dlsym! { fn SSLSetALPNProtocols(SSLContextRef, CFArrayRef) -> OSStatus }
-            if let Some(f) = SSLSetALPNProtocols.get() {
-                unsafe { cvt(f(self.0, protocols.as_concrete_TypeRef())) }
-            } else {
-                Err(Error::from_code(errSecUnimplemented))
-            }
-        }
+        unsafe { cvt(SSLSetALPNProtocols(self.0, protocols.as_concrete_TypeRef())) }
     }
 
     /// Sets whether the client sends the `SessionTicket` extension in its `ClientHello`.
@@ -746,21 +719,8 @@ impl SslContext {
     /// ticket returned by the server.
     ///
     /// [`SslContext::set_peer_id`]: #method.set_peer_id
-    #[cfg(feature = "session-tickets")]
     pub fn set_session_tickets_enabled(&mut self, enabled: bool) -> Result<()> {
-        #[cfg(feature = "OSX_10_13")]
-        {
-            unsafe { cvt(SSLSetSessionTicketsEnabled(self.0, Boolean::from(enabled))) }
-        }
-        #[cfg(not(feature = "OSX_10_13"))]
-        {
-            dlsym! { fn SSLSetSessionTicketsEnabled(SSLContextRef, Boolean) -> OSStatus }
-            if let Some(f) = SSLSetSessionTicketsEnabled.get() {
-                unsafe { cvt(f(self.0, Boolean::from(enabled))) }
-            } else {
-                Err(Error::from_code(errSecUnimplemented))
-            }
-        }
+        unsafe { cvt(SSLSetSessionTicketsEnabled(self.0, Boolean::from(enabled))) }
     }
 
     /// Returns the number of bytes which can be read without triggering a
@@ -1137,9 +1097,7 @@ pub struct ClientBuilder {
     danger_accept_invalid_hostnames: bool,
     whitelisted_ciphers: Vec<CipherSuite>,
     blacklisted_ciphers: Vec<CipherSuite>,
-    #[cfg(feature = "alpn")]
     alpn: Option<Vec<String>>,
-    #[cfg(feature = "session-tickets")]
     enable_session_tickets: bool,
 }
 
@@ -1167,9 +1125,7 @@ impl ClientBuilder {
             danger_accept_invalid_hostnames: false,
             whitelisted_ciphers: Vec::new(),
             blacklisted_ciphers: Vec::new(),
-            #[cfg(feature = "alpn")]
             alpn: None,
-            #[cfg(feature = "session-tickets")]
             enable_session_tickets: false,
         }
     }
@@ -1269,7 +1225,6 @@ impl ClientBuilder {
     }
 
     /// Configures the set of protocols used for ALPN.
-    #[cfg(feature = "alpn")]
     pub fn alpn_protocols(&mut self, protocols: &[&str]) -> &mut Self {
         self.alpn = Some(protocols.iter().map(|s| (*s).to_string()).collect());
         self
@@ -1278,7 +1233,6 @@ impl ClientBuilder {
     /// Configures the use of the RFC 5077 `SessionTicket` extension.
     ///
     /// Defaults to `false`.
-    #[cfg(feature = "session-tickets")]
     #[inline(always)]
     pub fn enable_session_tickets(&mut self, enable: bool) -> &mut Self {
         self.enable_session_tickets = enable;
@@ -1328,20 +1282,14 @@ impl ClientBuilder {
         if let Some(identity) = &self.identity {
             ctx.set_certificate(identity, &self.chain)?;
         }
-        #[cfg(feature = "alpn")]
-        {
-            if let Some(alpn) = &self.alpn {
-                ctx.set_alpn_protocols(&alpn.iter().map(|s| &**s).collect::<Vec<_>>())?;
-            }
+        if let Some(alpn) = &self.alpn {
+            ctx.set_alpn_protocols(&alpn.iter().map(|s| &**s).collect::<Vec<_>>())?;
         }
-        #[cfg(feature = "session-tickets")]
-        {
-            if self.enable_session_tickets {
-                // We must use the domain here to ensure that we go through certificate validation
-                // again rather than resuming the session if the domain changes.
-                ctx.set_peer_id(domain.as_bytes())?;
-                ctx.set_session_tickets_enabled(true)?;
-            }
+        if self.enable_session_tickets {
+            // We must use the domain here to ensure that we go through certificate validation
+            // again rather than resuming the session if the domain changes.
+            ctx.set_peer_id(domain.as_bytes())?;
+            ctx.set_session_tickets_enabled(true)?;
         }
         ctx.set_break_on_server_auth(true)?;
         self.configure_protocols(&mut ctx)?;
@@ -1549,7 +1497,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "session-tickets")]
     fn client_session_ticket_resumption() {
         // The first time through this loop, we should do a full handshake. The second time, we
         // should immediately finish the handshake without breaking on server auth.
@@ -1579,7 +1526,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "alpn")]
     fn client_alpn_accept() {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));
@@ -1590,7 +1536,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "alpn")]
     fn client_alpn_reject() {
         let mut ctx = p!(SslContext::new(SslProtocolSide::CLIENT, SslConnectionType::STREAM));
         p!(ctx.set_peer_domain_name("google.com"));

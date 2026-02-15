@@ -1,4 +1,4 @@
-#![cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos"))]
+#![cfg(target_vendor = "apple")]
 
 //! Wrappers around the macOS Security Framework.
 #![warn(missing_docs)]
@@ -23,10 +23,6 @@ macro_rules! p {
         }
     };
 }
-
-#[cfg(all(not(feature = "OSX_10_13"), any(feature = "alpn", feature = "session-tickets")))]
-#[macro_use]
-mod dlsym;
 
 pub mod access_control;
 #[cfg(target_os = "macos")]
