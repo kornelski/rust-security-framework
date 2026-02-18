@@ -17,8 +17,7 @@ use crate::key::SecKey;
 use crate::os::macos::access::SecAccess;
 use crate::os::macos::keychain::SecKeychain;
 
-// TODO: deprecate
-#[doc(hidden)]
+#[deprecated(note = "Obsolete. Use Pkcs12ImportOptions directly.")]
 /// Obsolete. Use Pkcs12ImportOptions directly.
 pub trait Pkcs12ImportOptionsExt {
     /// Specifies the keychain in which to import the identity.
@@ -30,11 +29,14 @@ pub trait Pkcs12ImportOptionsExt {
     fn access(&mut self, access: SecAccess) -> &mut Self;
 }
 
+#[allow(deprecated)]
 impl Pkcs12ImportOptionsExt for Pkcs12ImportOptions {
+    /// Moved to Pkcs12ImportOptions. Remove Pkcs12ImportOptionsExt trait.
     fn keychain(&mut self, keychain: SecKeychain) -> &mut Self {
         Self::keychain(self, keychain)
     }
 
+    /// Moved to Pkcs12ImportOptions. Remove Pkcs12ImportOptionsExt trait.
     fn access(&mut self, access: SecAccess) -> &mut Self {
         Self::access(self, access)
     }
