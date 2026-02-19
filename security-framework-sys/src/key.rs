@@ -27,6 +27,7 @@ extern "C" {
     ) -> SecKeyRef;
 
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. There's no replacement for symmetric keys")]
     pub fn SecKeyCreateFromData(
         parameters: CFDictionaryRef,
         keyData: CFDataRef,

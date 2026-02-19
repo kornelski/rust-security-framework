@@ -207,6 +207,7 @@ mod test {
 
     use super::*;
     use crate::os::macos::item::KeyType;
+    #[allow(deprecated)]
     use crate::os::macos::key::SecKeyExt;
 
     #[test]
@@ -227,6 +228,7 @@ mod test {
 
         let key = Vec::<u8>::from_hex(key).unwrap();
         let key = CFData::from_buffer(&key);
+        #[allow(deprecated)]
         let key = SecKey::from_data(KeyType::aes(), &key).unwrap();
 
         let iv = Vec::<u8>::from_hex(iv).unwrap();

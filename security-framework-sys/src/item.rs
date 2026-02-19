@@ -67,6 +67,7 @@ extern "C" {
     pub static kSecAttrKeyTypeRC2: CFStringRef;
     #[cfg(target_os = "macos")]
     pub static kSecAttrKeyTypeCAST: CFStringRef;
+    #[deprecated(note = "Deprecated by Apple")]
     pub static kSecAttrKeyTypeEC: CFStringRef;
 
     pub static kSecAttrAccessGroup: CFStringRef;
