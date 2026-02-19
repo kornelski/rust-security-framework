@@ -514,7 +514,7 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_encrypted() {
+    fn test_decode_encrypted_with_keystore_identities() {
         let _ = import_keystore();
 
         let decoder = CMSDecoder::create().expect("create");
@@ -528,7 +528,7 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_signed_and_encrypted() {
+    fn test_decode_signed_and_encrypted_with_keystore_identities() {
         let _ = import_keystore();
 
         let decoder = CMSDecoder::create().unwrap();
@@ -552,7 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_encrypted() {
+    fn test_encode_encrypted_with_keystore_identities() {
         let identities = import_keystore();
 
         let chain = identities
@@ -575,7 +575,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_signed_encrypted() {
+    fn test_encode_signed_encrypted_with_keystore_identities() {
         let identities = import_keystore();
 
         let chain = identities
@@ -603,7 +603,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_with_cms_encoder() {
+    fn test_encode_with_cms_encoder_with_keystore_identities() {
         let identities = import_keystore();
 
         let chain = identities
