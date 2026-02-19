@@ -14,6 +14,7 @@ use core_foundation::number::CFNumber;
 use core_foundation::error::{CFError, CFErrorRef};
 
 use security_framework_sys::item::{kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType, kSecAttrKeySizeInBits, kSecAttrAccessControl};
+#[allow(deprecated)]
 use security_framework_sys::item::{kSecAttrKeyTypeEC, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeRSA, kSecValueRef};
 use security_framework_sys::keychain_item::SecItemDelete;
 #[cfg(target_os = "macos")]
@@ -96,6 +97,8 @@ impl KeyType {
 
     #[inline(always)]
     #[must_use]
+    #[allow(deprecated)]
+    #[deprecated(note = "deprecated by Apple")]
     pub fn ec() -> Self {
         unsafe { Self(kSecAttrKeyTypeEC) }
     }
@@ -128,6 +131,7 @@ impl KeyType {
                 return Some(2048);
             }
         }
+        #[allow(deprecated)]
         unsafe {
             if self.0 == kSecAttrKeyTypeRSA {
                 Some(2048)
