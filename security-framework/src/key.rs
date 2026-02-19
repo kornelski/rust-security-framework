@@ -469,6 +469,9 @@ impl GenerateKeyOptions {
         if key_type != KeyType::aes() {
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
+        } else {
+            attribute_key_values.push((unsafe { security_framework_sys::item::kSecAttrCanEncrypt }.to_void(), CFBoolean::true_value().to_void()));
+            attribute_key_values.push((unsafe { security_framework_sys::item::kSecAttrCanDecrypt }.to_void(), CFBoolean::true_value().to_void()));
         }
 
         let label = self.label.as_deref().map(CFString::new);
