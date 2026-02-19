@@ -377,7 +377,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn default_keychain_test_missing_password_default() {
         let service = "default_this_service_does_not_exist";
         let account = "this_account_is_bogus";
@@ -404,7 +403,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn default_keychain_test_round_trip_password_default() {
         let service = "test_round_trip_password_default";
         let account = "this_is_the_test_account";
@@ -450,7 +448,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn default_keychain_test_change_password_default() {
         let service = "test_change_password_default";
         let account = "this_is_the_test_account";
