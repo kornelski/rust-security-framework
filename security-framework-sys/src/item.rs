@@ -32,6 +32,14 @@ extern "C" {
     pub static kSecPrivateKeyAttrs: CFStringRef;
     pub static kSecPublicKeyAttrs: CFStringRef;
 
+    pub static kSecAttrCanEncrypt: CFStringRef;
+    pub static kSecAttrCanDecrypt: CFStringRef;
+    pub static kSecAttrCanDerive: CFStringRef;
+    pub static kSecAttrCanWrap: CFStringRef;
+    pub static kSecAttrCanUnwrap: CFStringRef;
+    pub static kSecAttrCanSign: CFStringRef;
+    pub static kSecAttrCanVerify: CFStringRef;
+
     pub static kSecAttrKeyClass: CFStringRef;
     pub static kSecAttrKeyClassPublic: CFStringRef;
     pub static kSecAttrKeyClassPrivate: CFStringRef;
