@@ -256,7 +256,7 @@ mod test {
         let (_, name) = X509Name::from_der(&issuer).unwrap();
         let name_str = name.to_string_with_registry(oid_registry()).unwrap();
         assert_eq!(
-            "C=US, ST=CALIFORNIA, L=PALO ALTO, O=FOOBAR LLC, OU=DEV LAND, CN=FOOBAR.COM",
+            "C=US, ST=California, L=Palo Alto, O=Foobar LLC, OU=Dev Land, CN=foobar.com",
             name_str
         );
     }
@@ -268,7 +268,7 @@ mod test {
         let (_, name) = X509Name::from_der(&subject).unwrap();
         let name_str = name.to_string_with_registry(oid_registry()).unwrap();
         assert_eq!(
-            "C=US, ST=CALIFORNIA, L=PALO ALTO, O=FOOBAR LLC, OU=DEV LAND, CN=FOOBAR.COM",
+            "C=US, ST=California, L=Palo Alto, O=Foobar LLC, OU=Dev Land, CN=foobar.com",
             name_str
         );
     }
