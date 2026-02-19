@@ -59,8 +59,15 @@ fn cvt(err: OSStatus) -> Result<()> {
 mod test {
     use crate::certificate::SecCertificate;
 
+    /// Returns the server certificate (for certificate parsing/identity tests)
     pub fn certificate() -> SecCertificate {
         let certificate = include_bytes!("../test/server.der");
+        p!(SecCertificate::from_der(certificate))
+    }
+
+    /// Returns the CA certificate (trust anchor for TLS verification)
+    pub fn ca_certificate() -> SecCertificate {
+        let certificate = include_bytes!("../test/ca.der");
         p!(SecCertificate::from_der(certificate))
     }
 }
