@@ -21,7 +21,8 @@ impl SecKeyExt for SecKey {
     fn from_data(key_type: KeyType, key_data: &CFData) -> Result<Self, CFError> {
         unsafe {
             let key = CFString::wrap_under_get_rule(kSecAttrKeyType);
-            let dict = CFDictionary::from_CFType_pairs(&[(key, key_type.to_str())]);
+            let type_ = CFString::wrap_under_get_rule(key_type.as_cfstring());
+            let dict = CFDictionary::from_CFType_pairs(&[(key, type_)]);
 
             let mut err = ptr::null_mut();
             let key = security_framework_sys::key::SecKeyCreateFromData(

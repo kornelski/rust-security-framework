@@ -13,14 +13,9 @@ use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::error::{CFError, CFErrorRef};
 
-use security_framework_sys::{
-    item::{kSecAttrKeyTypeRSA, kSecValueRef},
-    keychain_item::SecItemDelete,
-};
-use security_framework_sys::{item::{
-    kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType,
-    kSecAttrKeySizeInBits, kSecAttrAccessControl
-}};
+use security_framework_sys::item::{kSecAttrIsPermanent, kSecAttrLabel, kSecAttrKeyType, kSecAttrKeySizeInBits, kSecAttrAccessControl};
+use security_framework_sys::item::{kSecAttrKeyTypeEC, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeRSA, kSecValueRef};
+use security_framework_sys::keychain_item::SecItemDelete;
 #[cfg(target_os = "macos")]
 use security_framework_sys::item::{
     kSecAttrKeyType3DES, kSecAttrKeyTypeDSA, kSecAttrKeyTypeAES,
@@ -46,7 +41,7 @@ use crate::base::Error;
 use crate::item::Location;
 use crate::access_control::SecAccessControl;
 /// Types of `SecKey`s.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct KeyType(CFStringRef);
 
 #[allow(missing_docs)]
@@ -102,21 +97,48 @@ impl KeyType {
     #[inline(always)]
     #[must_use]
     pub fn ec() -> Self {
-        use security_framework_sys::item::kSecAttrKeyTypeEC;
-
         unsafe { Self(kSecAttrKeyTypeEC) }
     }
 
     #[inline(always)]
     #[must_use]
     pub fn ec_sec_prime_random() -> Self {
-        use security_framework_sys::item::kSecAttrKeyTypeECSECPrimeRandom;
-
         unsafe { Self(kSecAttrKeyTypeECSECPrimeRandom) }
     }
 
-    pub(crate) fn to_str(self) -> CFString {
-        unsafe { CFString::wrap_under_get_rule(self.0) }
+    pub(crate) fn as_cfstring(self) -> CFStringRef {
+        self.0
+    }
+
+    /// Assumed based on the key type
+    pub fn default_size_in_bits(&self) -> Option<u32> {
+        #[cfg(target_os = "macos")]
+        unsafe {
+            if self.0 == kSecAttrKeyTypeAES {
+                return Some(256);
+            } else if self.0 == kSecAttrKeyTypeDES {
+                return Some(64);
+            } else if self.0 == kSecAttrKeyType3DES {
+                return Some(192);
+            } else if self.0 == kSecAttrKeyTypeRC4 {
+                return Some(128);
+            } else if self.0 == kSecAttrKeyTypeCAST {
+                return Some(128);
+            } else if self.0 == kSecAttrKeyTypeDSA {
+                return Some(2048);
+            }
+        }
+        unsafe {
+            if self.0 == kSecAttrKeyTypeRSA {
+                Some(2048)
+            } else if self.0 == kSecAttrKeyTypeEC {
+                Some(256)
+            } else if self.0 == kSecAttrKeyTypeECSECPrimeRandom {
+                Some(256)
+            } else {
+                None
+            }
+        }
     }
 }
 
@@ -365,31 +387,31 @@ pub struct GenerateKeyOptions {
 
 #[allow(deprecated)]
 impl GenerateKeyOptions {
-    /// Set `key_type`
+    /// `kSecAttrKeyType`
     pub fn set_key_type(&mut self, key_type: KeyType) -> &mut Self {
         self.key_type = Some(key_type);
         self
     }
 
-    /// Set `size_in_bits`
+    /// `kSecAttrKeySizeInBits`
     pub fn set_size_in_bits(&mut self, size_in_bits: u32) -> &mut Self {
         self.size_in_bits = Some(size_in_bits);
         self
     }
 
-    /// Set `label`
+    /// `kSecAttrLabel`
     pub fn set_label(&mut self, label: impl Into<String>) -> &mut Self {
         self.label = Some(label.into());
         self
     }
 
-    /// Set `token`
+    /// `kSecAttrTokenID`
     pub fn set_token(&mut self, token: Token) -> &mut Self {
         self.token = Some(token);
         self
     }
 
-    /// Set `location`
+    /// Which keychain to store the key in, if any.
     pub fn set_location(&mut self, location: Location) -> &mut Self {
         self.location = Some(location);
         self
@@ -429,24 +451,18 @@ impl GenerateKeyOptions {
             is_permanent.to_void(),
         )]);
 
-        let key_type = self.key_type.unwrap_or_else(KeyType::rsa).to_str();
+        let key_type = self.key_type.unwrap_or_else(KeyType::rsa);
+        let key_type_str = key_type.as_cfstring();
 
-        let size_in_bits = self.size_in_bits.unwrap_or(match () {
-            #[cfg(target_os = "macos")]
-            () if key_type == KeyType::aes().to_str() => 256,
-            () if key_type == KeyType::rsa().to_str() => 2048,
-            () if key_type == KeyType::ec().to_str() => 256,
-            () if key_type == KeyType::ec_sec_prime_random().to_str() => 256,
-            () => 256,
-        });
+        let size_in_bits = self.size_in_bits.unwrap_or(key_type.default_size_in_bits().unwrap_or(256));
         let size_in_bits = CFNumber::from(size_in_bits as i32);
 
         let mut attribute_key_values = vec![
-            (unsafe { kSecAttrKeyType }.to_void(), key_type.to_void()),
+            (unsafe { kSecAttrKeyType }.to_void(), key_type_str.to_void()),
             (unsafe { kSecAttrKeySizeInBits }.to_void(), size_in_bits.to_void()),
         ];
         #[cfg(target_os = "macos")]
-        if key_type != KeyType::aes().to_str() {
+        if key_type != KeyType::aes() {
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
         }
