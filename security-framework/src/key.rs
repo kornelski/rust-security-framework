@@ -526,3 +526,20 @@ impl fmt::Debug for SecKey {
         fmt.debug_struct("SecKey").finish_non_exhaustive()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{KeyType, SecKey, GenerateKeyOptions};
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn generate_aes_key() {
+        let key = SecKey::new(&GenerateKeyOptions::default()
+            .set_key_type(KeyType::aes())
+            .set_size_in_bits(256)).expect("Failed to generate AES key");
+
+        // Verify the key has attributes
+        let attrs = key.attributes();
+        assert!(!attrs.is_empty(), "AES key should have attributes");
+    }
+}
