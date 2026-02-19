@@ -7,6 +7,7 @@ on:
 
 env:
   RUST_BACKTRACE: 1
+  CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
   test:
@@ -26,7 +27,8 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - uses: actions/cache@v5
+      - uses: actions/cache/restore@v5
+        name: Cache crates.io
         with:
           path: |
             ~/.cargo/registry/index
@@ -38,11 +40,17 @@ jobs:
           cargo update -p time --precise 0.3.41
           cargo update -p time-core --precise 0.1.4
 
-      - name: Run cargo test
-        run: cargo test --all-features --all
+      - uses: actions/cache@v5
+        name: Cache build dir
+        with:
+          path: target
+          key: tests-${{ runner.os }}-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Check default features
         run: cargo check --all
+
+      - name: Run cargo test
+        run: cargo test --all-features --all
 
   lints:
     name: Lints and Breaking Changes
@@ -59,6 +67,7 @@ jobs:
           components: clippy, rustfmt
 
       - uses: actions/cache@v5
+        name: Cache crates.io
         with:
           path: |
             ~/.cargo/registry/index
@@ -67,6 +76,14 @@ jobs:
 
       - name: DO NOT USE RUSTFMT
         run: "if cargo fmt --quiet --check -- --config-path=/dev/null; then echo >&2 'Do not reformat the code with rustfmt. This project does not use rustfmt.'; fi"
+
+      - run: cargo generate-lockfile
+
+      - uses: actions/cache@v5
+        name: Cache build dir
+        with:
+          path: target
+          key: lints-${{ runner.os }}-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
       - name: SemVer check
         uses: obi1kenobi/cargo-semver-checks-action@v2
@@ -88,11 +105,20 @@ jobs:
           target: aarch64-apple-ios,x86_64-apple-darwin
 
       - uses: actions/cache/restore@v5
+        name: Cache crates.io
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cratesio-${{ runner.os }}-${{ hashFiles('Cargo.toml') }}
+
+      - run: cargo generate-lockfile
+
+      - uses: actions/cache@v5
+        name: Cache build dir
+        with:
+          path: target
+          key: lints-${{ runner.os }}-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Run check iOS
         run: cargo check --all-features -p security-framework --target aarch64-apple-ios
