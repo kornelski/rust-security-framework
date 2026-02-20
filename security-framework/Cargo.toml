@@ -18,8 +18,8 @@ edition = "2024"
 rust-version = "1.85"
 
 [dependencies]
-security-framework-sys = { version = "2.16", default-features = false, path = "../security-framework-sys" }
-bitflags = "2.6"
+security-framework-sys = { version = "2.17", default-features = false, path = "../security-framework-sys" }
+bitflags = "2.11"
 core-foundation = "0.10"
 core-foundation-sys = "0.8.6"
 libc = "0.2.139"

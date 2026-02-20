@@ -6,9 +6,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-core-foundation-sys = "0.8.3"
+core-foundation-sys = "0.8.7"
 security-framework-sys = { path = "../security-framework-sys" }
-libc = "0.2.139"
+libc = "0.2.182"
 
 [build-dependencies]
 ctest2 = "0.4.8"
