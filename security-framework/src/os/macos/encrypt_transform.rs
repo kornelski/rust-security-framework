@@ -11,6 +11,7 @@ use security_framework_sys::transform::kSecTransformInputAttributeName;
 use std::ptr;
 
 use crate::key::SecKey;
+#[allow(deprecated)]
 use crate::os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
@@ -104,12 +105,14 @@ impl Mode {
 
 /// A builder for encryption and decryption transform operations.
 #[derive(Default)]
+#[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
 pub struct Builder {
     padding: Option<Padding>,
     mode: Option<Mode>,
     iv: Option<CFData>,
 }
 
+#[allow(deprecated)]
 impl Builder {
     /// Creates a new `Builder` with a default configuration.
     #[inline(always)]
@@ -205,12 +208,14 @@ impl Builder {
 mod test {
     use hex::FromHex;
 
+    #[allow(deprecated)]
     use super::*;
     use crate::os::macos::item::KeyType;
     #[allow(deprecated)]
     use crate::os::macos::key::SecKeyExt;
 
     #[test]
+    #[allow(deprecated)]
     fn cbc_mmt_256() {
         // test 9
         let key = "87725bd43a45608814180773f0e7ab95a3c859d83a2130e884190e44d14c6996";

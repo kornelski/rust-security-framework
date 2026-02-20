@@ -154,6 +154,7 @@ extern "C" {
         keychain: *mut SecKeychainRef,
     ) -> OSStatus;
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainCreate(
         pathName: *const c_char,
         passwordLength: c_uint,
@@ -163,8 +164,10 @@ extern "C" {
         keychain: *mut SecKeychainRef,
     ) -> OSStatus;
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainOpen(pathName: *const c_char, keychain: *mut SecKeychainRef) -> OSStatus;
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainUnlock(
         keychain: SecKeychainRef,
         passwordLength: c_uint,

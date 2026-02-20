@@ -11,6 +11,7 @@ extern "C" {
 
     /// Returns the unique identifier of the opaque type to which a keychain item object belongs.
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainItemGetTypeID() -> CFTypeID;
 
     /// Adds one or more items to a keychain.
@@ -27,6 +28,7 @@ extern "C" {
 
     /// # Legacy API
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainItemModifyAttributesAndData(
         itemRef: SecKeychainItemRef,
         attrList: *const SecKeychainAttributeList,
@@ -35,11 +37,13 @@ extern "C" {
     ) -> OSStatus;
 
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainItemFreeContent(
         attrList: *mut SecKeychainAttributeList,
         data: *mut c_void,
     ) -> OSStatus;
 
     #[cfg(target_os = "macos")]
+    #[deprecated(note = "Deprecated by Apple. SecKeychain is deprecated")]
     pub fn SecKeychainItemDelete(itemRef: SecKeychainItemRef) -> OSStatus;
 }

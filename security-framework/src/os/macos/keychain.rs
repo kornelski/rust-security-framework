@@ -1,4 +1,7 @@
 //! Keychain support.
+//!
+//! Apple has deprecated `SecKeychain`.
+
 use core_foundation::base::{Boolean, TCFType};
 use core_foundation::{declare_TCFType, impl_TCFType};
 use security_framework_sys::base::{errSecSuccess, SecKeychainRef};
@@ -48,6 +51,7 @@ impl SecKeychain {
     }
 
     /// Opens a keychain from a file.
+    #[allow(deprecated)]
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path_name = [
             path.as_ref().as_os_str().as_bytes(),
@@ -65,6 +69,7 @@ impl SecKeychain {
     /// Unlocks the keychain.
     ///
     /// If a password is not specified, the user will be prompted to enter it.
+    #[allow(deprecated)]
     pub fn unlock(&mut self, password: Option<&str>) -> Result<()> {
         let (len, ptr, use_password) = match password {
             Some(password) => (password.len(), password.as_ptr().cast(), true),
@@ -159,6 +164,7 @@ impl CreateOptions {
     }
 
     /// Creates a new keychain at the specified location on the filesystem.
+    #[allow(deprecated)]
     pub fn create<P: AsRef<Path>>(&self, path: P) -> Result<SecKeychain> {
         unsafe {
             let path_name = path.as_ref().as_os_str().as_bytes();

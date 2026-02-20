@@ -14,6 +14,7 @@ use crate::certificate::SecCertificate;
 use crate::cvt;
 use crate::key::SecKey;
 use crate::os::macos::certificate_oids::CertificateOid;
+#[allow(deprecated)]
 use crate::os::macos::digest_transform::{Builder, DigestType};
 
 /// An extension trait adding OSX specific functionality to `SecCertificate`.
@@ -80,6 +81,7 @@ impl SecCertificateExt for SecCertificate {
     /// Returns the SHA-256 fingerprint of the certificate.
     fn fingerprint(&self) -> Result<[u8; 32], CFError> {
         let data = CFData::from_buffer(&self.to_der());
+        #[allow(deprecated)]
         let hash = Builder::new()
             .type_(DigestType::sha2())
             .length(256)

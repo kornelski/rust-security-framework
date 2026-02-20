@@ -17,6 +17,7 @@ extern "C" {
     pub static kSecDigestSHA2: CFStringRef;
     pub static kSecDigestTypeAttribute: CFStringRef;
 
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecDigestTransformCreate(
         digestType: CFTypeRef,
         digestLength: CFIndex,

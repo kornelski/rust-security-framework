@@ -1,6 +1,5 @@
-#![allow(unused_imports)]
+#![allow(deprecated)]
 //! Keychain item support.
-use core_foundation::base::TCFType;
 use core_foundation::{declare_TCFType, impl_TCFType};
 use security_framework_sys::base::SecKeychainItemRef;
 use security_framework_sys::keychain_item::SecKeychainItemGetTypeID;

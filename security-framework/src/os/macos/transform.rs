@@ -1,4 +1,5 @@
-//! Transform support
+#![allow(deprecated)]
+//! Transform support. Deprecated by Apple.
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::error::CFError;
 use core_foundation::string::CFString;
@@ -8,6 +9,7 @@ use std::ptr;
 
 declare_TCFType! {
     /// A type representing a transform.
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     SecTransform, SecTransformRef
 }
 impl_TCFType!(SecTransform, SecTransformRef, SecTransformGetTypeID);
@@ -15,6 +17,7 @@ impl_TCFType!(SecTransform, SecTransformRef, SecTransformGetTypeID);
 unsafe impl Sync for SecTransform {}
 unsafe impl Send for SecTransform {}
 
+#[allow(deprecated)]
 impl SecTransform {
     /// Sets an attribute of the transform.
     pub fn set_attribute<T>(&mut self, key: &CFString, value: &T) -> Result<(), CFError>

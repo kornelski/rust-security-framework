@@ -9,6 +9,7 @@ use security_framework_sys::keychain::{
     SecKeychainAddGenericPassword, SecKeychainAddInternetPassword, SecKeychainFindGenericPassword,
     SecKeychainFindInternetPassword,
 };
+#[allow(deprecated)]
 use security_framework_sys::keychain_item::{
     SecKeychainItemDelete, SecKeychainItemFreeContent, SecKeychainItemModifyAttributesAndData,
 };
@@ -56,6 +57,7 @@ impl Deref for SecKeychainItemPassword {
 impl Drop for SecKeychainItemPassword {
     #[inline]
     fn drop(&mut self) {
+        #[allow(deprecated)]
         unsafe {
             SecKeychainItemFreeContent(ptr::null_mut(), self.data as *mut _);
         }
@@ -65,6 +67,7 @@ impl Drop for SecKeychainItemPassword {
 impl SecKeychainItem {
     /// Modify keychain item in-place, replacing its password with the given one
     pub fn set_password(&mut self, password: &[u8]) -> Result<()> {
+        #[allow(deprecated)]
         unsafe {
             cvt(SecKeychainItemModifyAttributesAndData(
                 self.as_concrete_TypeRef(),
@@ -79,6 +82,7 @@ impl SecKeychainItem {
     /// Delete this item from its keychain
     #[inline]
     pub fn delete(self) {
+        #[allow(deprecated)]
         unsafe {
             SecKeychainItemDelete(self.as_concrete_TypeRef());
         }

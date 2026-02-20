@@ -20,9 +20,11 @@ extern "C" {
     pub static kSecPaddingPKCS5Key: CFStringRef;
     pub static kSecPaddingPKCS7Key: CFStringRef;
 
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecDecryptTransformCreate(keyRef: SecKeyRef, error: *mut CFErrorRef) -> SecTransformRef;
     // this symbol is apparently missing in 10.13.3?
     // pub fn SecDecryptTransformGetTypeID() -> CFTypeID;
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecEncryptTransformCreate(keyRef: SecKeyRef, error: *mut CFErrorRef) -> SecTransformRef;
 // this symbol is apparently missing in 10.13.3?
 // pub fn SecEncryptTransformGetTypeID() -> CFTypeID;

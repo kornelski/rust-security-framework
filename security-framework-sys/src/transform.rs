@@ -7,8 +7,10 @@ pub type SecTransformRef = CFTypeRef;
 extern "C" {
     pub static kSecTransformInputAttributeName: CFStringRef;
 
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecTransformGetTypeID() -> CFTypeID;
 
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecTransformSetAttribute(
         transformRef: SecTransformRef,
         key: CFStringRef,
@@ -16,6 +18,7 @@ extern "C" {
         error: *mut CFErrorRef,
     ) -> Boolean;
 
+    #[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
     pub fn SecTransformExecute(
         transformRef: SecTransformRef,
         errorRef: *mut CFErrorRef,

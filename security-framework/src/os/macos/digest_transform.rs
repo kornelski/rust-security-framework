@@ -10,7 +10,7 @@ use core_foundation_sys::string::CFStringRef;
 use security_framework_sys::digest_transform::*;
 use security_framework_sys::transform::kSecTransformInputAttributeName;
 use std::ptr;
-
+#[allow(deprecated)]
 use crate::os::macos::transform::SecTransform;
 
 #[derive(Debug, Copy, Clone)]
@@ -74,12 +74,14 @@ impl DigestType {
 }
 
 /// A builder for digest transform operations.
+#[deprecated(note = "Deprecated by Apple. SecTransform is no longer supported")]
 pub struct Builder {
     digest_type: Option<DigestType>,
     digest_length: Option<CFIndex>,
     hmac_key: Option<CFData>,
 }
 
+#[allow(deprecated)]
 impl Default for Builder {
     #[inline(always)]
     fn default() -> Self {
@@ -87,6 +89,7 @@ impl Default for Builder {
     }
 }
 
+#[allow(deprecated)]
 impl Builder {
     /// Returns a new builder with default settings.
     #[inline(always)]
@@ -160,7 +163,9 @@ impl Builder {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod test {
+    #[allow(deprecated)]
     use super::*;
 
     #[test]
