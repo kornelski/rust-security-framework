@@ -107,8 +107,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Obtains the array of signers specified with the `add_signers` function
+        #[doc(hidden)]
         pub fn get_signers(&self) -> Result<Vec<SecIdentity>> {
+            self.signers()
+        }
+
+        /// Obtains the array of signers specified with the `add_signers` function
+        pub fn signers(&self) -> Result<Vec<SecIdentity>> {
             let mut out: CFArrayRef = ptr::null_mut();
             cvt(unsafe { CMSEncoderCopySigners(self.0, &mut out) })?;
 
@@ -132,8 +137,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Obtains the array of recipients specified with the `add_recipients` function
+        #[doc(hidden)]
         pub fn get_recipients(&self) -> Result<Vec<SecCertificate>> {
+            self.recipients()
+        }
+
+        /// Obtains the array of recipients specified with the `add_recipients` function
+        pub fn recipients(&self) -> Result<Vec<SecCertificate>> {
             let mut out: CFArrayRef = ptr::null_mut();
             cvt(unsafe { CMSEncoderCopyRecipients(self.0, &mut out) })?;
 
@@ -151,8 +161,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Indicates whether the message is to have detached content
+        #[doc(hidden)]
         pub fn get_has_detached_content(&self) -> Result<bool> {
+            self.has_detached_content()
+        }
+
+        /// Indicates whether the message is to have detached content
+        pub fn has_detached_content(&self) -> Result<bool> {
             let mut has_detached_content = 0;
             cvt(unsafe { CMSEncoderGetHasDetachedContent(self.0, &mut has_detached_content) })?;
             Ok(has_detached_content != 0)
@@ -165,8 +180,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Obtains the object identifier for the encapsulated data of a signed message
+        #[doc(hidden)]
         pub fn get_encapsulated_content_type(&self) -> Result<Vec<u8>> {
+            self.encapsulated_content_type()
+        }
+
+        /// Obtains the object identifier for the encapsulated data of a signed message
+        pub fn encapsulated_content_type(&self) -> Result<Vec<u8>> {
             let mut out: CFDataRef = ptr::null_mut();
             cvt(unsafe { CMSEncoderCopyEncapsulatedContentType(self.0, &mut out) })?;
             Ok(unsafe { CFData::wrap_under_create_rule(out).to_vec() })
@@ -183,8 +203,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Obtains the certificates added to a message with `add_supporting_certs`
+        #[doc(hidden)]
         pub fn get_supporting_certs(&self) -> Result<Vec<SecCertificate>> {
+            self.supporting_certs()
+        }
+
+        /// Obtains the certificates added to a message with `add_supporting_certs`
+        pub fn supporting_certs(&self) -> Result<Vec<SecCertificate>> {
             let mut out: CFArrayRef = ptr::null_mut();
             cvt(unsafe { CMSEncoderCopySupportingCerts(self.0, &mut out) })?;
 
@@ -208,8 +233,13 @@ mod encoder {
             Ok(())
         }
 
-        /// Obtains a constant that indicates which certificates are to be included in a signed CMS message
+        #[doc(hidden)]
         pub fn get_certificate_chain_mode(&self) -> Result<CMSCertificateChainMode> {
+            self.certificate_chain_mode()
+        }
+
+        /// Obtains a constant that indicates which certificates are to be included in a signed CMS message
+        pub fn certificate_chain_mode(&self) -> Result<CMSCertificateChainMode> {
             let mut out = CMSCertificateChainMode::kCMSCertificateNone;
             cvt(unsafe { CMSEncoderGetCertificateChainMode(self.0, &mut out) })?;
             Ok(out)
@@ -221,26 +251,37 @@ mod encoder {
             Ok(())
         }
 
-        /// Finishes encoding the message and obtains the encoded result
+        #[doc(hidden)]
         pub fn get_encoded_content(&self) -> Result<Vec<u8>> {
+            self.encoded_content()
+        }
+
+        /// Finishes encoding the message and obtains the encoded result
+        pub fn encoded_content(&self) -> Result<Vec<u8>> {
             let mut out: CFDataRef = ptr::null_mut();
             cvt(unsafe { CMSEncoderCopyEncodedContent(self.0, &mut out) })?;
             Ok(unsafe { CFData::wrap_under_create_rule(out).to_vec() })
         }
 
-        /// Returns the timestamp of a signer of a CMS message, if present
+        #[doc(hidden)]
         pub fn get_signer_timestamp(&self, signer_index: usize) -> Result<CFAbsoluteTime> {
+            self.signer_timestamp(signer_index)
+        }
+
+        /// Returns the timestamp of a signer of a CMS message, if present
+        pub fn signer_timestamp(&self, signer_index: usize) -> Result<CFAbsoluteTime> {
             let mut out = CFAbsoluteTime::default();
             cvt(unsafe { CMSEncoderCopySignerTimestamp(self.0, signer_index, &mut out) })?;
             Ok(out)
         }
 
+        #[doc(hidden)]
+        pub fn get_signer_timestamp_with_policy(&self, timestamp_policy: Option<CFStringRef>, signer_index: usize) -> Result<CFAbsoluteTime> {
+            self.signer_timestamp_with_policy(timestamp_policy, signer_index)
+        }
+
         /// Returns the timestamp of a signer of a CMS message using a particular policy, if present
-        pub fn get_signer_timestamp_with_policy(
-            &self,
-            timestamp_policy: Option<CFStringRef>,
-            signer_index: usize,
-        ) -> Result<CFAbsoluteTime> {
+        pub fn signer_timestamp_with_policy(&self, timestamp_policy: Option<CFStringRef>, signer_index: usize) -> Result<CFAbsoluteTime> {
             let mut out = CFAbsoluteTime::default();
             cvt(unsafe {
                 CMSEncoderCopySignerTimestampWithPolicy(
