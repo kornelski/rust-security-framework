@@ -449,7 +449,6 @@ impl GenerateKeyOptions {
             private_attributes.set(unsafe { kSecAttrAccessControl }.to_void(), access_control.to_void());
         }
 
-        #[cfg(target_os = "macos")]
         let public_attributes = CFMutableDictionary::from_CFType_pairs(&[(
             unsafe { kSecAttrIsPermanent }.to_void(),
             is_permanent.to_void(),
@@ -465,13 +464,17 @@ impl GenerateKeyOptions {
             (unsafe { kSecAttrKeyType }.to_void(), key_type_str.to_void()),
             (unsafe { kSecAttrKeySizeInBits }.to_void(), size_in_bits.to_void()),
         ];
+        // AES (symmetric) key generation is only supported on macOS
         #[cfg(target_os = "macos")]
-        if key_type != KeyType::aes() {
-            attribute_key_values.push((unsafe { security_framework_sys::item::kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
-            attribute_key_values.push((unsafe { security_framework_sys::item::kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
-        } else {
+        let is_symmetric = key_type == KeyType::aes();
+        #[cfg(not(target_os = "macos"))]
+        let is_symmetric = false;
+        if is_symmetric {
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecAttrCanEncrypt }.to_void(), CFBoolean::true_value().to_void()));
             attribute_key_values.push((unsafe { security_framework_sys::item::kSecAttrCanDecrypt }.to_void(), CFBoolean::true_value().to_void()));
+        } else {
+            attribute_key_values.push((unsafe { security_framework_sys::item::kSecPublicKeyAttrs }.to_void(), public_attributes.to_void()));
+            attribute_key_values.push((unsafe { security_framework_sys::item::kSecPrivateKeyAttrs }.to_void(), private_attributes.to_void()));
         }
 
         let label = self.label.as_deref().map(CFString::new);
@@ -479,9 +482,8 @@ impl GenerateKeyOptions {
             attribute_key_values.push((unsafe { kSecAttrLabel }.to_void(), label.to_void()));
         }
 
-        #[cfg(target_os = "macos")]
         match &self.location {
-            #[cfg(feature = "OSX_10_15")]
+            #[cfg(any(feature = "OSX_10_15", not(target_os = "macos")))]
             Some(Location::DataProtectionKeychain) => {
                 use security_framework_sys::item::kSecUseDataProtectionKeychain;
                 attribute_key_values.push((
@@ -489,6 +491,7 @@ impl GenerateKeyOptions {
                     CFBoolean::true_value().to_void(),
                 ));
             }
+            #[cfg(target_os = "macos")]
             Some(Location::FileKeychain(keychain)) => {
                 attribute_key_values.push((
                     unsafe { security_framework_sys::item::kSecUseKeychain }.to_void(),
