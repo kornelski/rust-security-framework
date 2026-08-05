@@ -105,7 +105,7 @@ fn insert_then_find_generic_legacy() {
     // finally delete both the legacy and the modern passwords
     for name in &legacy_names {
         let (_, item) = keychain.find_generic_password(name, name).unwrap();
-        item.delete();
+        item.try_delete().expect("try_delete");
     }
     for name in &modern_names {
         delete_generic_password(name, name).unwrap();
