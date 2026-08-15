@@ -81,11 +81,16 @@ impl SecKeychainItem {
 
     /// Delete this item from its keychain
     #[inline]
-    pub fn delete(self) {
+    pub fn try_delete(self) -> Result<()> {
         #[allow(deprecated)]
-        unsafe {
-            SecKeychainItemDelete(self.as_concrete_TypeRef());
-        }
+        cvt(unsafe { SecKeychainItemDelete(self.as_concrete_TypeRef()) })
+    }
+
+    /// Delete this item from its keychain, ignoring any error
+    #[inline]
+    #[deprecated(note = "use try_delete(), which reports deletion failures")]
+    pub fn delete(self) {
+        let _ = self.try_delete();
     }
 }
 
@@ -401,7 +406,30 @@ mod test {
         let (found, item) = keychain.find_generic_password(service, account).expect("find_generic_password");
         assert_eq!(found.to_owned(), password);
 
-        item.delete();
+        item.try_delete().expect("try_delete");
+
+        temp_keychain_teardown(dir);
+    }
+
+    #[test]
+    fn try_delete_reports_failure_temp() {
+        let (dir, keychain) = temp_keychain_setup("try_delete_reports_failure");
+
+        let service = "test_try_delete_reports_failure_temp";
+        let account = "temp_this_is_the_test_account";
+        let password = String::from("deadbeef").into_bytes();
+
+        keychain.set_generic_password(service, account, &password).expect("set_generic_password");
+
+        // Two handles to the same keychain item. Deleting through the first
+        // one leaves the second referring to an item that is no longer there,
+        // so the second deletion fails in the keychain and must be reported
+        // rather than silently discarded.
+        let (_, first) = keychain.find_generic_password(service, account).expect("find_generic_password");
+        let (_, second) = keychain.find_generic_password(service, account).expect("find_generic_password");
+
+        first.try_delete().expect("first try_delete");
+        assert!(second.try_delete().is_err());
 
         temp_keychain_teardown(dir);
     }
@@ -419,7 +447,7 @@ mod test {
         let (found, item) = find_generic_password(None, service, account).expect("find_generic_password");
         assert_eq!(&*found, &password[..]);
 
-        item.delete();
+        item.try_delete().expect("try_delete");
     }
 
     #[test]
@@ -446,7 +474,7 @@ mod test {
             .expect("find_generic_password2");
         assert_eq!(&*found, &pw2[..]);
 
-        item.delete();
+        item.try_delete().expect("try_delete");
 
         temp_keychain_teardown(dir);
     }
@@ -472,7 +500,7 @@ mod test {
         let (found, item) = find_generic_password(None, service, account).expect("find_generic_password2");
         assert_eq!(found.to_owned(), pw2);
 
-        item.delete();
+        item.try_delete().expect("try_delete");
     }
 
     #[test]
@@ -506,7 +534,7 @@ mod test {
         assert!(found.is_err());
 
         // Cleanup.
-        item.delete();
+        item.try_delete().expect("try_delete");
 
         temp_keychain_teardown(dir1);
         temp_keychain_teardown(dir2);
