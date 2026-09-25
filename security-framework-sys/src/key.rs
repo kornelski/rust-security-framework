@@ -1,4 +1,4 @@
-use core_foundation_sys::base::CFTypeID;
+use core_foundation_sys::base::{CFIndex, CFTypeID};
 use core_foundation_sys::data::CFDataRef;
 use core_foundation_sys::dictionary::CFDictionaryRef;
 use core_foundation_sys::error::CFErrorRef;
@@ -8,7 +8,7 @@ use crate::base::SecKeyRef;
 
 pub type SecKeyAlgorithm = CFStringRef;
 
-pub type SecKeyOperationType = u32;
+pub type SecKeyOperationType = CFIndex;
 pub const kSecKeyOperationTypeSign: SecKeyOperationType = 0;
 pub const kSecKeyOperationTypeVerify: SecKeyOperationType = 1;
 pub const kSecKeyOperationTypeEncrypt: SecKeyOperationType = 2;
