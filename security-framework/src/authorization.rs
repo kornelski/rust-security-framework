@@ -307,18 +307,16 @@ impl Authorization {
     /// macOS 10.4 and later, you can also pass a user name and password in
     /// order to authorize a user without user interaction.
     #[allow(clippy::unnecessary_cast)]
-    #[allow(clippy::needless_pass_by_value)]
     pub fn new(
-        // FIXME: this should have been by reference
-        rights: Option<AuthorizationItemSetStorage>,
-        environment: Option<AuthorizationItemSetStorage>,
+        rights: Option<&AuthorizationItemSetStorage>,
+        environment: Option<&AuthorizationItemSetStorage>,
         flags: Flags,
     ) -> Result<Self> {
-        let rights_ptr = rights.as_ref().map_or(std::ptr::null(), |r| {
+        let rights_ptr = rights.map_or(std::ptr::null(), |r| {
             addr_of!(r.set).cast::<sys::AuthorizationItemSet>()
         });
 
-        let env_ptr = environment.as_ref().map_or(std::ptr::null(), |e| {
+        let env_ptr = environment.map_or(std::ptr::null(), |e| {
             addr_of!(e.set).cast::<sys::AuthorizationItemSet>()
         });
 
@@ -655,7 +653,7 @@ mod tests {
             .add_right("system.login.done")?
             .build();
 
-        Authorization::new(Some(rights), None, Flags::EXTEND_RIGHTS).unwrap();
+        Authorization::new(Some(&rights), None, Flags::EXTEND_RIGHTS).unwrap();
 
         Ok(())
     }
@@ -667,7 +665,7 @@ mod tests {
             .add_right("system.login.done")?
             .build();
 
-        let auth = Authorization::new(Some(rights), None, Flags::EXTEND_RIGHTS).unwrap();
+        let auth = Authorization::new(Some(&rights), None, Flags::EXTEND_RIGHTS).unwrap();
         auth.destroy_rights();
 
         Ok(())
@@ -679,7 +677,7 @@ mod tests {
             .add_right("system.privilege.admin")?
             .build();
 
-        let error = Authorization::new(Some(rights), None, Flags::EXTEND_RIGHTS).unwrap_err();
+        let error = Authorization::new(Some(&rights), None, Flags::EXTEND_RIGHTS).unwrap_err();
 
         assert_eq!(error.code(), sys::errAuthorizationInteractionNotAllowed);
 
@@ -707,7 +705,7 @@ mod tests {
             .build();
 
         let error =
-            Authorization::new(Some(rights), Some(env), Flags::INTERACTION_ALLOWED).unwrap_err();
+            Authorization::new(Some(&rights), Some(&env), Flags::INTERACTION_ALLOWED).unwrap_err();
 
         assert_eq!(error.code(), sys::errAuthorizationDenied);
 
@@ -726,7 +724,7 @@ mod tests {
 
         let env = create_credentials_env()?;
 
-        Authorization::new(Some(rights), Some(env), Flags::EXTEND_RIGHTS).unwrap();
+        Authorization::new(Some(&rights), Some(&env), Flags::EXTEND_RIGHTS).unwrap();
 
         Ok(())
     }
@@ -760,7 +758,7 @@ mod tests {
 
         let env = create_credentials_env()?;
 
-        let auth = Authorization::new(Some(rights), Some(env), Flags::EXTEND_RIGHTS).unwrap();
+        let auth = Authorization::new(Some(&rights), Some(&env), Flags::EXTEND_RIGHTS).unwrap();
 
         assert!(!Authorization::right_exists("TEST_RIGHT")?);
 
@@ -794,7 +792,7 @@ mod tests {
             .build();
 
         let auth = Authorization::new(
-            Some(rights),
+            Some(&rights),
             None,
             Flags::DEFAULTS
                 | Flags::INTERACTION_ALLOWED
