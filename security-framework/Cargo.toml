@@ -25,6 +25,9 @@ core-foundation-sys = "0.8.6"
 libc = "0.2.139"
 log = { version = "0.4.20", optional = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+block2 = "0.6"
+
 [dev-dependencies]
 hex = "0.4.3"
 env_logger = "0.11"

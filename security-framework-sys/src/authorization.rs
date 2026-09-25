@@ -58,8 +58,8 @@ pub struct AuthorizationExternalForm {
 pub type AuthorizationRights = AuthorizationItemSet;
 pub type AuthorizationEnvironment = AuthorizationItemSet;
 
-pub type AuthorizationAsyncCallback =
-    unsafe extern "C" fn(err: OSStatus, blockAuthorizedRights: *mut AuthorizationRights);
+/// Pointer to the completion block, a `void (^)(OSStatus, AuthorizationRights *)`.
+pub type AuthorizationAsyncCallback = *const c_void;
 
 extern "C" {
     pub fn AuthorizationCreate(

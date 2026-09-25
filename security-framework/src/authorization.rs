@@ -3,9 +3,9 @@
 /// # Potential improvements
 ///
 /// * When generic specialization stabilizes prevent copying from `CString` arguments.
-/// * `AuthorizationCopyRightsAsync`
 /// * Provide constants for well known item names
 use crate::base::{Error, Result};
+use block2::RcBlock;
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::base::Boolean;
 use core_foundation::base::{CFTypeRef, TCFType};
@@ -16,6 +16,7 @@ use core_foundation::error::CFError;
 #[cfg(all(target_os = "macos", feature = "job-bless"))]
 use core_foundation::error::CFErrorRef;
 use core_foundation::string::{CFString, CFStringRef};
+use core_foundation_sys::base::OSStatus;
 use security_framework_sys::authorization as sys;
 use security_framework_sys::base::errSecConversionError;
 use std::ffi::{CStr, CString};
@@ -23,7 +24,9 @@ use std::fs::File;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::os::raw::c_void;
+use std::panic::{self, AssertUnwindSafe};
 use std::ptr::addr_of;
+use std::sync::{Mutex, PoisonError};
 use sys::AuthorizationExternalForm;
 
 macro_rules! optional_str_to_cfref {
@@ -156,6 +159,10 @@ impl Default for AuthorizationItemSetStorage {
             },
         }
     }
+}
+
+fn set_ptr_or_null(storage: Option<&AuthorizationItemSetStorage>) -> *const sys::AuthorizationItemSet {
+    storage.map_or(std::ptr::null(), |storage| addr_of!(storage.set))
 }
 
 /// A convenience `AuthorizationItemSetBuilder` builder which enabled you to use
@@ -306,7 +313,6 @@ impl Authorization {
     /// icon or prompt data to be used in the authentication dialog box. In
     /// macOS 10.4 and later, you can also pass a user name and password in
     /// order to authorize a user without user interaction.
-    #[allow(clippy::unnecessary_cast)]
     #[allow(clippy::needless_pass_by_value)]
     pub fn new(
         // FIXME: this should have been by reference
@@ -314,13 +320,8 @@ impl Authorization {
         environment: Option<AuthorizationItemSetStorage>,
         flags: Flags,
     ) -> Result<Self> {
-        let rights_ptr = rights.as_ref().map_or(std::ptr::null(), |r| {
-            addr_of!(r.set).cast::<sys::AuthorizationItemSet>()
-        });
-
-        let env_ptr = environment.as_ref().map_or(std::ptr::null(), |e| {
-            addr_of!(e.set).cast::<sys::AuthorizationItemSet>()
-        });
+        let rights_ptr = set_ptr_or_null(rights.as_ref());
+        let env_ptr = set_ptr_or_null(environment.as_ref());
 
         let mut handle = MaybeUninit::<sys::AuthorizationRef>::uninit();
 
@@ -498,6 +499,32 @@ impl Authorization {
         Ok(set)
     }
 
+    /// Requests `rights` without blocking and calls `callback` once, possibly on another thread.
+    /// A panic in `callback` aborts the process.
+    pub fn copy_rights_async<F>(
+        self,
+        rights: &AuthorizationItemSetStorage,
+        environment: Option<&AuthorizationItemSetStorage>,
+        flags: Flags,
+        callback: F,
+    ) where
+        F: FnOnce(Self, Result<AuthorizationItemSet<'static>>) + Send + 'static,
+    {
+        let handle = self.handle;
+        let block = copy_rights_async_block(self, callback);
+        // SAFETY: the block owns the `Authorization`, and Security copies the block, `rights` and `environment`
+        // before returning.
+        unsafe {
+            sys::AuthorizationCopyRightsAsync(
+                handle,
+                addr_of!(rights.set),
+                set_ptr_or_null(environment),
+                flags.bits(),
+                std::ptr::from_ref(&*block).cast(),
+            );
+        }
+    }
+
     /// Creates an external representation of an authorization reference so that
     /// you can transmit it between processes.
     pub fn make_external_form(&self) -> Result<sys::AuthorizationExternalForm> {
@@ -639,6 +666,33 @@ impl Drop for Authorization {
     }
 }
 
+// SAFETY: the `AuthorizationRef` is exclusively owned and Security's functions have no thread affinity.
+unsafe impl Send for Authorization {}
+
+/// Security calls this block twice when it cannot prepare the request ([source]), so only the first call reaches
+/// `callback`.
+///
+/// [source]: https://github.com/apple-oss-distributions/Security/blob/Security-61901.120.67/OSX/libsecurity_authorization/lib/Authorization.c#L495-L515
+fn copy_rights_async_block<F>(authorization: Authorization, callback: F) -> RcBlock<dyn Fn(OSStatus, *mut c_void)>
+where
+    F: FnOnce(Authorization, Result<AuthorizationItemSet<'static>>) + Send + 'static,
+{
+    let pending = Mutex::new(Some((authorization, callback)));
+    RcBlock::new(move |status: OSStatus, rights: *mut c_void| {
+        // Owned before the guard, so a set passed to a second call is still freed.
+        let rights = (!rights.is_null()).then(|| AuthorizationItemSet { inner: rights.cast(), phantom: PhantomData });
+        let Some((authorization, callback)) = pending.lock().unwrap_or_else(PoisonError::into_inner).take() else {
+            return;
+        };
+        let result = crate::cvt(status)
+            .and_then(|()| rights.ok_or_else(|| Error::from_code(sys::errAuthorizationInternal)));
+        // A panic must not unwind into Security.
+        if panic::catch_unwind(AssertUnwindSafe(|| callback(authorization, result))).is_err() {
+            std::process::abort();
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -684,6 +738,43 @@ mod tests {
         assert_eq!(error.code(), sys::errAuthorizationInteractionNotAllowed);
 
         Ok(())
+    }
+
+    fn copy_rights_async_result(right: &str) -> Result<()> {
+        let rights = AuthorizationItemSetBuilder::new().add_right(right)?.build();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        Authorization::default()?.copy_rights_async(&rights, None, Flags::EXTEND_RIGHTS, move |_, result| {
+            let _ = sender.send(result.map(drop));
+        });
+        drop(rights);
+        receiver
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("callback did not run")
+    }
+
+    #[test]
+    fn test_copy_rights_async_grants_right_without_interaction() {
+        copy_rights_async_result("system.hdd.smart").unwrap();
+    }
+
+    #[test]
+    fn test_copy_rights_async_reports_interaction_not_allowed() {
+        let error = copy_rights_async_result("system.privilege.admin").unwrap_err();
+        assert_eq!(error.code(), sys::errAuthorizationInteractionNotAllowed);
+    }
+
+    #[test]
+    fn test_copy_rights_async_callback_runs_once_when_called_twice() {
+        use std::sync::Arc;
+
+        let results = Arc::new(Mutex::new(Vec::new()));
+        let seen = Arc::clone(&results);
+        let block = copy_rights_async_block(Authorization::default().unwrap(), move |_, result| {
+            seen.lock().unwrap().push(result.map(drop).map_err(|error| error.code()));
+        });
+        block.call((sys::errAuthorizationInvalidRef, std::ptr::null_mut()));
+        block.call((sys::errAuthorizationInternal, std::ptr::null_mut()));
+        assert_eq!(*results.lock().unwrap(), [Err(sys::errAuthorizationInvalidRef)]);
     }
 
     fn create_credentials_env() -> Result<AuthorizationItemSetStorage> {
