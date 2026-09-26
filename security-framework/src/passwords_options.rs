@@ -15,6 +15,7 @@ use security_framework_sys::item::{
     kSecAttrComment, kSecAttrDescription, kSecAttrLabel,
     kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
     kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
+    kSecUseAuthenticationContext,
 };
 use security_framework_sys::item::kSecAttrSynchronizable;
 use security_framework_sys::item::kSecAttrSynchronizableAny;
@@ -124,6 +125,14 @@ impl PasswordOptions {
     pub fn set_access_control(&mut self, access_control: SecAccessControl) {
         unsafe {
             self.push_query(kSecAttrAccessControl, access_control);
+        }
+    }
+
+    /// The corresponding value is of type LAContext, and represents a reusable
+    /// local authentication context that should be used for keychain item authentication.
+    pub fn set_local_authentication_context<LAContext: TCFType>(&mut self, authentication_context: LAContext) {
+        unsafe {
+            self.push_query(kSecUseAuthenticationContext, authentication_context);
         }
     }
 

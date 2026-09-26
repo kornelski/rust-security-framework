@@ -249,6 +249,26 @@ mod test {
     }
 
     #[test]
+    fn roundtrip_generic_with_local_authentication_context() {
+        use core_foundation::base::CFType;
+        use objc2::rc::Retained;
+        use objc2_local_authentication::LAContext;
+
+        // SAFETY: `+[LAContext new]` has no preconditions, and `into_raw` hands its retain to the create rule.
+        let context = unsafe { CFType::wrap_under_create_rule(Retained::into_raw(LAContext::new()).cast()) };
+        let name = "roundtrip_generic_with_local_authentication_context";
+        let options = || {
+            let mut options = PasswordOptions::new_generic_password(name, name);
+            options.set_local_authentication_context(context.clone());
+            options
+        };
+        set_generic_password_options(b"first", options()).expect("set_generic_password_options");
+        set_generic_password_options(b"second", options()).expect("set_generic_password_options");
+        assert_eq!(generic_password(options()).expect("generic_password"), b"second");
+        delete_generic_password_options(options()).expect("delete_generic_password_options");
+    }
+
+    #[test]
     fn missing_internet() {
         let name = "a string not likely to already be in the keychain as service or account";
         let (server, domain, account, path, port, protocol, auth) =
