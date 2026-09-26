@@ -3,6 +3,8 @@
 // NB: re-export these types in the `passwords` module!
 
 use crate::access_control::SecAccessControl;
+#[cfg(feature = "local-authentication")]
+use crate::authentication_context::AuthenticationContext;
 use core_foundation::base::{CFOptionFlags, CFType, TCFType};
 #[allow(unused_imports)]
 use core_foundation::boolean::CFBoolean;
@@ -15,6 +17,7 @@ use security_framework_sys::item::{
     kSecAttrComment, kSecAttrDescription, kSecAttrLabel,
     kSecAttrPath, kSecAttrPort, kSecAttrProtocol, kSecAttrSecurityDomain, kSecAttrServer,
     kSecAttrService, kSecClass, kSecClassGenericPassword, kSecClassInternetPassword,
+    kSecUseAuthenticationContext,
 };
 use security_framework_sys::item::kSecAttrSynchronizable;
 use security_framework_sys::item::kSecAttrSynchronizableAny;
@@ -125,6 +128,20 @@ impl PasswordOptions {
         unsafe {
             self.push_query(kSecAttrAccessControl, access_control);
         }
+    }
+
+    /// The corresponding value is of type LAContext, and represents a reusable
+    /// local authentication context that should be used for keychain item authentication.
+    pub fn set_local_authentication_context<LAContext: TCFType>(&mut self, authentication_context: LAContext) {
+        unsafe {
+            self.push_query(kSecUseAuthenticationContext, authentication_context);
+        }
+    }
+
+    /// Authenticates access to the password with `context`.
+    #[cfg(feature = "local-authentication")]
+    pub fn set_authentication_context(&mut self, context: &AuthenticationContext) {
+        self.set_local_authentication_context(context.0.clone());
     }
 
     /// Add access group to the password

@@ -25,6 +25,8 @@ macro_rules! p {
 }
 
 pub mod access_control;
+#[cfg(feature = "local-authentication")]
+pub mod authentication_context;
 #[cfg(target_os = "macos")]
 pub mod authorization;
 pub mod base;

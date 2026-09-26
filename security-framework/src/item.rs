@@ -25,6 +25,8 @@ use crate::identity::SecIdentity;
 use crate::key::SecKey;
 #[cfg(target_os = "macos")]
 use crate::os::macos::keychain::SecKeychain;
+#[cfg(feature = "local-authentication")]
+use crate::authentication_context::AuthenticationContext;
 
 /// Specifies the type of items to search for.
 #[derive(Debug, Copy, Clone)]
@@ -360,6 +362,13 @@ impl ItemSearchOptions {
     pub fn local_authentication_context<LAContext: TCFType>(&mut self, authentication_context: Option<LAContext>) -> &mut Self {
         self.authentication_context = authentication_context.map(|la| la.into_CFType());
         self
+    }
+
+    /// Authenticates the matched items with `context`.
+    #[cfg(feature = "local-authentication")]
+    #[inline]
+    pub fn use_authentication_context(&mut self, context: &AuthenticationContext) -> &mut Self {
+        self.local_authentication_context(Some(context.0.clone()))
     }
 
     /// Whether to skip items in the search that require authentication (default false)
@@ -1124,5 +1133,22 @@ mod test {
             .search()
             .unwrap();
         assert!(results.len() >= 2);
+    }
+
+    #[cfg(feature = "local-authentication")]
+    #[test]
+    fn search_with_authentication_context() {
+        let name = "search_with_authentication_context";
+        crate::passwords::set_generic_password(name, name, name.as_bytes()).expect("set_generic_password");
+
+        let mut search = ItemSearchOptions::new();
+        search.class(ItemClass::generic_password()).service(name).account(name).load_data(true);
+        let context = AuthenticationContext::new();
+        search.use_authentication_context(&context);
+        drop(context);
+        let results = search.search().expect("search");
+        assert!(matches!(&results[..], [SearchResult::Data(data)] if data == name.as_bytes()));
+
+        crate::passwords::delete_generic_password(name, name).expect("delete_generic_password");
     }
 }
