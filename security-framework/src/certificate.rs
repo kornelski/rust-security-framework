@@ -82,7 +82,11 @@ impl SecCertificate {
     pub fn subject_summary(&self) -> String {
         unsafe {
             let summary = SecCertificateCopySubjectSummary(self.0);
-            CFString::wrap_under_create_rule(summary).to_string()
+            if summary.is_null() {
+                String::new()
+            } else {
+                CFString::wrap_under_create_rule(summary).to_string()
+            }
         }
     }
 
@@ -234,6 +238,7 @@ const EC_DSA_SECP_384_R1_ASN1_HEADER: [u8; 23] = [
 
 #[cfg(test)]
 mod test {
+    use super::SecCertificate;
     use crate::test::certificate;
     use x509_parser::prelude::*;
 
@@ -241,6 +246,15 @@ mod test {
     fn subject_summary() {
         let cert = certificate();
         assert_eq!("foobar.com", cert.subject_summary());
+    }
+
+    #[test]
+    fn subject_summary_with_empty_subject() {
+        let cert = SecCertificate::from_der(include_bytes!(
+            "../test/client-cert-no-subject.der"
+        ))
+        .unwrap();
+        assert_eq!("", cert.subject_summary());
     }
 
     #[test]
