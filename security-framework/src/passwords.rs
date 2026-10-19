@@ -24,14 +24,14 @@ use security_framework_sys::keychain_item::{
 /// Set a generic password for the given service and account.
 /// Creates or updates a keychain entry.
 pub fn set_generic_password(service: &str, account: &str, password: &[u8]) -> Result<()> {
-    let mut options = PasswordOptions::new_generic_password(service, account);
-    set_password_internal(&mut options, password)
+    let options = PasswordOptions::new_generic_password(service, account);
+    set_password_internal(options, password)
 }
 
 /// Set a generic password using the given password options.
 /// Creates or updates a keychain entry.
-pub fn set_generic_password_options(password: &[u8], mut options: PasswordOptions) -> Result<()> {
-    set_password_internal(&mut options, password)
+pub fn set_generic_password_options(password: &[u8], options: PasswordOptions) -> Result<()> {
+    set_password_internal(options, password)
 }
 
 /// Get the generic password for the given service and account.  If no matching
@@ -92,7 +92,7 @@ pub fn set_internet_password(
     authentication_type: SecAuthenticationType,
     password: &[u8],
 ) -> Result<()> {
-    let mut options = PasswordOptions::new_internet_password(
+    let options = PasswordOptions::new_internet_password(
         server,
         security_domain,
         account,
@@ -101,7 +101,7 @@ pub fn set_internet_password(
         protocol,
         authentication_type,
     );
-    set_password_internal(&mut options, password)
+    set_password_internal(options, password)
 }
 
 /// Get the internet password for the given endpoint parameters.  If no matching
@@ -157,10 +157,10 @@ pub fn delete_internet_password(
 
 // This starts by trying to create the password with the given query params.
 // If the creation attempt reveals that one exists, its password is updated.
-fn set_password_internal(options: &mut PasswordOptions, password: &[u8]) -> Result<()> {
+fn set_password_internal(mut options: PasswordOptions, password: &[u8]) -> Result<()> {
     #[allow(deprecated)]
     let query_without_password = options.query.len();
-    unsafe { options.push_query(kSecValueData, CFData::from_buffer(password)); }
+    unsafe { options.push_query(kSecValueData, CFData::from_arc(std::sync::Arc::new(password))); }
 
     let params = options.to_dictionary();
     let mut ret = std::ptr::null();
